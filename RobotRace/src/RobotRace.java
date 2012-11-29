@@ -295,7 +295,7 @@ public class RobotRace extends Base {
          * Constructs a Robot with some default dimensions.
          */
         public Robot() {
-            this(0.5f, 0.5f, 0.75f, 0.5f, 0.5f, 0.85f, 0.5f, 0.5f, 0.75f, 0.1f, 0.1f);
+            this(0.5f, 0.5f, 0.75f, 0.5f, 0.5f, 0.85f, 0.1f, 0.1f, 0.75f, 0.1f, 0.1f);
         }
 
         public Robot(float hatSize, float headSize, float torsoHeight, float torsoWidth, float torsoThickness, float armsLength, float armsWidth, float armsThickness, float legsLength, float legsWidth, float legsThickness) {
@@ -695,10 +695,11 @@ public class RobotRace extends Base {
                  if (!gs.showStick) {
                                 
                 gl.glPushMatrix();
-                    gl.glTranslatef(s * 0.5f * parent.width, 0, -0.25f * parent.length);
+                gl.glTranslatef(s * (0.5f * torsoPart.width + parent.width), 0, parent.getHeight());
+                
                     gl.glRotatef(s * -90, 0, 1, 0);
                     gl.glScalef(parent.width, parent.thickness, parent.width);
-                    glut.glutSolidCylinder(100.5, 1, 20, 10);
+                    glut.glutSolidCylinder(0.5, 1, 20, 10);
                     gl.glPopMatrix();
                  }
             }
@@ -706,8 +707,8 @@ public class RobotRace extends Base {
             @Override
             public void draw(){
                drawShoulder();
-               System.out.println(parent.width + " " + parent.length);
-               //drawArm();
+               //System.out.println(parent.width + " " + parent.length);
+               drawArm();
             }
             
             private void drawArm() {
