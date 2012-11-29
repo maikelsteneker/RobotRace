@@ -71,6 +71,11 @@ public class RobotRace extends Base {
         // Enable textures. 
         gl.glEnable(GL_TEXTURE_2D);
         gl.glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+        
+        
+        gl.glEnable(GL_LIGHTING);
+        gl.glEnable(GL_LIGHT0);
+        gl.glEnable(GL_COLOR_MATERIAL);
 
         //initialize robots
         robots = new Robot[NUMROBOTS];
@@ -92,9 +97,9 @@ public class RobotRace extends Base {
         gl.glLoadIdentity();
         final float AR = gs.w / (float) gs.h;
         if (gs.persp) {
-            //if (fovy == -1) {
-            fovy = 2 * atan2((gs.vWidth / AR) / 2, gs.vDist);
-            //}
+            if (fovy == -1) {
+                fovy = 2 * atan2((gs.vWidth / AR) / 2, gs.vDist);
+            }
             glu.gluPerspective(toDegrees(fovy), AR, 0.1, 1000);
         } else {
             //TODO: center point
@@ -122,13 +127,13 @@ public class RobotRace extends Base {
                 0.0, 0.0, 1.0);   // up axis
 
         // Enable lighting (2.1)
-        gl.glEnable(GL_LIGHTING); //enable lighting (lighting influences color)
-        gl.glEnable(GL_LIGHT0); //enable light source 0
+       // gl.glEnable(GL_LIGHTING); //enable lighting (lighting influences color)
+        //gl.glEnable(GL_LIGHT0); //enable light source 0
         //gl.glLoadIdentity();
-        Vector camera = eye.subtract(eye).add(old_eye);
-        float[] location = {(float) camera.x(), (float) camera.y(), (float) camera.z()};
-        gl.glLightfv(GL_LIGHT0, GL_POSITION, location, 0); //set location of ls0
-        gl.glEnable(GL_COLOR_MATERIAL); //enable materials (material influences color)
+        //Vector camera = eye.subtract(eye).add(old_eye);
+        //float[] location = {(float) camera.x(), (float) camera.y(), (float) camera.z()};
+        //gl.glLightfv(GL_LIGHT0, GL_POSITION, location, 0); //set location of ls0
+        //gl.glEnable(GL_COLOR_MATERIAL); //enable materials (material influences color)
     }
 
     /**
@@ -178,43 +183,40 @@ public class RobotRace extends Base {
          */
 
         gl.glPushMatrix();
-        //gold
-        float[] ambient = {0.24725f, 0.1995f, 0.0745f, 1.0f};
-        float[] diffuse = {0.75164f, 0.60648f, 0.22648f, 1.0f};
-        float[] specular = {0.628281f, 0.555802f, 0.366065f, 1.0f}; //color
-        float[] shininess = {100f};//{51.2f};
-        gl.glMaterialfv(GL_FRONT, GL_AMBIENT, ambient, 0);
-        gl.glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse, 0);
-        gl.glMaterialfv(GL_FRONT, GL_SPECULAR, specular, 0);
-        gl.glMaterialfv(GL_FRONT, GL_SHININESS, shininess, 0);
+        /*
+         * //gold float[] ambient = {0.24725f, 0.1995f, 0.0745f, 1.0f}; float[]
+         * diffuse = {0.75164f, 0.60648f, 0.22648f, 1.0f}; float[] specular =
+         * {0.628281f, 0.555802f, 0.366065f, 1.0f}; //color float[] shininess =
+         * {51.2f}; gl.glMaterialfv(GL_FRONT, GL_AMBIENT, ambient, 0);
+         * gl.glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse, 0);
+         * gl.glMaterialfv(GL_FRONT, GL_SPECULAR, specular, 0);
+         * gl.glMaterialfv(GL_FRONT, GL_SHININESS, shininess, 0);
+         */
+        gl.glScaled(2, 2, 2);
         robots[0].draw();
         gl.glPopMatrix();
 
-        gl.glPushMatrix();
-        gl.glTranslatef(1.0f, 0, 0);
-        //plastic green
-        float[] ambient2 = {0.0f, 0.0f, 0.0f, 1.0f};
-        float[] diffuse2 = {0.1f, 0.35f, 0.1f, 1.0f};
-        float[] specular2 = {0.45f, 0.55f, 0.45f, 1.0f};
-        float[] shininess2 = {1};
-
-        gl.glMaterialfv(GL_FRONT, GL_AMBIENT, ambient2, 0);
-        gl.glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse2, 0);
-        gl.glMaterialfv(GL_FRONT, GL_SPECULAR, specular2, 0);
-        gl.glMaterialfv(GL_FRONT, GL_SHININESS, shininess2, 0);
-        robots[1].draw();
-        gl.glPopMatrix();
+        /*
+         * gl.glPushMatrix(); gl.glTranslatef(1.0f, 0, 0); //plastic green
+         * float[] ambient2 = {0.0f, 0.0f, 0.0f, 1.0f}; float[] diffuse2 =
+         * {0.1f, 0.35f, 0.1f, 1.0f}; float[] specular2 = {0.45f, 0.55f, 0.45f,
+         * 1.0f}; float[] shininess2 = {1};
+         *
+         * gl.glMaterialfv(GL_FRONT, GL_AMBIENT, ambient2, 0);
+         * gl.glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse2, 0);
+         * gl.glMaterialfv(GL_FRONT, GL_SPECULAR, specular2, 0);
+         * gl.glMaterialfv(GL_FRONT, GL_SHININESS, shininess2, 0);
+         * robots[1].draw(); gl.glPopMatrix();
+         */
 
         gl.glColor3f(1.0f, 0, 1.0f);
-
-        Vector horizontal = gs.cnt.subtract(eye).cross(Vector.Z).normalized().scale(gs.vWidth / 2);
-        Vector p1 = gs.cnt.subtract(horizontal);
-        Vector p2 = gs.cnt.add(horizontal);
-        gl.glBegin(GL_LINES);
-        double x = (gs.cnt.x() - 0.5 * gs.vWidth);
-        gl.glVertex3d(p1.x(), p1.y(), p1.z());
-        gl.glVertex3d(p2.x(), p2.y(), p2.z());
-        gl.glEnd();
+        /*
+         * Vector horizontal =
+         * gs.cnt.subtract(eye).cross(Vector.Z).normalized().scale(gs.vWidth /
+         * 2); Vector p1 = gs.cnt.subtract(horizontal); Vector p2 =
+         * gs.cnt.add(horizontal); gl.glBegin(GL_LINES); gl.glVertex3d(p1.x(),
+         * p1.y(), p1.z()); gl.glVertex3d(p2.x(), p2.y(), p2.z()); gl.glEnd();
+         */
     }
 
     public void drawArrow() {
@@ -277,18 +279,35 @@ public class RobotRace extends Base {
     class Robot {
         //TODO: specify torso width (and possible arms/legs as well)
 
-        boolean legDirection = false;
-        float yPos = 0;
-        float speed = 1f;
-        final static private float MAXANGLE = 30;
-        HatPart hatPart = new HatPart(0.5f);
-        HeadPart headPart = new HeadPart(0.5f);
-        TorsoPart torsoPart = new TorsoPart(0.5f);
-        ArmsPart arms = new ArmsPart(0.5f);
-        LegsPart legs = new LegsPart(0.75f);
-        Set<RobotPart> parts = new HashSet<RobotPart>();
+        boolean legDirection = false; //specifies if the leg is moving forward
+        float yPos = 0; //specifies the y position of the robot
+        float speed = 0.5f; //specifies the speed at which yPos is increased
+        final static private float MAXANGLE = 20; //specifies the maximum angle
+        //the arms and legs can turn
+        HatPart hatPart; //object representing the hat of the robot
+        HeadPart headPart; //object representing the head of the robot
+        TorsoPart torsoPart; //objedbmsct representing the torso of the robot
+        ArmsPart arms; //object representing the arms of the robot
+        LegsPart legs; //object representing the legs of the robot
+        Set<RobotPart> parts; //set containing all components which are drawn
 
+        /**
+         * Constructs a Robot with some default dimensions.
+         */
         public Robot() {
+            this(0.5f, 0.5f, 0.75f, 0.5f, 0.5f, 0.85f, 0.5f, 0.5f, 0.75f, 0.1f, 0.1f);
+        }
+
+        public Robot(float hatSize, float headSize, float torsoHeight, float torsoWidth, float torsoThickness, float armsLength, float armsWidth, float armsThickness, float legsLength, float legsWidth, float legsThickness) {
+            parts = new HashSet<RobotPart>();
+
+            //construct all parts with the given parameters
+            hatPart = new HatPart(hatSize);
+            headPart = new HeadPart(headSize);
+            torsoPart = new TorsoPart(torsoHeight, torsoWidth, torsoThickness);
+            arms = new ArmsPart(armsLength, armsWidth, armsThickness);
+            legs = new LegsPart(legsLength, legsWidth, legsThickness);
+
             //add all parts that need to be displayed to the parts set
             parts.add(hatPart);
             parts.add(headPart);
@@ -298,41 +317,30 @@ public class RobotRace extends Base {
         }
 
         /**
-         * Draws the robot
+         * Draws the robot.
          */
         public void draw() {
-            gl.glPushMatrix();
+            gl.glPushMatrix(); //push the current matrix onto the stack
 
             //move in y position
             gl.glTranslatef(0, yPos, 0);
 
             //draw parts
-            //gl.glColor3f(0.75f, 0.75f, 0.75f);
-            gl.glColor3f(218f / 255f, 165f / 255f, 32f / 255f);
-            for (RobotPart p : parts) {
-                p.draw();
+             gl.glColor3f(218f / 255f, 165f / 255f, 32f / 255f);
+            for (RobotPart p : parts) { //for all parts that should be drawn
+                p.draw(); //draw the part
             }
 
-            /*
-             * //draw hat gl.glColor3f(1.0f, 0.4f, 0.7f); drawHat();
-             *
-             * //draw head gl.glColor3f(0.75f, 0.75f, 0.75f); drawHead();
-             *
-             * //draw torso drawTorso();
-             *
-             * //draw left arm drawArm(true);
-             *
-             * //draw right arm drawArm(false);
-             *
-             * //draw left leg drawLeg(true);
-             *
-             * //draw right leg drawLeg(false);
-             */
             handleMovement();
 
-            gl.glPopMatrix();
+            gl.glPopMatrix(); //pop the matrix from the stack
         }
 
+        /**
+         * Moves the robot and turns the arms and legs by updating
+         * {@code legDirection}, {@code legs.angle} and {@code yPos} based on
+         * {@code legDirection}, {@code speed} and  {@code MAXANGLE}.
+         */
         private void handleMovement() {
             if (legs.angle > MAXANGLE) {
                 legDirection = false;
@@ -349,86 +357,306 @@ public class RobotRace extends Base {
             yPos += speed * 0.01;
         }
 
+        /**
+         * Represents the legs of a robot.
+         */
         public class LegsPart implements RobotPart {
 
-            LegPart leftLeg;
-            LegPart rightLeg;
-            float angle = 0;
-            float length;
+            RobotPart leftLeg; //object for left leg
+            RobotPart rightLeg; //object for right leg
+            float angle = 0; //current angle the legs are rotated by
+            float length; //length of the legs
+            float width; //width of the legs
+            float thickness; //thickness of the legs
 
-            public LegsPart(float length) {
+            /**
+             * Constructs a LegsPart object.
+             *
+             * @param length length of the legs
+             */
+            public LegsPart(float length, float width, float thickness) {
                 this.leftLeg = new LegPart(true, this);
                 this.rightLeg = new LegPart(false, this);
                 this.length = length;
+                this.width = width;
+                this.thickness = thickness;
             }
 
+            /**
+             * Draws both legs.
+             */
             @Override
             public void draw() {
-                /*
-                 * float[] emission = {0,1,6,8};
-                 * gl.glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emission, 0);
-                 */
-
                 leftLeg.draw();
                 rightLeg.draw();
-                /*
-                 * float[] emission2 = {0,0,0,1};
-                 * gl.glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emission2,
-                 * 0);
-                 */
             }
 
+            /**
+             * Computes the vertical distance between the bottom of the torso
+             * and the XOY plane.
+             *
+             * @return the distance
+             */
             @Override
             public float getHeight() {
                 return (float) (cos(toRadians(angle)) * length);
             }
         }
 
+        /**
+         * Represents a leg of the robot.
+         */
         public class LegPart implements RobotPart {
 
-            boolean left;
-            LegsPart parent;
-
+            boolean left; //specifies whether this is the left leg
+            LegsPart parent; //reference to the LegsPart object this leg is part of
+            int s; //sign of the angle to rotate over
+            
+            /**
+             * Constructs a LegPart object.
+             *
+             * @param left specifies whether this is the left leg
+             * @param parent reference to the LegsPart object
+             */
             public LegPart(boolean left, LegsPart parent) {
                 this.left = left;
                 this.parent = parent;
+                s = left ? 1 : -1;
             }
-
-            @Override
-            public void draw() {
-                int s = left ? 1 : -1;
+            private void drawHip() {
+                 if (!gs.showStick) {
+                                
+                gl.glPushMatrix();
+                    gl.glTranslatef(s * 0.5f* (torsoPart.width), 0, parent.getHeight()-parent.width/3);
+                    gl.glRotatef(s * -90, 0, 1, 0);
+                    gl.glScalef(parent.width, parent.thickness, parent.width);
+                    glut.glutSolidCylinder(0.5, 1, 20, 10);
+                    gl.glPopMatrix();}
+            
+            }
+            
+            private void drawUpperLeg() {
                 if (gs.showStick) {
+                    //draw a line from the end of the leg to the base of the torso
                     gl.glBegin(GL_LINES);
-                    gl.glVertex3f(0, 0, getHeight());
-                    gl.glVertex3d(0, s * sqrt(parent.length * parent.length - getHeight() * getHeight()), 0);
+                    gl.glVertex3f(0, 0, getHeight()); //base of the torso
+                    gl.glVertex3d(0, s * sqrt(parent.length * parent.length - getHeight() * getHeight()), 0); //end of the leg
                     gl.glEnd();
                 } else {
+                    //draw a rectangular prism
                     gl.glPushMatrix();
+                    //translate to the height of the leg
                     gl.glTranslated(0, 0, getHeight());
-                    gl.glRotatef(s * parent.angle, 1, 0, 0);
-                    gl.glTranslatef(s * 0.20f, 0, -0.5f * getHeight());
-                    gl.glScalef(1.0f, 1.0f, parent.length * 10);
-                    glut.glutSolidCube(0.1f);
+                    gl.glRotatef(s * parent.angle, 1, 0, 0); //rotate around x axis over specified angle
+                    //translate to half of the height of the leg (vertically)
+                    //  and the edge of the torso (horizontally)
+                    gl.glTranslatef(s * (0.5f * torsoPart.width - 0.5f * parent.width), 0, (-0.25f * getHeight()) - parent.width/2f);
+                    gl.glPushMatrix();
+                    //scale a unit cube to the correct dimensions
+                    gl.glScalef(parent.width, parent.thickness, 0.5f * parent.length);
+                    glut.glutSolidCube(1);
                     gl.glPopMatrix();
                 }
             }
+            
+            private void drawKnee() {
+                                if (!gs.showStick) {
+                                
+                gl.glPushMatrix();
+                    gl.glTranslatef(s * 0.5f * parent.width, 0, -0.25f * parent.length);
+                    gl.glRotatef(s * -90, 0, 1, 0);
+                    gl.glScalef(parent.width, parent.thickness, parent.width);
+                    glut.glutSolidCylinder(0.5, 1, 20, 10);
+                    gl.glPopMatrix();}
+            }
+            
+            private void drawLowerLeg() {
+                                if (gs.showStick) {
+                                    //draw a line from the end of the leg to the base of the torso
+                    gl.glBegin(GL_LINES);
+                    gl.glVertex3f(0, 0, getHeight()); //base of the torso
+                    gl.glVertex3d(0, s * sqrt(parent.length * parent.length - getHeight() * getHeight()), 0); //end of the leg
+                    gl.glEnd();
+                                } else {
+                gl.glTranslatef(0, 0, -0.25f * parent.length);
+                    gl.glRotatef(s * -parent.angle, 1, 0, 0);
+                    gl.glTranslatef(0, 0, -0.25f * parent.length);
+                    gl.glScalef(parent.width, parent.thickness, 0.5f * parent.length);
+                    glut.glutSolidCube(1);
+                    //glut.glutSolidCube(1);
+                    /*
+                     * gl.glTranslatef(s * 0.5f * (torsoPart.width), 0, 0.5f *
+                     * getHeight()); gl.glRotatef(-s * 90, 0, 1, 0);
+                     * gl.glScalef(parent.width, parent.thickness, parent.width
+                     * / 2); glut.glutSolidCylinder(0.5, 1, 20, 10);
+                     * //glut.glutSolidCube(0.5f);
+                     */
 
+                    gl.glPopMatrix();}
+            }
+
+            /**
+             * Draws this Leg.
+             */
+            @Override
+            public void draw() {
+                int s = left ? 1 : -1; //sign of the angle to rotate over
+                //and the x-distance to translate over
+                drawHip();
+                drawUpperLeg();
+                drawKnee();
+                drawLowerLeg();
+                /*
+                if (gs.showStick) {
+                    //draw a line from the end of the leg to the base of the torso
+                    gl.glBegin(GL_LINES);
+                    gl.glVertex3f(0, 0, getHeight()); //base of the torso
+                    gl.glVertex3d(0, s * sqrt(parent.length * parent.length - getHeight() * getHeight()), 0); //end of the leg
+                    gl.glEnd();
+                } else {
+                    //draw a rectangular prism
+                    gl.glPushMatrix();
+                    //translate to the height of the leg
+                    gl.glTranslated(0, 0, getHeight());
+                    gl.glRotatef(s * parent.angle, 1, 0, 0); //rotate around x axis over specified angle
+                    //translate to half of the height of the leg (vertically)
+                    //  and the edge of the torso (horizontally)
+                    gl.glTranslatef(s * 0.5f * (torsoPart.width - 0.5f * parent.width), 0, -0.25f * getHeight());
+                    gl.glPushMatrix();
+                    //scale a unit cube to the correct dimensions
+                    gl.glScalef(parent.width, parent.thickness, 0.5f * parent.length);
+                    glut.glutSolidCube(1);
+                    //gl.glPopMatrix();
+
+                    //gl.glPushMatrix();
+
+                    //gl.glTranslatef(s * 0.5f, 0, 3f);
+
+                    //translate down the leg
+                    gl.glPopMatrix();
+                    gl.glPushMatrix();
+                    gl.glTranslatef(s * 0.5f * parent.width, 0, -0.25f * parent.length);
+                    gl.glRotatef(s * -90, 0, 1, 0);
+                    gl.glScalef(parent.width, parent.thickness, 0.5f * parent.width);
+                    glut.glutSolidCylinder(0.5, 2, 20, 10);
+                    gl.glPopMatrix();
+                    
+                    gl.glTranslatef(0, 0, -0.25f * parent.length);
+                    gl.glRotatef(s * -parent.angle, 1, 0, 0);
+                    gl.glTranslatef(0, 0, -0.25f * parent.length);
+                    gl.glScalef(parent.width, parent.thickness, 0.5f * parent.length);
+                    glut.glutSolidCube(1);
+                    //glut.glutSolidCube(1);
+                    /*
+                     * gl.glTranslatef(s * 0.5f * (torsoPart.width), 0, 0.5f *
+                     * getHeight()); gl.glRotatef(-s * 90, 0, 1, 0);
+                     * gl.glScalef(parent.width, parent.thickness, parent.width
+                     * / 2); glut.glutSolidCylinder(0.5, 1, 20, 10);
+                     * //glut.glutSolidCube(0.5f);
+                     *
+
+                    gl.glPopMatrix();
+
+                }*/
+            }
+
+            /**
+             * Computes the distance between the top of the leg and the XOY
+             * plane. This is not simply the length, since the leg can be
+             * rotated.
+             *
+             * @return the distance
+             */
             @Override
             public float getHeight() {
                 return parent.getHeight();
             }
         }
 
+        /**
+         * Represents a leg of the robot.
+         */
+        public class SimpleLegPart implements RobotPart {
+
+            boolean left; //specifies whether this is the left leg
+            LegsPart parent; //reference to the LegsPart object this leg is part of
+
+            /**
+             * Constructs a LegPart object.
+             *
+             * @param left specifies whether this is the left leg
+             * @param parent reference to the LegsPart object
+             */
+            public SimpleLegPart(boolean left, LegsPart parent) {
+                this.left = left;
+                this.parent = parent;
+            }
+
+            /**
+             * Draws this Leg.
+             */
+            @Override
+            public void draw() {
+                int s = left ? 1 : -1; //sign of the angle to rotate over
+                //and the x-distance to translate over
+                if (gs.showStick) {
+                    //draw a line from the end of the leg to the base of the torso
+                    gl.glBegin(GL_LINES);
+                    gl.glVertex3f(0, 0, getHeight()); //base of the torso
+                    gl.glVertex3d(0, s * sqrt(parent.length * parent.length - getHeight() * getHeight()), 0); //end of the leg
+                    gl.glEnd();
+                } else {
+                    //draw a rectangular prism
+                    gl.glPushMatrix();
+                    //translate to the height of the leg
+                    gl.glTranslated(0, 0, getHeight());
+                    gl.glRotatef(s * parent.angle, 1, 0, 0); //rotate around x axis over specified angle
+                    //translate to half of the height of the leg (vertically)
+                    //  and the edge of the torso (horizontally)
+                    gl.glTranslatef(s * 0.5f * (torsoPart.width - 0.5f * parent.width), 0, -0.5f * getHeight());
+                    //scale a unit cube to the correct dimensions
+                    gl.glScalef(parent.width, parent.thickness, parent.length);
+                    glut.glutSolidCube(1);
+                    gl.glPopMatrix();
+                }
+            }
+
+            /**
+             * Computes the distance between the top of the leg and the XOY
+             * plane. This is not simply the length, since the leg can be
+             * rotated.
+             *
+             * @return the distance
+             */
+            @Override
+            public float getHeight() {
+                return parent.getHeight();
+            }
+        }
+
+        /**
+         * Represents the arms of the robot.
+         */
         public class ArmsPart implements RobotPart {
 
-            ArmPart leftArm;
-            ArmPart rightArm;
-            float length;
+            ArmPart leftArm; //object for left arm
+            ArmPart rightArm; //object for right arm
+            float length; //length of the arms
+            float width; //width of the arms
+            float thickness; //thickness of the arms
 
-            public ArmsPart(float length) {
+            /**
+             * Constructs an ArmsPart object.
+             *
+             * @param length length of the arms
+             */
+            public ArmsPart(float length, float width, float thickness) {
                 leftArm = new ArmPart(true, this);
                 rightArm = new ArmPart(false, this);
                 this.length = length;
+                this.width = width;
+                this.thickness = thickness;
+                
             }
 
             @Override
@@ -437,6 +665,12 @@ public class RobotRace extends Base {
                 rightArm.draw();
             }
 
+            /**
+             * Computes the vertical distance between the top of the torso and
+             * the XOY plane.
+             *
+             * @return the distance
+             */
             @Override
             public float getHeight() {
                 return torsoPart.getHeight();
@@ -447,15 +681,37 @@ public class RobotRace extends Base {
 
             boolean left;
             ArmsPart parent;
+            int s;
 
             public ArmPart(boolean left, ArmsPart parent) {
                 this.left = left;
                 this.parent = parent;
+                s = left ? 1 : -1;
+                
+            }
+                          
+            
+            private void drawShoulder() {
+                 if (!gs.showStick) {
+                                
+                gl.glPushMatrix();
+                    gl.glTranslatef(s * 0.5f * parent.width, 0, -0.25f * parent.length);
+                    gl.glRotatef(s * -90, 0, 1, 0);
+                    gl.glScalef(parent.width, parent.thickness, parent.width);
+                    glut.glutSolidCylinder(100.5, 1, 20, 10);
+                    gl.glPopMatrix();
+                 }
             }
 
             @Override
-            public void draw() {
-                int s = left ? 1 : -1;
+            public void draw(){
+               drawShoulder();
+               System.out.println(parent.width + " " + parent.length);
+               //drawArm();
+            }
+            
+            private void drawArm() {
+
                 if (gs.showStick) {
                     gl.glPushMatrix();
                     gl.glTranslated(0, 0, torsoPart.getHeight());
@@ -486,9 +742,13 @@ public class RobotRace extends Base {
         public class TorsoPart implements RobotPart {
 
             float height;
+            float width;
+            float thickness;
 
-            public TorsoPart(float height) {
+            public TorsoPart(float height, float width, float thickness) {
                 this.height = height;
+                this.width = width;
+                this.thickness = thickness;
             }
 
             @Override
@@ -503,7 +763,8 @@ public class RobotRace extends Base {
                 } else {
                     gl.glPushMatrix();
                     gl.glTranslated(0, 0, 0.5f * height + legs.getHeight());
-                    glut.glutSolidCube(height);
+                    gl.glScaled(width, thickness, height);
+                    glut.glutSolidCube(1f);
                     gl.glPopMatrix();
                 }
             }
@@ -560,11 +821,10 @@ public class RobotRace extends Base {
             @Override
             public void draw() {
                 if (gs.showStick) {
-                    gl.glBegin(GL_LINE_STRIP);
+                    gl.glBegin(GL_LINE_LOOP);
                     gl.glVertex3f(0, 0, this.getHeight());
                     gl.glVertex3f(-0.5f * height, 0, headPart.getHeight());
-                    gl.glVertex3f(0.5f *  height, 0, headPart.getHeight());
-                    gl.glVertex3f(0, 0, this.getHeight());
+                    gl.glVertex3f(0.5f * height, 0, headPart.getHeight());
                     gl.glEnd();
                 } else {
                     gl.glPushMatrix();
@@ -581,6 +841,9 @@ public class RobotRace extends Base {
         }
     }
 
+    /**
+     *
+     */
     public interface RobotPart {
         //TODO: add color variable
 
