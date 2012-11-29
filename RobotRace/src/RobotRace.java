@@ -71,8 +71,8 @@ public class RobotRace extends Base {
         // Enable textures. 
         gl.glEnable(GL_TEXTURE_2D);
         gl.glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-        
-        
+
+
         gl.glEnable(GL_LIGHTING);
         gl.glEnable(GL_LIGHT0);
         gl.glEnable(GL_COLOR_MATERIAL);
@@ -127,7 +127,7 @@ public class RobotRace extends Base {
                 0.0, 0.0, 1.0);   // up axis
 
         // Enable lighting (2.1)
-       // gl.glEnable(GL_LIGHTING); //enable lighting (lighting influences color)
+        // gl.glEnable(GL_LIGHTING); //enable lighting (lighting influences color)
         //gl.glEnable(GL_LIGHT0); //enable light source 0
         //gl.glLoadIdentity();
         //Vector camera = eye.subtract(eye).add(old_eye);
@@ -281,7 +281,7 @@ public class RobotRace extends Base {
 
         boolean legDirection = false; //specifies if the leg is moving forward
         float yPos = 0; //specifies the y position of the robot
-        float speed = 0.5f; //specifies the speed at which yPos is increased
+        float speed = 0f; //specifies the speed at which yPos is increased
         final static private float MAXANGLE = 20; //specifies the maximum angle
         //the arms and legs can turn
         HatPart hatPart; //object representing the hat of the robot
@@ -326,7 +326,7 @@ public class RobotRace extends Base {
             gl.glTranslatef(0, yPos, 0);
 
             //draw parts
-             gl.glColor3f(218f / 255f, 165f / 255f, 32f / 255f);
+            gl.glColor3f(218f / 255f, 165f / 255f, 32f / 255f);
             for (RobotPart p : parts) { //for all parts that should be drawn
                 p.draw(); //draw the part
             }
@@ -411,7 +411,7 @@ public class RobotRace extends Base {
             boolean left; //specifies whether this is the left leg
             LegsPart parent; //reference to the LegsPart object this leg is part of
             int s; //sign of the angle to rotate over
-            
+
             /**
              * Constructs a LegPart object.
              *
@@ -423,18 +423,20 @@ public class RobotRace extends Base {
                 this.parent = parent;
                 s = left ? 1 : -1;
             }
+
             private void drawHip() {
-                 if (!gs.showStick) {
-                                
-                gl.glPushMatrix();
-                    gl.glTranslatef(s * 0.5f* (torsoPart.width), 0, parent.getHeight()-parent.width/3);
+                if (!gs.showStick) {
+
+                    gl.glPushMatrix();
+                    gl.glTranslatef(s * 0.5f * (torsoPart.width), 0, parent.getHeight() - parent.width / 3);
                     gl.glRotatef(s * -90, 0, 1, 0);
                     gl.glScalef(parent.width, parent.thickness, parent.width);
                     glut.glutSolidCylinder(0.5, 1, 20, 10);
-                    gl.glPopMatrix();}
-            
+                    gl.glPopMatrix();
+                }
+
             }
-            
+
             private void drawUpperLeg() {
                 if (gs.showStick) {
                     //draw a line from the end of the leg to the base of the torso
@@ -450,7 +452,7 @@ public class RobotRace extends Base {
                     gl.glRotatef(s * parent.angle, 1, 0, 0); //rotate around x axis over specified angle
                     //translate to half of the height of the leg (vertically)
                     //  and the edge of the torso (horizontally)
-                    gl.glTranslatef(s * (0.5f * torsoPart.width - 0.5f * parent.width), 0, (-0.25f * getHeight()) - parent.width/2f);
+                    gl.glTranslatef(s * (0.5f * torsoPart.width - 0.5f * parent.width), 0, (-0.25f * getHeight()) - parent.width / 2f);
                     gl.glPushMatrix();
                     //scale a unit cube to the correct dimensions
                     gl.glScalef(parent.width, parent.thickness, 0.5f * parent.length);
@@ -458,27 +460,28 @@ public class RobotRace extends Base {
                     gl.glPopMatrix();
                 }
             }
-            
+
             private void drawKnee() {
-                                if (!gs.showStick) {
-                                
-                gl.glPushMatrix();
+                if (!gs.showStick) {
+
+                    gl.glPushMatrix();
                     gl.glTranslatef(s * 0.5f * parent.width, 0, -0.25f * parent.length);
                     gl.glRotatef(s * -90, 0, 1, 0);
                     gl.glScalef(parent.width, parent.thickness, parent.width);
                     glut.glutSolidCylinder(0.5, 1, 20, 10);
-                    gl.glPopMatrix();}
+                    gl.glPopMatrix();
+                }
             }
-            
+
             private void drawLowerLeg() {
-                                if (gs.showStick) {
-                                    //draw a line from the end of the leg to the base of the torso
+                if (gs.showStick) {
+                    //draw a line from the end of the leg to the base of the torso
                     gl.glBegin(GL_LINES);
                     gl.glVertex3f(0, 0, getHeight()); //base of the torso
                     gl.glVertex3d(0, s * sqrt(parent.length * parent.length - getHeight() * getHeight()), 0); //end of the leg
                     gl.glEnd();
-                                } else {
-                gl.glTranslatef(0, 0, -0.25f * parent.length);
+                } else {
+                    gl.glTranslatef(0, 0, -0.25f * parent.length);
                     gl.glRotatef(s * -parent.angle, 1, 0, 0);
                     gl.glTranslatef(0, 0, -0.25f * parent.length);
                     gl.glScalef(parent.width, parent.thickness, 0.5f * parent.length);
@@ -492,7 +495,8 @@ public class RobotRace extends Base {
                      * //glut.glutSolidCube(0.5f);
                      */
 
-                    gl.glPopMatrix();}
+                    gl.glPopMatrix();
+                }
             }
 
             /**
@@ -507,57 +511,48 @@ public class RobotRace extends Base {
                 drawKnee();
                 drawLowerLeg();
                 /*
-                if (gs.showStick) {
-                    //draw a line from the end of the leg to the base of the torso
-                    gl.glBegin(GL_LINES);
-                    gl.glVertex3f(0, 0, getHeight()); //base of the torso
-                    gl.glVertex3d(0, s * sqrt(parent.length * parent.length - getHeight() * getHeight()), 0); //end of the leg
-                    gl.glEnd();
-                } else {
-                    //draw a rectangular prism
-                    gl.glPushMatrix();
-                    //translate to the height of the leg
-                    gl.glTranslated(0, 0, getHeight());
-                    gl.glRotatef(s * parent.angle, 1, 0, 0); //rotate around x axis over specified angle
-                    //translate to half of the height of the leg (vertically)
-                    //  and the edge of the torso (horizontally)
-                    gl.glTranslatef(s * 0.5f * (torsoPart.width - 0.5f * parent.width), 0, -0.25f * getHeight());
-                    gl.glPushMatrix();
-                    //scale a unit cube to the correct dimensions
-                    gl.glScalef(parent.width, parent.thickness, 0.5f * parent.length);
-                    glut.glutSolidCube(1);
-                    //gl.glPopMatrix();
-
-                    //gl.glPushMatrix();
-
-                    //gl.glTranslatef(s * 0.5f, 0, 3f);
-
-                    //translate down the leg
-                    gl.glPopMatrix();
-                    gl.glPushMatrix();
-                    gl.glTranslatef(s * 0.5f * parent.width, 0, -0.25f * parent.length);
-                    gl.glRotatef(s * -90, 0, 1, 0);
-                    gl.glScalef(parent.width, parent.thickness, 0.5f * parent.width);
-                    glut.glutSolidCylinder(0.5, 2, 20, 10);
-                    gl.glPopMatrix();
-                    
-                    gl.glTranslatef(0, 0, -0.25f * parent.length);
-                    gl.glRotatef(s * -parent.angle, 1, 0, 0);
-                    gl.glTranslatef(0, 0, -0.25f * parent.length);
-                    gl.glScalef(parent.width, parent.thickness, 0.5f * parent.length);
-                    glut.glutSolidCube(1);
-                    //glut.glutSolidCube(1);
-                    /*
-                     * gl.glTranslatef(s * 0.5f * (torsoPart.width), 0, 0.5f *
-                     * getHeight()); gl.glRotatef(-s * 90, 0, 1, 0);
-                     * gl.glScalef(parent.width, parent.thickness, parent.width
-                     * / 2); glut.glutSolidCylinder(0.5, 1, 20, 10);
-                     * //glut.glutSolidCube(0.5f);
-                     *
-
-                    gl.glPopMatrix();
-
-                }*/
+                 * if (gs.showStick) { //draw a line from the end of the leg to
+                 * the base of the torso gl.glBegin(GL_LINES); gl.glVertex3f(0,
+                 * 0, getHeight()); //base of the torso gl.glVertex3d(0, s *
+                 * sqrt(parent.length * parent.length - getHeight() *
+                 * getHeight()), 0); //end of the leg gl.glEnd(); } else {
+                 * //draw a rectangular prism gl.glPushMatrix(); //translate to
+                 * the height of the leg gl.glTranslated(0, 0, getHeight());
+                 * gl.glRotatef(s * parent.angle, 1, 0, 0); //rotate around x
+                 * axis over specified angle //translate to half of the height
+                 * of the leg (vertically) // and the edge of the torso
+                 * (horizontally) gl.glTranslatef(s * 0.5f * (torsoPart.width -
+                 * 0.5f * parent.width), 0, -0.25f * getHeight());
+                 * gl.glPushMatrix(); //scale a unit cube to the correct
+                 * dimensions gl.glScalef(parent.width, parent.thickness, 0.5f *
+                 * parent.length); glut.glutSolidCube(1); //gl.glPopMatrix();
+                 *
+                 * //gl.glPushMatrix();
+                 *
+                 * //gl.glTranslatef(s * 0.5f, 0, 3f);
+                 *
+                 * //translate down the leg gl.glPopMatrix(); gl.glPushMatrix();
+                 * gl.glTranslatef(s * 0.5f * parent.width, 0, -0.25f *
+                 * parent.length); gl.glRotatef(s * -90, 0, 1, 0);
+                 * gl.glScalef(parent.width, parent.thickness, 0.5f *
+                 * parent.width); glut.glutSolidCylinder(0.5, 2, 20, 10);
+                 * gl.glPopMatrix();
+                 *
+                 * gl.glTranslatef(0, 0, -0.25f * parent.length); gl.glRotatef(s
+                 * * -parent.angle, 1, 0, 0); gl.glTranslatef(0, 0, -0.25f *
+                 * parent.length); gl.glScalef(parent.width, parent.thickness,
+                 * 0.5f * parent.length); glut.glutSolidCube(1);
+                 * //glut.glutSolidCube(1); /* gl.glTranslatef(s * 0.5f *
+                 * (torsoPart.width), 0, 0.5f * getHeight()); gl.glRotatef(-s *
+                 * 90, 0, 1, 0); gl.glScalef(parent.width, parent.thickness,
+                 * parent.width / 2); glut.glutSolidCylinder(0.5, 1, 20, 10);
+                 * //glut.glutSolidCube(0.5f);
+                 *
+                 *
+                 * gl.glPopMatrix();
+                 *
+                 * }
+                 */
             }
 
             /**
@@ -656,7 +651,7 @@ public class RobotRace extends Base {
                 this.length = length;
                 this.width = width;
                 this.thickness = thickness;
-                
+
             }
 
             @Override
@@ -687,30 +682,26 @@ public class RobotRace extends Base {
                 this.left = left;
                 this.parent = parent;
                 s = left ? 1 : -1;
-                
+
             }
-                          
-            
+
             private void drawShoulder() {
-                 if (!gs.showStick) {
-                                
-                gl.glPushMatrix();
-                gl.glTranslatef(s * (0.5f * torsoPart.width + parent.width), 0, parent.getHeight());
-                
+                if (!gs.showStick) {
+                    gl.glPushMatrix();
+                    gl.glTranslatef(s * (0.5f * torsoPart.width + parent.width), 0, parent.getHeight() - 0.5f * parent.width);
                     gl.glRotatef(s * -90, 0, 1, 0);
                     gl.glScalef(parent.width, parent.thickness, parent.width);
                     glut.glutSolidCylinder(0.5, 1, 20, 10);
                     gl.glPopMatrix();
-                 }
+                }
             }
 
             @Override
-            public void draw(){
-               drawShoulder();
-               //System.out.println(parent.width + " " + parent.length);
-               drawArm();
+            public void draw() {
+                drawShoulder();
+                drawArm();
             }
-            
+
             private void drawArm() {
 
                 if (gs.showStick) {
@@ -725,7 +716,7 @@ public class RobotRace extends Base {
                     gl.glPopMatrix();
                 } else {
                     gl.glPushMatrix();
-                    gl.glTranslated(0, 0, torsoPart.getHeight());
+                    gl.glTranslated(0, 0, torsoPart.getHeight() - 0.5f * parent.width);
                     gl.glRotatef(s * -legs.angle, 1, 0, 0);
                     gl.glTranslatef(s * 0.30f, 0, -0.5f * parent.length);
                     gl.glScalef(1.0f, 1.0f, parent.length * 10);
