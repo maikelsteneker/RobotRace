@@ -298,7 +298,10 @@ public class RobotRace extends Base {
             this(0.5f, 0.5f, 0.75f, 0.5f, 0.5f, 0.85f, 0.1f, 0.1f, 0.75f, 0.1f, 0.1f);
         }
 
-        public Robot(float hatSize, float headSize, float torsoHeight, float torsoWidth, float torsoThickness, float armsLength, float armsWidth, float armsThickness, float legsLength, float legsWidth, float legsThickness) {
+        public Robot(float hatSize, float headSize, float torsoHeight,
+                float torsoWidth, float torsoThickness, float armsLength,
+                float armsWidth, float armsThickness, float legsLength,
+                float legsWidth, float legsThickness) {
             parts = new HashSet<RobotPart>();
 
             //construct all parts with the given parameters
@@ -421,7 +424,7 @@ public class RobotRace extends Base {
             public LegPart(boolean left, LegsPart parent) {
                 this.left = left;
                 this.parent = parent;
-                s = left ? 1 : -1;
+                s = left ? -1 : 1;
             }
 
             private void drawHip() {
@@ -504,7 +507,7 @@ public class RobotRace extends Base {
              */
             @Override
             public void draw() {
-                int s = left ? 1 : -1; //sign of the angle to rotate over
+                //int s = left ? -1 : 1; //sign of the angle to rotate over
                 //and the x-distance to translate over
                 drawHip();
                 drawUpperLeg();
@@ -681,7 +684,7 @@ public class RobotRace extends Base {
             public ArmPart(boolean left, ArmsPart parent) {
                 this.left = left;
                 this.parent = parent;
-                s = left ? 1 : -1;
+                s = left ? -1 : 1;
 
             }
 
