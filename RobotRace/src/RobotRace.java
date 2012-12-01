@@ -53,8 +53,6 @@ public class RobotRace extends Base {
      */
     @Override
     public void initialize() {
-        gs.cnt = new Vector(1, 1, 1);
-
         // Enable blending.
         gl.glEnable(GL_BLEND);
         gl.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
