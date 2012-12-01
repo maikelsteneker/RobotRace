@@ -210,13 +210,15 @@ public class RobotRace extends Base {
          */
 
         gl.glColor3f(1.0f, 0, 1.0f);
-        /*
-         * Vector horizontal =
-         * gs.cnt.subtract(eye).cross(Vector.Z).normalized().scale(gs.vWidth /
-         * 2); Vector p1 = gs.cnt.subtract(horizontal); Vector p2 =
-         * gs.cnt.add(horizontal); gl.glBegin(GL_LINES); gl.glVertex3d(p1.x(),
-         * p1.y(), p1.z()); gl.glVertex3d(p2.x(), p2.y(), p2.z()); gl.glEnd();
-         */
+        
+          Vector horizontal = gs.cnt.subtract(eye).cross(Vector.Z).normalized().scale(gs.vWidth / 2); 
+          Vector p1 = gs.cnt.subtract(horizontal); 
+          Vector p2 = gs.cnt.add(horizontal); 
+          gl.glBegin(GL_LINES); 
+          gl.glVertex3d(p1.x(), p1.y(), p1.z()); 
+          gl.glVertex3d(p2.x(), p2.y(), p2.z()); 
+          gl.glEnd();
+         
     }
 
     public void drawArrow() {
@@ -295,7 +297,7 @@ public class RobotRace extends Base {
          * Constructs a Robot with some default dimensions.
          */
         public Robot() {
-            this(0.5f, 0.5f, 0.75f, 1.6f, 0.5f, 0.85f, 0.1f, 0.1f, 1.75f, 0.1f, 0.3f);
+            this(0.5f, 0.5f, 0.75f, 0.6f, 0.5f, 0.55f, 0.5f, 0.1f, 1.75f, 0.1f, 0.3f);
         }
 
         /**
@@ -460,7 +462,7 @@ public class RobotRace extends Base {
                     // Let the scalling depend on the leg width for the x and z axis
                     // and on the leg's thickness for the y axis.
                     gl.glScalef(parent.thickness, parent.thickness, parent.width);
-                    // Draw a cylinder with the diameter of half of the leg's thickness,
+                    // Draw a cylinder with the radius of half of the leg's thickness,
                     // and as long as the leg's width. 
                     glut.glutSolidCylinder(0.5, 1, 20, 10);             
                     gl.glPopMatrix();
@@ -506,7 +508,7 @@ public class RobotRace extends Base {
                     // Translate the current position such that the x coordinate is at the side
                     // of the leg; meaning moving half of the leg's width to the left or to the right,
                     // depending on the leg. And the Z coordinate under the UpperLeg, which is half of
-                    // the leg's length. 
+                    // the upper leg's length, meaning a quarter of the leg. 
                     gl.glTranslatef(s * 0.5f * parent.width, 0, -0.25f * parent.length);
                     // Rotate 90 degrees clockise for the right leg, and 90 degrees counterclockwise
                     // for the left leg.
@@ -514,7 +516,7 @@ public class RobotRace extends Base {
                     // Scale the knee accrodingly to the leg's dimensions: the leg's width for the x 
                     // and z axis the leg's thickness for the y axis.
                     gl.glScalef(parent.width, parent.thickness, parent.width);
-                    // Draw a cylinder to represent the knee with a dimater of half of the leg's thickness
+                    // Draw a cylinder to represent the knee with a radius of half of the leg's thickness
                     // and of the length of the leg's width.
                     glut.glutSolidCylinder(0.5, 1, 20, 10);
                     gl.glPopMatrix();
@@ -526,16 +528,22 @@ public class RobotRace extends Base {
              */
             private void drawLowerLeg() {
                 if (gs.showStick) {
-                    // Draw a line from the end of the leg to the base of the torso.
+                    // Draw a line from the end of the leg to the base of the torso
+                    // to represent the leg for the stick robot.
                     gl.glBegin(GL_LINES);
                     gl.glVertex3f(0, 0, getHeight()); // Base of the torso.
                     gl.glVertex3d(0, s * sqrt(parent.length * parent.length - getHeight() * getHeight()), 0); // End of the leg
                     gl.glEnd();
                 } else {
-                    // Translate to 
+                    // Translate the current position to be at the same height as the knee.
                     gl.glTranslatef(0, 0, -0.25f * parent.length);
+                    // Rotate 90 degrees counterclockise for the left leg, and 90 degrees clockwise
+                    // for the right leg, over the X axis at the knee's position.
                     gl.glRotatef(s * -parent.angle, 1, 0, 0);
+                    // Translate again in order for the height of the drawn tree to reach the knee.
                     gl.glTranslatef(0, 0, -0.25f * parent.length);
+                    // Scale a unit cube accorind with the leg's dimensions, devide the length
+                    // by two since this is one half of the leg.
                     gl.glScalef(parent.width, parent.thickness, 0.5f * parent.length);
                     glut.glutSolidCube(1);
                     gl.glPopMatrix();
@@ -543,7 +551,8 @@ public class RobotRace extends Base {
             }
 
             /**
-             * Draws this Leg.
+             * Draws this Leg. Makes a call to all the drawing function for
+             * each part of the leg: hip, upper leg, knee and lower leg.
              */
             @Override
             public void draw() {
@@ -566,13 +575,16 @@ public class RobotRace extends Base {
             }
         }
 
+    
         /**
-         * Represents a leg of the robot.
+         * Represents a leg of the robot without any joints. 
          */
+        
+        //TODO: Discuss whether we should remove this class.
         public class SimpleLegPart implements RobotPart {
 
-            boolean left; //specifies whether this is the left leg
-            LegsPart parent; //reference to the LegsPart object this leg is part of
+            boolean left; // Specifies whether this is the left leg.
+            LegsPart parent; // Reference to the LegsPart object this leg is part of.
 
             /**
              * Constructs a LegPart object.
@@ -601,15 +613,15 @@ public class RobotRace extends Base {
                     gl.glVertex3d(0, s * sqrt(parent.length * parent.length - getHeight() * getHeight()), 0); // End of the leg
                     gl.glEnd();
                 } else {
-                    //draw a rectangular prism
+                    // Draw a rectangular prism to represent the leg.
                     gl.glPushMatrix();
-                    //translate to the height of the leg
+                    // Translate to the height of the leg.
                     gl.glTranslated(0, 0, getHeight());
-                    gl.glRotatef(s * parent.angle, 1, 0, 0); //rotate around x axis over specified angle
-                    //translate to half of the height of the leg (vertically)
-                    //  and the edge of the torso (horizontally)
+                    gl.glRotatef(s * parent.angle, 1, 0, 0); // Rotate around x axis over specified angle.
+                    // Translate to half of the height of the leg (vertically)
+                    // and the edge of the torso (horizontally)
                     gl.glTranslatef(s * 0.5f * (torsoPart.width - 0.5f * parent.width), 0, -0.5f * getHeight());
-                    //scale a unit cube to the correct dimensions
+                    // Scale a unit cube to the leg's dimensions.
                     gl.glScalef(parent.width, parent.thickness, parent.length);
                     glut.glutSolidCube(1);
                     gl.glPopMatrix();
@@ -634,16 +646,18 @@ public class RobotRace extends Base {
          */
         public class ArmsPart implements RobotPart {
 
-            ArmPart leftArm; //object for left arm
-            ArmPart rightArm; //object for right arm
-            float length; //length of the arms
-            float width; //width of the arms
-            float thickness; //thickness of the arms
+            ArmPart leftArm; // Object for left arm.
+            ArmPart rightArm; // Object for right arm.
+            float length; // Length of the arms.
+            float width; // Width of the arms.
+            float thickness; // Thickness of the arms.
 
             /**
              * Constructs an ArmsPart object.
              *
-             * @param length length of the arms
+             * @param length The length of the arms
+             * @param width The width of the arms.
+             * @param thickness The thickness of the arms.
              */
             public ArmsPart(float length, float width, float thickness) {
                 leftArm = new ArmPart(true, this);
@@ -654,6 +668,10 @@ public class RobotRace extends Base {
 
             }
 
+            /**
+             * Draws the arms. Meaning it makes a call to the draw method of the ArmPart
+             * for the left and the right arm.
+             */
             @Override
             public void draw() {
                 leftArm.draw();
@@ -693,104 +711,175 @@ public class RobotRace extends Base {
             }
 
             /**
-             * Draws the shoulder of an arm for the full robot.
+             * Draws the shoulder of an arm in a shape of a cylinder for the full robot.
              */
             private void drawShoulder() {
                 if (!gs.showStick) {
                     gl.glPushMatrix();
-                    // Draws the sholder at the appropriate position. For the x coordinate that is
-                    // to the edge of the torso plus the 
+                    // Draws the sholder at the appropriate position. For the X coordinate that is
+                    // to the edge of the torso plus the width of the arm. And for the Z coordinate
+                    // it is the arm height minus the radius of the cylinder.
                     gl.glTranslatef(s * (0.5f * torsoPart.width + parent.width), 0, parent.getHeight() - 0.5f * parent.width);
-                    System.out.println(torsoPart.width + " " + parent.width);
+                    // Rotate around the Y axis so that the cylinder will be drawn vertically.
                     gl.glRotatef(s * -90, 0, 1, 0);
+                    // Scale the shoulder accroding to the arm's dimensions: the arm's width for the x 
+                    // and z axis the arm's thickness for the y axis.        
                     gl.glScalef(parent.width, parent.thickness, parent.width);
+                    // Draw a cylinder to represent the shoulder with a radius of half of the arm's thickness
+                    // and with length of the arm's width.
                     glut.glutSolidCylinder(0.5, 1, 20, 10);
                     gl.glPopMatrix();
                 }
             }
 
+            /**
+             * Draws an arm, by drawing its components the shoulder and 
+             * the actual arm.
+             */
             @Override
             public void draw() {
                 drawShoulder();
                 drawArm();
             }
 
+            /**
+             * Draws a arm for the robot.
+             */
             private void drawArm() {
-
+                // For the stick robot draw a line from the end of the length of
+                // the arm that rotates over the leg's angle.
                 if (gs.showStick) {
                     gl.glPushMatrix();
+                    // Translate to the height of the torso.
                     gl.glTranslated(0, 0, torsoPart.getHeight());
+                    // Rotate 90 degrees clockise for the right arm, and 90 degrees counterclockwise
+                    // for the left arm.
                     gl.glRotatef(s * -legs.angle, 1, 0, 0);
+                    // Translate the current position to be at the height of the middle of the
+                    // arm.
                     gl.glTranslatef(0, 0, -0.5f * parent.length);
+                    // Draw a line between the ????????? 
                     gl.glBegin(GL_LINES);
                     gl.glVertex3d(0, 0, -0.5 * parent.length);
-                    gl.glVertex3d(0, 0, 0.5 * parent.length);
+                    gl.glVertex3d(0, 0,  0.5 * parent.length);
                     gl.glEnd();
                     gl.glPopMatrix();
                 } else {
                     gl.glPushMatrix();
+                    // Translate the current position to be at the same height with the shoulder.
                     gl.glTranslated(0, 0, torsoPart.getHeight() - 0.5f * parent.width);
+                    // Rotate 90 degrees clockise for the right arm, and 90 degrees counterclockwise
+                    // for the left arm.
                     gl.glRotatef(s * -legs.angle, 1, 0, 0);
+                    // Translate such that the arm will be drawn to the side of the torso. That is moving
+                    // to the left or to the right (depending on the arm) half of the torso width plus half
+                    // of the arm width. Also move downwards half of the arm's length, such that the prism
+                    // will just reach the shoulder.
                     gl.glTranslatef(s * 0.5f * (torsoPart.width + parent.width), 0, -0.5f * parent.length);
-                    gl.glScalef(1.0f, 1.0f, parent.length * 10);
-                    glut.glutSolidCube(0.1f);
+                    // Scale a cube according to the arm's dimensions.
+                    gl.glScalef(parent.width, parent.thickness, parent.length);
+                    glut.glutSolidCube(1f);
                     gl.glPopMatrix();
                 }
             }
 
+            /**
+             * Getter for the height.
+             * 
+             * @return The height of the arm.  
+             */
             @Override
             public float getHeight() {
                 return parent.getHeight();
             }
         }
 
+        /**
+         * Represents the torso of a robot. 
+         */
         public class TorsoPart implements RobotPart {
-
+            // Variables for the torso dimensions.
             float height;
             float width;
             float thickness;
 
+            /**
+             * Constructs a torso with the given dimensions.
+             * 
+             * @param height The height of the torso.
+             * @param width The width of the torso.
+             * @param thickness The thickness of the torso.   
+             */
             public TorsoPart(float height, float width, float thickness) {
                 this.height = height;
                 this.width = width;
                 this.thickness = thickness;
             }
 
+            /**
+             * Draws a shape to represent the torso of a robot. For the
+             * stick robot that is a line, and for the full robot a prism.
+             */
             @Override
             public void draw() {
                 if (gs.showStick) {
                     gl.glPushMatrix();
+                    // Draw a line from the height of the legs to the height of the torso. 
                     gl.glBegin(GL_LINES);
-                    gl.glVertex3f(0, 0, legs.getHeight());
-                    gl.glVertex3f(0, 0, legs.getHeight() + height);
+                    gl.glVertex3f(0, 0, legs.getHeight()); // Leg's height.
+                    gl.glVertex3f(0, 0, this.getHeight()); // Torso's height.
                     gl.glEnd();
                     gl.glPopMatrix();
                 } else {
                     gl.glPushMatrix();
-                    gl.glTranslated(0, 0, 0.5f * height + legs.getHeight());
+                    // Move the current position at the center of the torso's height. That is
+                    // the height of the legs plus half of the torso height.
+                    gl.glTranslated(0, 0, legs.getHeight() + (0.5f * height));
+                    // Scale a cube according to the torso's dimensions.
                     gl.glScaled(width, thickness, height);
                     glut.glutSolidCube(1f);
                     gl.glPopMatrix();
                 }
             }
 
+            /**
+             * Computes the height at which the torso ends. Which is the height
+             * of the legs plus the height of itself.
+             * 
+             * @return The height at which the torso ends. 
+             */
             @Override
             public float getHeight() {
                 return legs.getHeight() + height;
             }
         }
 
+        /**
+         * Represents the head of a robot.
+         */
         public class HeadPart implements RobotPart {
-
+            // Variable representing the dimension (diameter) of the head. 
             float height;
 
+            /**
+             * Constructs the head with given parameters.
+             * 
+             * @param height The height or diameter of the head. 
+             */
             public HeadPart(float height) {
                 this.height = height;
             }
 
+            /**
+             * Draws the head of a robot. For the stick robot that is a circle
+             * and for the full robot a sphere.
+             */
+            
+            
             @Override
             public void draw() {
                 if (gs.showStick) {
+                    //TODO comment this!!!!!!!
                     float angle;
                     float x = 0;
                     float y = (0.5f * height + torsoPart.getHeight());
@@ -803,22 +892,42 @@ public class RobotRace extends Base {
                     gl.glEnd();
                 } else {
                     gl.glPushMatrix();
+                    // Translate the current position to be at the height of the
+                    // head's center point. That is the height of the torso plus 
+                    // half of the head's height.
                     gl.glTranslated(0, 0, 0.5f * height + torsoPart.getHeight());
+                    // Draw a sphere to represent the head with a radius of half of
+                    // head's height.
                     glut.glutSolidSphere(0.5f * height, 10, 10);
                     gl.glPopMatrix();
                 }
             }
 
+            /**
+             * Computes the height at which the head ends. That is the height
+             * of the torso plus its on height.
+             * 
+             * @return The height at which the head ends.
+             */
             @Override
             public float getHeight() {
                 return torsoPart.getHeight() + height;
             }
         }
 
+        /**
+         * Represents the hat of the robot. For the stick robot that is a 
+         * triangle and a cone for the full robot
+         */
         public class HatPart implements RobotPart {
-
+            // The height of the hat.
             float height;
 
+            /**
+             * Constructs a hat with the specified parameters.
+             * 
+             * @param height The height of the hat. 
+             */
             public HatPart(float height) {
                 this.height = height;
             }
