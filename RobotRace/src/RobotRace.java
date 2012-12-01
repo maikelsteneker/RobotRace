@@ -295,7 +295,7 @@ public class RobotRace extends Base {
          * Constructs a Robot with some default dimensions.
          */
         public Robot() {
-            this(0.5f, 0.5f, 0.75f, 1f, 0.5f, 0.85f, 0.1f, 0.1f, 1.75f, 0.1f, 0.3f);
+            this(0.5f, 0.5f, 0.75f, 1.6f, 0.5f, 0.85f, 0.1f, 0.1f, 1.75f, 0.1f, 0.3f);
         }
 
         /**
@@ -701,6 +701,7 @@ public class RobotRace extends Base {
                     // Draws the sholder at the appropriate position. For the x coordinate that is
                     // to the edge of the torso plus the 
                     gl.glTranslatef(s * (0.5f * torsoPart.width + parent.width), 0, parent.getHeight() - 0.5f * parent.width);
+                    System.out.println(torsoPart.width + " " + parent.width);
                     gl.glRotatef(s * -90, 0, 1, 0);
                     gl.glScalef(parent.width, parent.thickness, parent.width);
                     glut.glutSolidCylinder(0.5, 1, 20, 10);
@@ -728,9 +729,9 @@ public class RobotRace extends Base {
                     gl.glPopMatrix();
                 } else {
                     gl.glPushMatrix();
-                    gl.glTranslated(s * (0.25f * torsoPart.width), 0, torsoPart.getHeight() - 0.5f * parent.width);
+                    gl.glTranslated(0, 0, torsoPart.getHeight() - 0.5f * parent.width);
                     gl.glRotatef(s * -legs.angle, 1, 0, 0);
-                    gl.glTranslatef(s * 0.30f, 0, -0.5f * parent.length);
+                    gl.glTranslatef(s * 0.5f * (torsoPart.width + parent.width), 0, -0.5f * parent.length);
                     gl.glScalef(1.0f, 1.0f, parent.length * 10);
                     glut.glutSolidCube(0.1f);
                     gl.glPopMatrix();
