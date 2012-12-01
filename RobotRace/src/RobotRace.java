@@ -263,6 +263,23 @@ public class RobotRace extends Base {
     }
 
     /**
+     * Draws the unit circle in a 3D world in the X and Z directions.
+     *
+     * @param radius the radius of the circle
+     * @param slices the precision of the circle
+     */
+    private void drawCircle(float radius, int slices) {
+        float angle; // angle of ray from origin to current point with x axis
+        gl.glBegin(GL_LINE_LOOP);
+        for (int i = 0; i < slices; i++) {
+            angle = (float) (i * 2 * PI / slices); // compute angle
+            // Define vertex by definition of the unit circle.
+            gl.glVertex3d((cos(angle) * radius), 0, (sin(angle) * radius));
+        }
+        gl.glEnd();
+    }
+
+    /**
      * Represents a Robot, to be implemented according to the Assignments.
      */
     class Robot {
@@ -434,9 +451,9 @@ public class RobotRace extends Base {
          */
         public class LegPart implements RobotPart {
 
-            boolean left; //specifies whether this is the left leg
-            LegsPart parent; //reference to the LegsPart object this leg is part of
-            int s; //sign of the angle to rotate over
+            boolean left; // specifies whether this is the left leg
+            LegsPart parent; // reference to the LegsPart object
+            int s; // sign of the angle to rotate over
 
             /**
              * Constructs a LegPart object.
@@ -456,17 +473,20 @@ public class RobotRace extends Base {
             private void drawHip() {
                 if (!gs.showStick) {
                     gl.glPushMatrix();
-                    // Translate the current position such that the x coordinate is at the side
-                    // of the torso; meaning moving half of the torso width to the left or to the right,
-                    // depending on the leg. And the z coordinate almost at the top of the leg.
-                    gl.glTranslatef(s * 0.5f * (torsoPart.width), 0, parent.getHeight() - parent.thickness / 3);
+                    // Translate the current position such that the x coordinate
+                    // is at the side  of the torso, meaning moving half of the
+                    // torso width to the left or to the right, depennding on
+                    // the leg. In the Z direction, we translate to just under
+                    // the height of the leg.
+                    gl.glTranslatef(s * 0.5f * (torsoPart.width), 0,
+                            parent.getHeight() - parent.thickness / 3);
                     // Rotate 90 degrees in a direction depended on the leg.
                     gl.glRotatef(s * -90, 0, 1, 0);
-                    // Let the scalling depend on the leg width for the x and z axis
-                    // and on the leg's thickness for the y axis.
+                    // Scale to the leg's width for the x and z axes and on the
+                    // leg's thickness for the y axis.
                     gl.glScalef(parent.thickness, parent.thickness, parent.width);
-                    // Draw a cylinder with the radius of half of the leg's thickness,
-                    // and as long as the leg's width. 
+                    // Draw a cylinder with the radius of half of the leg's
+                    // thickness, and as long as the leg's width. 
                     glut.glutSolidCylinder(0.5, 1, 20, 10);
                     gl.glPopMatrix();
                 }
@@ -478,25 +498,32 @@ public class RobotRace extends Base {
              */
             private void drawUpperLeg() {
                 if (gs.showStick) {
-                    // Draw a line from the end of the leg to the base of the torso.
+                    // Draw a line from the end of the leg to the base of the
+                    // torso.
                     gl.glBegin(GL_LINES);
                     gl.glVertex3f(0, 0, getHeight()); // Base of the torso.
-                    gl.glVertex3d(0, s * sqrt(parent.length * parent.length - getHeight() * getHeight()), 0); // End of the leg.
+                    gl.glVertex3d(0, s * sqrt(parent.length * parent.length
+                            - getHeight() * getHeight()), 0); // End of the leg.
                     gl.glEnd();
                 } else {
                     // Draw a rectangular prism to represent the upper leg part.
                     gl.glPushMatrix();
                     // Translate to the height of the leg.
                     gl.glTranslated(0, 0, getHeight());
-                    // Rotate the leg in the x direction, over the specified angle.
+                    // Rotate the leg in the x direction, over the specified
+                    // angle.
                     gl.glRotatef(s * parent.angle, 1, 0, 0);
                     // Translate to half of the height of the leg (vertically)
                     // and the edge of the torso (horizontally).
-                    gl.glTranslatef(s * (0.5f * torsoPart.width - 0.5f * parent.width), 0, (-0.25f * getHeight()) - parent.thickness / 2f);
+                    gl.glTranslatef(s * (0.5f * torsoPart.width
+                            - 0.5f * parent.width), 0,
+                            (-0.25f * getHeight()) - parent.thickness / 2f);
                     gl.glPushMatrix();
-                    // Scale a unit cube accorind with the leg's dimensions, but the length
-                    // will be devided by two since this is one half of the leg.
-                    gl.glScalef(parent.width, parent.thickness, 0.5f * parent.length);
+                    // Scale a unit cube according to the leg's dimensions.
+                    // The length will be divided by two,since this is
+                    // one half of the leg.
+                    gl.glScalef(parent.width, parent.thickness,
+                            0.5f * parent.length);
                     glut.glutSolidCube(1);
                     gl.glPopMatrix();
                 }
@@ -508,19 +535,23 @@ public class RobotRace extends Base {
             private void drawKnee() {
                 if (!gs.showStick) {
                     gl.glPushMatrix();
-                    // Translate the current position such that the x coordinate is at the side
-                    // of the leg; meaning moving half of the leg's width to the left or to the right,
-                    // depending on the leg. And the Z coordinate under the UpperLeg, which is half of
-                    // the upper leg's length, meaning a quarter of the leg. 
-                    gl.glTranslatef(s * 0.5f * parent.width, 0, -0.25f * parent.length);
-                    // Rotate 90 degrees clockise for the right leg, and 90 degrees counterclockwise
-                    // for the left leg.
+                    // Translate the current position such that the x coordinate
+                    // is at the side of the leg, meaning moving half of the
+                    // leg's width to the left or to the right, depending on the
+                    // leg. And the Z coordinate under the upper leg, which is
+                    // half of the upper leg's length (a quarter of the leg). 
+                    gl.glTranslatef(s * 0.5f * parent.width, 0,
+                            -0.25f * parent.length);
+                    // Rotate 90 degrees clockwise for the right leg, and
+                    // 90 degrees counterclockwise for the left leg.
                     gl.glRotatef(s * -90, 0, 1, 0);
-                    // Scale the knee accrodingly to the leg's dimensions: the leg's width for the x 
-                    // and z axis the leg's thickness for the y axis.
+                    // Scale the knee according to the leg's dimensions:
+                    // the leg's width for the x and z axis the leg's thickness
+                    // for the y axis.
                     gl.glScalef(parent.width, parent.thickness, parent.width);
-                    // Draw a cylinder to represent the knee with a radius of half of the leg's thickness
-                    // and of the length of the leg's width.
+                    // Draw a cylinder to represent the knee with a radius of
+                    // half of the leg's thickness and of the length of
+                    // the leg's width.
                     glut.glutSolidCylinder(0.5, 1, 20, 10);
                     gl.glPopMatrix();
                 }
@@ -531,23 +562,28 @@ public class RobotRace extends Base {
              */
             private void drawLowerLeg() {
                 if (gs.showStick) {
-                    // Draw a line from the end of the leg to the base of the torso
-                    // to represent the leg for the stick robot.
+                    // Draw a line from the end of the leg to the base of the
+                    // torso to represent the leg for the stick robot.
                     gl.glBegin(GL_LINES);
-                    gl.glVertex3f(0, 0, getHeight()); // Base of the torso.
-                    gl.glVertex3d(0, s * sqrt(parent.length * parent.length - getHeight() * getHeight()), 0); // End of the leg
+                    gl.glVertex3f(0, 0, getHeight()); // base of the torso
+                    gl.glVertex3d(0, s * sqrt(parent.length * parent.length
+                            - getHeight() * getHeight()), 0); // end of the leg
                     gl.glEnd();
                 } else {
-                    // Translate the current position to be at the same height as the knee.
+                    // Translate the current position to be at the same height
+                    // as the knee.
                     gl.glTranslatef(0, 0, -0.25f * parent.length);
-                    // Rotate 90 degrees counterclockise for the left leg, and 90 degrees clockwise
-                    // for the right leg, over the X axis at the knee's position.
+                    // Rotate 90 degrees counterclockise for the left leg, and
+                    // 90 degrees clockwise for the right leg around the X axis.
                     gl.glRotatef(s * -parent.angle, 1, 0, 0);
-                    // Translate again in order for the height of the drawn tree to reach the knee.
+                    // Translate again in order for the height of the drawn tree
+                    // to reach the knee.
                     gl.glTranslatef(0, 0, -0.25f * parent.length);
-                    // Scale a unit cube accorind with the leg's dimensions, devide the length
-                    // by two since this is one half of the leg.
-                    gl.glScalef(parent.width, parent.thickness, 0.5f * parent.length);
+                    // Scale a unit cube accorind with the leg's dimensions,
+                    // divide the length by two since this is one half of
+                    // the leg.
+                    gl.glScalef(parent.width, parent.thickness,
+                            0.5f * parent.length);
                     glut.glutSolidCube(1);
                     gl.glPopMatrix();
                 }
@@ -584,8 +620,8 @@ public class RobotRace extends Base {
         //TODO: Discuss whether we should remove this class.
         public class SimpleLegPart implements RobotPart {
 
-            boolean left; // Specifies whether this is the left leg.
-            LegsPart parent; // Reference to the LegsPart object this leg is part of.
+            boolean left; // specifies whether this is the left leg
+            LegsPart parent; // reference to the LegsPart object
 
             /**
              * Constructs a LegPart object.
@@ -608,20 +644,24 @@ public class RobotRace extends Base {
                 // or right leg is being drawn.
                 int s = left ? 1 : -1;
                 if (gs.showStick) {
-                    // Draw a line from the end of the leg to the base of the torso.
+                    // Draw a line from the end of the leg to the base of
+                    // the torso.
                     gl.glBegin(GL_LINES);
-                    gl.glVertex3f(0, 0, getHeight()); // Base of the torso
-                    gl.glVertex3d(0, s * sqrt(parent.length * parent.length - getHeight() * getHeight()), 0); // End of the leg
+                    gl.glVertex3f(0, 0, getHeight()); // base of the torso
+                    gl.glVertex3d(0, s * sqrt(parent.length * parent.length
+                            - getHeight() * getHeight()), 0); // end of the leg
                     gl.glEnd();
                 } else {
                     // Draw a rectangular prism to represent the leg.
                     gl.glPushMatrix();
                     // Translate to the height of the leg.
                     gl.glTranslated(0, 0, getHeight());
-                    gl.glRotatef(s * parent.angle, 1, 0, 0); // Rotate around x axis over specified angle.
+                    // Rotate around x axis over specified angle.
+                    gl.glRotatef(s * parent.angle, 1, 0, 0);
                     // Translate to half of the height of the leg (vertically)
                     // and the edge of the torso (horizontally)
-                    gl.glTranslatef(s * 0.5f * (torsoPart.width - 0.5f * parent.width), 0, -0.5f * getHeight());
+                    gl.glTranslatef(s * 0.5f * (torsoPart.width
+                            - 0.5f * parent.width), 0, -0.5f * getHeight());
                     // Scale a unit cube to the leg's dimensions.
                     gl.glScalef(parent.width, parent.thickness, parent.length);
                     glut.glutSolidCube(1);
@@ -727,7 +767,8 @@ public class RobotRace extends Base {
                      */
                     gl.glTranslatef(s * (0.5f * torsoPart.width + parent.width),
                             0, parent.getHeight() - 0.5f * parent.width);
-                    // Rotate around the Y axis so that the cylinder will be drawn vertically.
+                    // Rotate around the Y axis so that the cylinder will
+                    // be drawn vertically.
                     gl.glRotatef(s * -90, 0, 1, 0);
                     // Scale the shoulder according to the arm's dimensions:
                     // the arm's width for the x and z axis,
@@ -775,8 +816,10 @@ public class RobotRace extends Base {
                     gl.glPopMatrix();
                 } else {
                     gl.glPushMatrix();
-                    // Translate the current position to be at the same height with the shoulder.
-                    gl.glTranslated(0, 0, torsoPart.getHeight() - 0.5f * parent.width);
+                    // Translate the current position to be at the same height
+                    // as the shoulder.
+                    gl.glTranslated(0, 0,
+                            torsoPart.getHeight() - 0.5f * parent.width);
                     // Rotate around the x axis by an angle of legs.angle
                     // clockwise. 
                     gl.glRotatef(s * -legs.angle, 1, 0, 0);
@@ -785,7 +828,8 @@ public class RobotRace extends Base {
                     // (depending on s) half of the torso width plus half
                     // of the arm width. Also move downwards half of the arm's
                     // length, such that the prism will just reach the shoulder.
-                    gl.glTranslatef(s * 0.5f * (torsoPart.width + parent.width), 0, -0.5f * parent.length);
+                    gl.glTranslatef(s * 0.5f * (torsoPart.width + parent.width),
+                            0, -0.5f * parent.length);
                     // Scale a cube according to the arm's dimensions.
                     gl.glScalef(parent.width, parent.thickness, parent.length);
                     glut.glutSolidCube(1f);
@@ -797,7 +841,7 @@ public class RobotRace extends Base {
              * Computes the vertical distance between the top of the torso and
              * the XOY plane.
              *
-             * @return  parent.getHeight()
+             * @return parent.getHeight()
              */
             @Override
             public float getHeight() {
@@ -809,7 +853,7 @@ public class RobotRace extends Base {
          * Represents the torso of a robot.
          */
         public class TorsoPart implements RobotPart {
-            
+
             // Variables for the torso dimensions.
             float height;
             float width;
@@ -818,9 +862,9 @@ public class RobotRace extends Base {
             /**
              * Constructs a torso with the given dimensions.
              *
-             * @param height  height of the torso.
-             * @param width  width of the torso.
-             * @param thickness  thickness of the torso.
+             * @param height height of the torso.
+             * @param width width of the torso.
+             * @param thickness thickness of the torso.
              */
             public TorsoPart(float height, float width, float thickness) {
                 this.height = height;
@@ -892,25 +936,20 @@ public class RobotRace extends Base {
             @Override
             public void draw() {
                 if (gs.showStick) {
-                    //TODO comment this!!!!!!!
-                    float angle;
-                    float x = 0;
-                    float y = (0.5f * height + torsoPart.getHeight());
-                    float radius = 0.5f * height;
-                    gl.glBegin(GL_LINE_LOOP);
-                    for (int i = 0; i < 100; i++) {
-                        angle = (float) (i * 2 * PI / 100);
-                        gl.glVertex3d(x + (cos(angle) * radius), 0, y + (sin(angle) * radius));
-                    }
-                    gl.glEnd();
+                    gl.glPushMatrix();
+                    // Translate to the middle of the head.
+                    gl.glTranslatef(0, 0, (0.5f * height + torsoPart.getHeight()));
+                    // Draw a unit circle with radius height/2.
+                    drawCircle(height / 2, 100);
+                    gl.glPopMatrix();
                 } else {
                     gl.glPushMatrix();
                     // Translate the current position to be at the height of the
                     // head's center point. That is the height of the torso plus 
                     // half of the head's height.
                     gl.glTranslated(0, 0, 0.5f * height + torsoPart.getHeight());
-                    // Draw a sphere to represent the head with a radius of half of
-                    // head's height.
+                    // Draw a sphere to represent the head with a radius of half
+                    // of the head's height.
                     glut.glutSolidSphere(0.5f * height, 10, 10);
                     gl.glPopMatrix();
                 }
@@ -918,7 +957,7 @@ public class RobotRace extends Base {
 
             /**
              * Computes the height at which the head ends. That is the height of
-             * the torso plus its on height.
+             * the torso plus its own height.
              *
              * @return The height at which the head ends.
              */
@@ -982,8 +1021,8 @@ public class RobotRace extends Base {
 
         /**
          * Returns the height in the world which this part reaches.
-         * 
-         * @return  the height
+         *
+         * @return the height
          */
         public float getHeight();
     }
