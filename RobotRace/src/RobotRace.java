@@ -294,6 +294,7 @@ public class RobotRace extends Base {
         ArmsPart arms; // object representing the arms of the robot
         LegsPart legs; // object representing the legs of the robot
         Set<RobotPart> parts; // set containing all components which are drawn
+        Color color; // color of this robot
 
         /**
          * Constructs a Robot with some default dimensions.
@@ -317,23 +318,49 @@ public class RobotRace extends Base {
         /**
          * Constructs the robot with the desired parameters.
          *
-         * @param hatSize The size of the hat.
-         * @param headSize The diameter of the circle representing the head.
-         * @param torsoHeight The height of the torso.
-         * @param torsoWidth The width of the torso.
-         * @param torsoThickness The thickness of the torso.
-         * @param armsLength The length of the arms.
-         * @param armsWidth The width of the arms.
-         * @param armsThickness The thickness of the arms.
-         * @param legsLength The length of the legs
-         * @param legsWidth The width of the legs.
-         * @param legsThickness The thickness of the legs.
+         * @param hatSize size of the hat.
+         * @param headSize diameter of the circle representing the head.
+         * @param torsoHeight height of the torso.
+         * @param torsoWidth width of the torso.
+         * @param torsoThickness thickness of the torso.
+         * @param armsLength length of the arms.
+         * @param armsWidth width of the arms.
+         * @param armsThickness thickness of the arms.
+         * @param legsLength length of the legs
+         * @param legsWidth width of the legs.
+         * @param legsThickness thickness of the legs.
          */
         public Robot(float hatSize, float headSize, float torsoHeight,
                 float torsoWidth, float torsoThickness, float armsLength,
                 float armsWidth, float armsThickness, float legsLength,
                 float legsWidth, float legsThickness) {
+            this(hatSize, headSize, torsoHeight, torsoWidth, torsoThickness,
+                    armsLength, armsWidth, armsThickness, legsLength,
+                    legsWidth, legsThickness, new Color(191, 165, 32));
+        }
+
+        /**
+         * Constructs the robot with the desired parameters.
+         *
+         * @param hatSize size of the hat.
+         * @param headSize diameter of the circle representing the head.
+         * @param torsoHeight height of the torso.
+         * @param torsoWidth width of the torso.
+         * @param torsoThickness thickness of the torso.
+         * @param armsLength length of the arms.
+         * @param armsWidth width of the arms.
+         * @param armsThickness thickness of the arms.
+         * @param legsLength length of the legs
+         * @param legsWidth width of the legs.
+         * @param legsThickness thickness of the legs.
+         * @param color color of this robot
+         */
+        public Robot(float hatSize, float headSize, float torsoHeight,
+                float torsoWidth, float torsoThickness, float armsLength,
+                float armsWidth, float armsThickness, float legsLength,
+                float legsWidth, float legsThickness, Color color) {
             parts = new HashSet<RobotPart>(); // initialize parts set
+            this.color = color;
 
             // Construct all parts with the given parameters.
             hatPart = new HatPart(hatSize);
@@ -359,9 +386,8 @@ public class RobotRace extends Base {
 
             // Move in y position.
             gl.glTranslatef(0, yPos, 0);
-
             // Draw parts.
-            gl.glColor3f(218f / 255f, 165f / 255f, 32f / 255f); // set color
+            gl.glColor3fv(color.getRGBComponents(null), 0); // set color
             for (RobotPart p : parts) { // for all parts that should be drawn:
                 p.draw(); //draw the part
             }
@@ -1012,7 +1038,6 @@ public class RobotRace extends Base {
      * Interface for a part of the robot.
      */
     public interface RobotPart {
-        //TODO: add color variable
 
         /**
          * Uses GL calls to draw this part.
