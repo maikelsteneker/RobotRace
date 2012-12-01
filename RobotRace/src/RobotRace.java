@@ -97,16 +97,16 @@ public class RobotRace extends Base {
 
         // Calculate position of the camera.
         eye = gs.cnt.add(dir.scale(gs.vDist));
-        
+
         final float AR = gs.w / (float) gs.h; // aspect ratio
         float vHeight = gs.vWidth / AR; // height of scene to be shown
         Vector up = Vector.Z; // up vector
-        
+
         // Calculate vector from center point to edge of the screen (horizontal).
         // This vector should be perpendicular to the viewing vector (dir)
         // and the up vector (up). It should have a length of gs.vWidth/2.
         Vector horizontal = dir.cross(up).normalized().scale(gs.vWidth / 2);
-        
+
         // Calculate vector from center point to edge of the screen (vertical).
         // This vector should be in the same direction as the up vector (up).
         // It should have a length of vHeight/2.
@@ -170,87 +170,87 @@ public class RobotRace extends Base {
         // Set color to black.
         gl.glColor3f(0f, 0f, 0f);
 
-        // Axis Frame
+        // Draw Axis Frame.
         drawAxisFrame();
 
-        //draw robots
-        /*
-         * gl.glPushMatrix(); gl.glTranslatef(-NUMROBOTS / 2, 0, 0); for (Robot
-         * r : robots) { gl.glTranslatef(1.0f, 0, 0); r.draw(); }
-         * gl.glPopMatrix();
-         */
-
+        // Draw robot.
         gl.glPushMatrix();
-        /*
-         * //gold float[] ambient = {0.24725f, 0.1995f, 0.0745f, 1.0f}; float[]
-         * diffuse = {0.75164f, 0.60648f, 0.22648f, 1.0f}; float[] specular =
-         * {0.628281f, 0.555802f, 0.366065f, 1.0f}; //color float[] shininess =
-         * {51.2f}; gl.glMaterialfv(GL_FRONT, GL_AMBIENT, ambient, 0);
-         * gl.glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse, 0);
-         * gl.glMaterialfv(GL_FRONT, GL_SPECULAR, specular, 0);
-         * gl.glMaterialfv(GL_FRONT, GL_SHININESS, shininess, 0);
-         */
         gl.glScaled(2, 2, 2);
         robots[0].draw();
         gl.glPopMatrix();
-
-        /*
-         * gl.glPushMatrix(); gl.glTranslatef(1.0f, 0, 0); //plastic green
-         * float[] ambient2 = {0.0f, 0.0f, 0.0f, 1.0f}; float[] diffuse2 =
-         * {0.1f, 0.35f, 0.1f, 1.0f}; float[] specular2 = {0.45f, 0.55f, 0.45f,
-         * 1.0f}; float[] shininess2 = {1};
-         *
-         * gl.glMaterialfv(GL_FRONT, GL_AMBIENT, ambient2, 0);
-         * gl.glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse2, 0);
-         * gl.glMaterialfv(GL_FRONT, GL_SPECULAR, specular2, 0);
-         * gl.glMaterialfv(GL_FRONT, GL_SHININESS, shininess2, 0);
-         * robots[1].draw(); gl.glPopMatrix();
-         */
-
-        gl.glColor3f(1.0f, 0, 1.0f);
     }
 
-    private void drawArrow() {
+    /**
+     * Draws an arrow in the Z direction.
+     *
+     * @param length length of the arrow
+     * @param line_radius width and depth of the line
+     * @param arrowhead_radius radius of the arrowhead
+     */
+    private void drawArrow(float length, float line_radius,
+            float arrowhead_radius) {
         gl.glPushMatrix();
 
-        gl.glTranslatef(0f, 0, 0.5f);
-        gl.glScalef(0.01f, 0.01f, 1f);
-        glut.glutSolidCube(0.9f);
+        // Scale to correct length.
+        gl.glScalef(1, 1, length);
 
+        // Draw a box with length 0.9 and width and depth line_radius
+        gl.glPushMatrix();
+        gl.glTranslatef(0, 0, 0.5f);
+        gl.glScalef(line_radius, line_radius, 0.9f);
+        glut.glutSolidCube(1);
         gl.glPopMatrix();
-        gl.glPushMatrix();
 
+        gl.glPushMatrix();
+        // Translate to the end of the line
         gl.glTranslatef(0f, 0f, 0.9f);
-        glut.glutSolidCone(0.05, 0.1, 15, 2);
+        // Draw an arrowhead with length 0.1 and radius arrowhead_radius
+        glut.glutSolidCone(arrowhead_radius, 0.1f, 15, 2);
+        gl.glPopMatrix();
 
         gl.glPopMatrix();
     }
 
+    /**
+     * Draws an axis frame, consisting of a yellow sphere in the origin and
+     * three arrows of length 1 in the positive directions of the X, Y and Z
+     * axes, if gs.showAxes is true.
+     */
     private void drawAxisFrame() {
-        //gl.glPushAttrib(GL_LIGHTING_BIT);
         if (gs.showAxes) {
-            gl.glColor3f(1.0f, 1.0f, 0);
-            glut.glutSolidSphere(0.10f, 20, 20);
+            gl.glPushAttrib(GL_CURRENT_BIT);
 
+            // Draw yellow sphere in origin.
+            gl.glColor3f(1.0f, 1.0f, 0); // set color to yellow
+            glut.glutSolidSphere(0.10f, 20, 20); // draw sphere
+
+            // Draw arrow for X axis.
             gl.glPushMatrix();
-            gl.glRotatef(90, 0, 1, 0);
-            gl.glColor3f(1.0f, 0, 0);
-            drawArrow();
+            gl.glRotatef(90, 0, 1, 0); // rotate 90 degrees around y axis
+            gl.glColor3f(1.0f, 0, 0); // set color to red
+            drawArrow(1, 0.01f, 0.05f); // draw arrow
             gl.glPopMatrix();
 
+            // Draw arrow for Y axis.
             gl.glPushMatrix();
-            gl.glRotatef(-90, 1, 0, 0);
-            gl.glColor3f(0, 1.0f, 0);
-            drawArrow();
+            gl.glRotatef(-90, 1, 0, 0); // rotate -90 degrees around x axis
+            gl.glColor3f(0, 1.0f, 0); // set color to green
+            drawArrow(1, 0.01f, 0.05f); // draw arrow
             gl.glPopMatrix();
 
+            // Draw arrow for Z axis.
             gl.glPushMatrix();
-            gl.glColor3f(0, 0, 1.0f);
-            drawArrow();
+            gl.glColor3f(0, 0, 1.0f); // set color to blue
+            drawArrow(1, 0.01f, 0.05f); // draw arrow
             gl.glPopMatrix();
+
+            gl.glPopAttrib();
         }
     }
 
+    /**
+     * Draws a grid on the XOY plane if gs.showAxes is true.
+     */
     private void drawGrid() {
         if (gs.showAxes) {
             for (float i = -1000; i < 1000; i += 0.25) {
@@ -268,25 +268,35 @@ public class RobotRace extends Base {
      * Represents a Robot, to be implemented according to the Assignments.
      */
     class Robot {
-        //TODO: specify torso width (and possible arms/legs as well)
 
-        boolean legDirection = false; //specifies if the leg is moving forward
-        float yPos = 0; //specifies the y position of the robot
-        float speed = 0.1f; //specifies the speed at which yPos is increased
-        final static private float MAXANGLE = 20; //specifies the maximum angle
-        //the arms and legs can turn
-        HatPart hatPart; //object representing the hat of the robot
-        HeadPart headPart; //object representing the head of the robot
-        TorsoPart torsoPart; //objedbmsct representing the torso of the robot
-        ArmsPart arms; //object representing the arms of the robot
-        LegsPart legs; //object representing the legs of the robot
-        Set<RobotPart> parts; //set containing all components which are drawn
+        boolean legDirection = false; // specifies if the leg is moving forward
+        float yPos = 0; // specifies the y position of the robot
+        float speed = 0.1f; // specifies the speed at which yPos is increased
+        final static private float MAXANGLE = 20; // upper bound for legs.angle
+        HatPart hatPart; // object representing the hat of the robot
+        HeadPart headPart; // object representing the head of the robot
+        TorsoPart torsoPart; // object representing the torso of the robot
+        ArmsPart arms; // object representing the arms of the robot
+        LegsPart legs; // object representing the legs of the robot
+        Set<RobotPart> parts; // set containing all components which are drawn
 
         /**
          * Constructs a Robot with some default dimensions.
          */
         public Robot() {
-            this(0.5f, 0.5f, 0.75f, 0.6f, 0.5f, 0.55f, 0.5f, 0.1f, 1.75f, 0.1f, 0.3f);
+            this(
+                    0.5f, // hatSize
+                    0.5f, // headSize
+                    0.75f, // torsoHeight
+                    0.6f, // torsoWidth
+                    0.5f, // torsoThickness
+                    0.55f, // armsLength
+                    0.5f, // arnsWidth
+                    0.1f, // armsThickness
+                    1.75f, // legsLength
+                    0.1f, // legsWidth
+                    0.3f // legsThickness
+                    );
         }
 
         /**
@@ -308,16 +318,16 @@ public class RobotRace extends Base {
                 float torsoWidth, float torsoThickness, float armsLength,
                 float armsWidth, float armsThickness, float legsLength,
                 float legsWidth, float legsThickness) {
-            parts = new HashSet<RobotPart>();
+            parts = new HashSet<RobotPart>(); // initialize parts set
 
-            //construct all parts with the given parameters
+            // Construct all parts with the given parameters.
             hatPart = new HatPart(hatSize);
             headPart = new HeadPart(headSize);
             torsoPart = new TorsoPart(torsoHeight, torsoWidth, torsoThickness);
             arms = new ArmsPart(armsLength, armsWidth, armsThickness);
             legs = new LegsPart(legsLength, legsWidth, legsThickness);
 
-            //add all parts that need to be displayed to the parts set
+            // Add all parts that need to be displayed to the parts set.
             parts.add(hatPart);
             parts.add(headPart);
             parts.add(torsoPart);
@@ -329,20 +339,21 @@ public class RobotRace extends Base {
          * Draws the robot.
          */
         public void draw() {
-            gl.glPushMatrix(); //push the current matrix onto the stack
-
-            //move in y position
+            gl.glPushMatrix();
+            gl.glPushAttrib(GL_CURRENT_BIT);
+            
+            //Move in y position.
             gl.glTranslatef(0, yPos, 0);
 
-            //draw parts
-            gl.glColor3f(218f / 255f, 165f / 255f, 32f / 255f);
-            for (RobotPart p : parts) { //for all parts that should be drawn
+            // Draw parts.
+            gl.glColor3f(218f / 255f, 165f / 255f, 32f / 255f); // set color
+            for (RobotPart p : parts) { // for all parts that should be drawn:
                 p.draw(); //draw the part
             }
 
             handleMovement();
-
-            gl.glPopMatrix(); //pop the matrix from the stack
+            gl.glPopAttrib();
+            gl.glPopMatrix();
         }
 
         /**
@@ -351,6 +362,11 @@ public class RobotRace extends Base {
          * {@code legDirection}, {@code speed} and  {@code MAXANGLE}.
          */
         private void handleMovement() {
+            /*
+             * We do not document this method in detail, since it is not
+             * required for this assignment and will likely be replaced by a
+             * more complex method later on.
+             */
             if (legs.angle > MAXANGLE) {
                 legDirection = false;
             } else if (legs.angle < -MAXANGLE) {
