@@ -100,16 +100,6 @@ public class RobotRace extends Base {
         float vHeight = gs.vWidth / AR; // height of scene to be shown
         Vector up = Vector.Z; // up vector
 
-        // Calculate vector from center point to edge of the screen (horizontal).
-        // This vector should be perpendicular to the viewing vector (dir)
-        // and the up vector (up). It should have a length of gs.vWidth/2.
-        Vector horizontal = dir.cross(up).normalized().scale(gs.vWidth / 2);
-
-        // Calculate vector from center point to edge of the screen (vertical).
-        // This vector should be in the same direction as the up vector (up).
-        // It should have a length of vHeight/2.
-        Vector vertical = up.normalized().scale(vHeight / 2);
-
         // We only compute the field of view once to prevent strange effects.
         if (fovy == -1) { // If the field of view has not yet been computed:
             /*
@@ -132,10 +122,10 @@ public class RobotRace extends Base {
             // Use perspective projection.
             glu.gluPerspective(toDegrees(fovy), AR, 0.1, 1000);
         } else {
-            double left = -horizontal.length(); // left clipping plane
-            double right = horizontal.length(); // right clipping plane
-            double bottom = -vertical.length(); // bottom clipping plane
-            double top = vertical.length(); // top clipping plane
+            double left = -0.5 * gs.vWidth; // left clipping plane
+            double right = 0.5 * gs.vWidth; // right clipping plane
+            double bottom = -0.5 * vHeight; // bottom clipping plane
+            double top = 0.5 * vHeight; // top clipping plane
             double near_val = 0.1; // near value
             double far_val = 1000; // far value
 
@@ -301,13 +291,13 @@ public class RobotRace extends Base {
          */
         public Robot() {
             this(
-                    0.5f, // hatSize
-                    0.5f, // headSize
+                    1.5f, // hatSize
+                    0.9f, // headSize
                     0.75f, // torsoHeight
                     0.6f, // torsoWidth
-                    0.5f, // torsoThickness
+                    0.9f, // torsoThickness
                     0.55f, // armsLength
-                    0.5f, // arnsWidth
+                    0.5f, // armsWidth
                     0.1f, // armsThickness
                     1.75f, // legsLength
                     0.1f, // legsWidth
@@ -506,7 +496,7 @@ public class RobotRace extends Base {
                     // the height of the leg.
                     gl.glTranslatef(s * 0.5f * (torsoPart.width), 0,
                             parent.getHeight() - parent.thickness / 3);
-                    // Rotate 90 degrees in a direction depended on the leg.
+                    // Rotate 90 degrees in a direction dependent on the leg.
                     gl.glRotatef(s * -90, 0, 1, 0);
                     // Scale to the leg's width for the x and z axes and on the
                     // leg's thickness for the y axis.
@@ -599,7 +589,7 @@ public class RobotRace extends Base {
                     // Translate the current position to be at the same height
                     // as the knee.
                     gl.glTranslatef(0, 0, -0.25f * parent.length);
-                    // Rotate 90 degrees counterclockise for the left leg, and
+                    // Rotate 90 degrees counterclockwise for the left leg, and
                     // 90 degrees clockwise for the right leg around the X axis.
                     gl.glRotatef(s * -parent.angle, 1, 0, 0);
                     // Translate again in order for the height of the drawn tree
@@ -625,74 +615,6 @@ public class RobotRace extends Base {
                 drawUpperLeg();
                 drawKnee();
                 drawLowerLeg();
-            }
-
-            /**
-             * Computes the distance between the top of the leg and the XOY
-             * plane. This is not simply the length, since the leg can be
-             * rotated.
-             *
-             * @return the distance
-             */
-            @Override
-            public float getHeight() {
-                return parent.getHeight();
-            }
-        }
-
-        /**
-         * Represents a leg of the robot without any joints.
-         */
-        //TODO: Discuss whether we should remove this class.
-        public class SimpleLegPart implements RobotPart {
-
-            boolean left; // specifies whether this is the left leg
-            LegsPart parent; // reference to the LegsPart object
-
-            /**
-             * Constructs a LegPart object.
-             *
-             * @param left specifies whether this is the left leg
-             * @param parent reference to the LegsPart object
-             */
-            public SimpleLegPart(boolean left, LegsPart parent) {
-                this.left = left;
-                this.parent = parent;
-            }
-
-            /**
-             * Draws this Leg.
-             */
-            @Override
-            public void draw() {
-                // Determine the sign of the angle for rotations and in
-                // which direction to translate depending whether the left
-                // or right leg is being drawn.
-                int s = left ? 1 : -1;
-                if (gs.showStick) {
-                    // Draw a line from the end of the leg to the base of
-                    // the torso.
-                    gl.glBegin(GL_LINES);
-                    gl.glVertex3f(0, 0, getHeight()); // base of the torso
-                    gl.glVertex3d(0, s * sqrt(parent.length * parent.length
-                            - getHeight() * getHeight()), 0); // end of the leg
-                    gl.glEnd();
-                } else {
-                    // Draw a rectangular prism to represent the leg.
-                    gl.glPushMatrix();
-                    // Translate to the height of the leg.
-                    gl.glTranslated(0, 0, getHeight());
-                    // Rotate around x axis over specified angle.
-                    gl.glRotatef(s * parent.angle, 1, 0, 0);
-                    // Translate to half of the height of the leg (vertically)
-                    // and the edge of the torso (horizontally)
-                    gl.glTranslatef(s * 0.5f * (torsoPart.width
-                            - 0.5f * parent.width), 0, -0.5f * getHeight());
-                    // Scale a unit cube to the leg's dimensions.
-                    gl.glScalef(parent.width, parent.thickness, parent.length);
-                    glut.glutSolidCube(1);
-                    gl.glPopMatrix();
-                }
             }
 
             /**
@@ -785,12 +707,10 @@ public class RobotRace extends Base {
             private void drawShoulder() {
                 if (!gs.showStick) {
                     gl.glPushMatrix();
-                    /*
-                     * Draw the shoulder at the appropriate position. For the X
-                     * coordinate that is to the edge of the torso plus the
-                     * width of the arm. And for the Z coordinate it is the arm
-                     * height minus the radius of the cylinder.
-                     */
+                    // Draw the shoulder at the appropriate position. For the X
+                    // coordinate that is to the edge of the torso plus the
+                    // width of the arm. And for the Z coordinate it is the arm
+                    // height minus the radius of the cylinder.
                     gl.glTranslatef(s * (0.5f * torsoPart.width + parent.width),
                             0, parent.getHeight() - 0.5f * parent.width);
                     // Rotate around the Y axis so that the cylinder will
@@ -1012,21 +932,34 @@ public class RobotRace extends Base {
 
             @Override
             public void draw() {
-                //TODO: comment
                 if (gs.showStick) {
+                    // Draw a triangle.
                     gl.glBegin(GL_LINE_LOOP);
+                    // Define the top of the hat.
                     gl.glVertex3f(0, 0, this.getHeight());
+                    // Define the left corner of the hat.
                     gl.glVertex3f(-0.5f * height, 0, headPart.getHeight());
+                    // Define the right corner of the hat.
                     gl.glVertex3f(0.5f * height, 0, headPart.getHeight());
                     gl.glEnd();
                 } else {
                     gl.glPushMatrix();
+                    
+                    // Move to just under the top of the head.
                     gl.glTranslated(0, 0, headPart.getHeight() - 0.1f);
+                    // Draw a cone with the specified height and a base of
+                    // height/2.
                     glut.glutSolidCone(0.5f * height, height, 10, 10);
+                    
                     gl.glPopMatrix();
                 }
             }
 
+            /**
+             * Calculates the height of the complete robot.
+             * 
+             * @return  the height
+             */
             @Override
             public float getHeight() {
                 return headPart.getHeight() + height;
