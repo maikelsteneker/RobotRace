@@ -163,7 +163,7 @@ public class RobotRace extends Base {
 
         // Draw robot.
         gl.glPushMatrix();
-        gl.glScaled(2, 2, 2);
+        gl.glScaled(2, 2, 2); // Scale, otherwise lighting is ugly
         robots[0].draw();
         gl.glPopMatrix();
     }
@@ -276,7 +276,7 @@ public class RobotRace extends Base {
 
         boolean legDirection = false; // specifies if the leg is moving forward
         float yPos = 0; // specifies the y position of the robot
-        float speed = 0.1f; // specifies the speed at which yPos is increased
+        float speed = 0.5f; // specifies the speed at which yPos is increased
         final static private float MAXANGLE = 20; // upper bound for legs.angle
         HatPart hatPart; // object representing the hat of the robot
         HeadPart headPart; // object representing the head of the robot
@@ -291,17 +291,17 @@ public class RobotRace extends Base {
          */
         public Robot() {
             this(
-                    1.5f, // hatSize
-                    0.9f, // headSize
-                    0.75f, // torsoHeight
-                    0.6f, // torsoWidth
-                    0.9f, // torsoThickness
-                    0.55f, // armsLength
-                    0.5f, // armsWidth
+                    0.5f, // hatSize
+                    0.5f, // headSize
+                    0.5f, // torsoHeight
+                    0.5f, // torsoWidth
+                    0.5f, // torsoThickness
+                    0.5f, // armsLength
+                    0.1f, // armsWidth
                     0.1f, // armsThickness
-                    1.75f, // legsLength
+                    0.5f, // legsLength
                     0.1f, // legsWidth
-                    0.3f // legsThickness
+                    0.1f // legsThickness
                     );
         }
 
