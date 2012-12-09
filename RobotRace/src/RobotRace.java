@@ -5,7 +5,9 @@ import static javax.media.opengl.GL2.*;
 import robotrace.Base;
 import robotrace.Vector;
 import static java.lang.Math.*;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import javax.media.opengl.GL2;
 
@@ -166,11 +168,11 @@ public class RobotRace extends Base {
         gl.glScaled(2, 2, 2); // Scale, otherwise lighting is ugly
         robots[0].draw();
         gl.glPopMatrix();
-        
+
         // Draw track.
         gl.glColor3f(0, 0, 0);
         Curve curve = new SimpleCurve();
-        new Track(curve, 0, 0, 0).draw();
+        new Track(curve, 4, -1, 1).draw();
     }
 
     /**
@@ -1006,10 +1008,41 @@ public class RobotRace extends Base {
         }
 
         public void draw() {
+            List<Vector> points = new ArrayList<Vector>();
+            List<Vector> offset_points = new ArrayList<Vector>();
+            for (int i = 0; i <= N; i++) {
+                float t = (float) i / N;
+                Vector point = curve.getPoint(t);
+                points.add(point);
+
+                Vector normal = curve.getNormalVector(t);
+                Vector off = point.add(normal.normalized().scale(width));
+                offset_points.add(off);
+            }
+            /*
             gl.glBegin(GL_LINE_STRIP);
             for (int i = 0; i <= N; i++) {
-                Vector point = curve.getPoint((float)i/N);
+                Vector point = points.get(i);
                 gl.glVertex3d(point.x(), point.y(), point.z());
+            }
+            //gl.glEnd();
+            //gl.glBegin(GL_LINE_STRIP);
+            for (int i = 0; i <= N; i++) {
+                Vector point = offset_points.get(i);
+                gl.glVertex3d(point.x(), point.y(), point.z());
+            }
+            gl.glEnd();
+            */
+            gl.glBegin(GL_QUADS);
+            for (int i = 0; i < N; i++) {
+                Vector point = points.get(i);
+                gl.glVertex3d(point.x(), point.y(), point.z());
+                Vector off = offset_points.get(i);
+                gl.glVertex3d(off.x(), off.y(), off.z());
+                Vector next_off = offset_points.get(i+1);
+                gl.glVertex3d(next_off.x(), next_off.y(), next_off.z());
+                Vector next_point = points.get(i+1);
+                gl.glVertex3d(next_point.x(), next_point.y(), next_point.z());
             }
             gl.glEnd();
         }
@@ -1020,6 +1053,8 @@ public class RobotRace extends Base {
         public Vector getPoint(double t);
 
         public Vector getTangent(double t);
+
+        public Vector getNormalVector(double t);
     }
 
     public static class SimpleCurve implements Curve {
@@ -1040,6 +1075,13 @@ public class RobotRace extends Base {
             y = 28 * PI * cos(2 * PI * t);
             z = 0;
             return new Vector(x, y, z);
+        }
+
+        @Override
+        public Vector getNormalVector(double t) {
+            Vector tangent = this.getTangent(t);
+            // Rotate 90 degrees in negative direction (outward) in XOY plane.
+            return new Vector(tangent.y(), -tangent.x(), 0);
         }
     }
 
@@ -1073,6 +1115,11 @@ public class RobotRace extends Base {
         public static Vector getCubicBezierTng(double t, Vector P0, Vector P1,
                 Vector P2, Vector P3) {
             throw new UnsupportedOperationException("Not yet implemented");
+        }
+
+        @Override
+        public Vector getNormalVector(double t) {
+            throw new UnsupportedOperationException("Not supported yet.");
         }
     }
 
