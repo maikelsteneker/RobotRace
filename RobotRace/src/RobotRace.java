@@ -170,7 +170,7 @@ public class RobotRace extends Base {
         gl.glPopMatrix();
 
         // Draw track.
-        gl.glColor3f(0, 0, 0);
+        gl.glColor3f(0, 1, 0);
         Curve curve = new SimpleCurve();
         new Track(curve, 4, -1, 1).draw();
     }
@@ -1019,7 +1019,7 @@ public class RobotRace extends Base {
                 Vector off = point.add(normal.normalized().scale(width));
                 offset_points.add(off);
             }
-            /*
+            
             gl.glBegin(GL_LINE_STRIP);
             for (int i = 0; i <= N; i++) {
                 Vector point = points.get(i);
@@ -1032,7 +1032,7 @@ public class RobotRace extends Base {
                 gl.glVertex3d(point.x(), point.y(), point.z());
             }
             gl.glEnd();
-            */
+            
             gl.glBegin(GL_QUADS);
             for (int i = 0; i < N; i++) {
                 Vector point = points.get(i);
@@ -1043,6 +1043,24 @@ public class RobotRace extends Base {
                 gl.glVertex3d(next_off.x(), next_off.y(), next_off.z());
                 Vector next_point = points.get(i+1);
                 gl.glVertex3d(next_point.x(), next_point.y(), next_point.z());
+            }
+            
+            for (int i = 0; i < N; i++) {
+                Vector point = points.get(i);
+                Vector next_point = points.get(i+1);
+                gl.glVertex3d(point.x(), point.y(), maxHeight);
+                gl.glVertex3d(next_point.x(), next_point.y(), maxHeight);
+                gl.glVertex3d(next_point.x(), next_point.y(), minHeight);
+                gl.glVertex3d(point.x(), point.y(), minHeight);
+            }
+            
+            for (int i = 0; i < N; i++) {
+                Vector point = offset_points.get(i);
+                Vector next_point = offset_points.get(i+1);
+                gl.glVertex3d(point.x(), point.y(), maxHeight);
+                gl.glVertex3d(next_point.x(), next_point.y(), maxHeight);
+                gl.glVertex3d(next_point.x(), next_point.y(), minHeight);
+                gl.glVertex3d(point.x(), point.y(), minHeight);
             }
             gl.glEnd();
         }
