@@ -166,6 +166,11 @@ public class RobotRace extends Base {
         gl.glScaled(2, 2, 2); // Scale, otherwise lighting is ugly
         robots[0].draw();
         gl.glPopMatrix();
+        
+        // Draw track.
+        gl.glColor3f(0, 0, 0);
+        Curve curve = new SimpleCurve();
+        new Track(curve, 0, 0, 0).draw();
     }
 
     /**
@@ -987,14 +992,26 @@ public class RobotRace extends Base {
 
     public class Track {
 
-        Curve curve;
+        private Curve curve;
+        private float width;
+        private float minHeight;
+        private float maxHeight;
+        final static private int N = 100;
 
-        public Track(Curve curve) {
+        public Track(Curve curve, float width, float minHeight, float maxHeight) {
             this.curve = curve;
+            this.width = width;
+            this.minHeight = minHeight;
+            this.maxHeight = maxHeight;
         }
 
         public void draw() {
-            throw new UnsupportedOperationException("Not yet implemented");
+            gl.glBegin(GL_LINE_STRIP);
+            for (int i = 0; i <= N; i++) {
+                Vector point = curve.getPoint((float)i/N);
+                gl.glVertex3d(point.x(), point.y(), point.z());
+            }
+            gl.glEnd();
         }
     }
 
@@ -1005,7 +1022,7 @@ public class RobotRace extends Base {
         public Vector getTangent(double t);
     }
 
-    public static class SimpleTrackCurve implements Curve {
+    public static class SimpleCurve implements Curve {
 
         @Override
         public Vector getPoint(double t) {
