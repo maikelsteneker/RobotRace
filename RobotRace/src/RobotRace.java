@@ -163,16 +163,24 @@ public class RobotRace extends Base {
         // Draw Axis Frame.
         drawAxisFrame();
 
-        // Draw robot.
-        gl.glPushMatrix();
-        gl.glScaled(2, 2, 2); // Scale, otherwise lighting is ugly
-        robots[0].draw();
-        gl.glPopMatrix();
-
         // Draw track.
         gl.glColor3f(0, 1, 0);
         Curve curve = new SimpleCurve();
-        new Track(curve, 4, -1, 1).draw();
+        Track t = new Track(curve, 4, -1, 1);
+        t.draw();
+        
+        // Draw robot.
+        gl.glPushMatrix();
+        Vector pos = t.curve.getPoint(gs.tAnim/8);
+        Vector tangent = t.curve.getTangent(gs.tAnim/8);
+        double dot = tangent.dot(Vector.Y);
+        double cosangle = dot / (tangent.length() * Vector.Y.length());
+        double angle = acos(cosangle);
+        gl.glTranslated(pos.x(), pos.y(), pos.z());
+        gl.glRotated(toDegrees(angle), 0, 0, 1);
+        gl.glScaled(2, 2, 2); // Scale, otherwise lighting is ugly
+        robots[0].draw();
+        gl.glPopMatrix();
     }
 
     /**
@@ -382,7 +390,8 @@ public class RobotRace extends Base {
             gl.glPushAttrib(GL_CURRENT_BIT);
 
             // Move in y position.
-            gl.glTranslatef(0, yPos, 0);
+            //gl.glTranslatef(0, yPos, 0);
+            
             // Draw parts.
             gl.glColor3fv(color.getRGBComponents(null), 0); // set color
             for (RobotPart p : parts) { // for all parts that should be drawn:
