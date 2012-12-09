@@ -390,7 +390,7 @@ public class RobotRace extends Base {
         /**
          * Moves the robot and turns the arms and legs by updating
          * {@code legDirection}, {@code legs.angle} and {@code yPos} based on
-         * {@code legDirection}, {@code speed} and  {@code MAXANGLE}.
+         * {@code legDirection}, {@code speed} and {@code MAXANGLE}.
          */
         private void handleMovement() {
             /*
@@ -944,21 +944,21 @@ public class RobotRace extends Base {
                     gl.glEnd();
                 } else {
                     gl.glPushMatrix();
-                    
+
                     // Move to just under the top of the head.
                     gl.glTranslated(0, 0, headPart.getHeight() - 0.1f);
                     // Draw a cone with the specified height and a base of
                     // height/2.
                     glut.glutSolidCone(0.5f * height, height, 10, 10);
-                    
+
                     gl.glPopMatrix();
                 }
             }
 
             /**
              * Calculates the height of the complete robot.
-             * 
-             * @return  the height
+             *
+             * @return the height
              */
             @Override
             public float getHeight() {
@@ -983,6 +983,80 @@ public class RobotRace extends Base {
          * @return the height
          */
         public float getHeight();
+    }
+
+    public class Track {
+
+        Curve curve;
+
+        public Track(Curve curve) {
+            this.curve = curve;
+        }
+
+        public void draw() {
+            throw new UnsupportedOperationException("Not yet implemented");
+        }
+    }
+
+    public interface Curve {
+
+        public Vector getPoint(double t);
+
+        public Vector getTangent(double t);
+    }
+
+    public static class SimpleTrackCurve implements Curve {
+
+        @Override
+        public Vector getPoint(double t) {
+            double x, y, z;
+            x = 10 * cos(2 * PI * t);
+            y = 14 * sin(2 * PI * t);
+            z = 1;
+            return new Vector(x, y, z);
+        }
+
+        @Override
+        public Vector getTangent(double t) {
+            double x, y, z;
+            x = -20 * PI * sin(2 * PI * t);
+            y = 28 * PI * cos(2 * PI * t);
+            z = 0;
+            return new Vector(x, y, z);
+        }
+    }
+
+    public static class BezierCurve implements Curve {
+
+        final private Vector P0, P1, P2, P3;
+
+        public BezierCurve(Vector P0, Vector P1, Vector P2, Vector P3) {
+            this.P0 = P0;
+            this.P1 = P1;
+            this.P2 = P2;
+            this.P3 = P3;
+        }
+
+        @Override
+        public Vector getPoint(double t) {
+            return getCubicBezierPnt(t, P0, P1, P2, P3);
+        }
+
+        @Override
+        public Vector getTangent(double t) {
+            return getCubicBezierTng(t, P0, P1, P2, P3);
+        }
+
+        public static Vector getCubicBezierPnt(double t, Vector P0, Vector P1,
+                Vector P2, Vector P3) {
+            throw new UnsupportedOperationException("Not yet implemented");
+
+        }
+
+        public static Vector getCubicBezierTng(double t, Vector P0, Vector P1,
+                Vector P2, Vector P3) {
+            throw new UnsupportedOperationException("Not yet implemented");
+        }
     }
 
     /**
