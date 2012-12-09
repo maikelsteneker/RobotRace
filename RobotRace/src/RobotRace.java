@@ -171,11 +171,12 @@ public class RobotRace extends Base {
         
         // Draw robot.
         gl.glPushMatrix();
-        Vector pos = t.curve.getPoint(gs.tAnim/8);
-        Vector tangent = t.curve.getTangent(gs.tAnim/8);
+        float tAnim = gs.tAnim/8;
+        Vector pos = t.curve.getPoint(tAnim);
+        Vector tangent = t.curve.getTangent(tAnim);
         double dot = tangent.dot(Vector.Y);
         double cosangle = dot / (tangent.length() * Vector.Y.length());
-        double angle = acos(cosangle);
+        double angle = (((tAnim)%1)>=0.5f) ? -acos(cosangle) : acos(cosangle);
         gl.glTranslated(pos.x(), pos.y(), pos.z());
         gl.glRotated(toDegrees(angle), 0, 0, 1);
         gl.glScaled(2, 2, 2); // Scale, otherwise lighting is ugly
