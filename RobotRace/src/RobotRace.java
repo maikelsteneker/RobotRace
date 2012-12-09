@@ -172,7 +172,7 @@ public class RobotRace extends Base {
         // Draw robot.
         gl.glPushMatrix();
         float tAnim = gs.tAnim/8;
-        Vector pos = t.curve.getPoint(tAnim);
+        Vector pos = t.curve.getPoint(tAnim).add(t.curve.getNormalVector(tAnim).normalized().scale(1));
         Vector tangent = t.curve.getTangent(tAnim);
         double dot = tangent.dot(Vector.Y);
         double cosangle = dot / (tangent.length() * Vector.Y.length());
@@ -291,8 +291,7 @@ public class RobotRace extends Base {
     class Robot {
 
         boolean legDirection = false; // specifies if the leg is moving forward
-        float yPos = 0; // specifies the y position of the robot
-        float speed = 0.5f; // specifies the speed at which yPos is increased
+        float speed = 5f; // specifies speed at which legs.angle is increased
         final static private float MAXANGLE = 20; // upper bound for legs.angle
         HatPart hatPart; // object representing the hat of the robot
         HeadPart headPart; // object representing the head of the robot
@@ -426,8 +425,6 @@ public class RobotRace extends Base {
             } else {
                 legs.angle -= speed;
             }
-
-            yPos += speed * 0.01;
         }
 
         /**
