@@ -150,7 +150,7 @@ public class RobotRace extends Base {
         Vector eye_up = horizontal.cross(dir);
         Vector camera = eye.add(gs.cnt);
         float[] location = {(float) camera.x(), (float) camera.y(), (float) camera.z()};
-        gl.glLightfv(GL_LIGHT0, GL_POSITION, location, 0); //set location of ls0
+        //gl.glLightfv(GL_LIGHT0, GL_POSITION, location, 0); //set location of ls0
         //gl.glPopMatrix();
     }
 
@@ -194,6 +194,10 @@ public class RobotRace extends Base {
         gl.glRotated(toDegrees(angle), 0, 0, 1);
         robots[0].draw();
         gl.glPopMatrix();
+        
+        double[] x = {1,2,3,2,1,2,1};
+        double[] z = {1,2,3,4,5,6,7};
+        drawRotSymShape(x, z, true, 100, 1);
     }
 
     /**
@@ -293,6 +297,30 @@ public class RobotRace extends Base {
             angle = (float) (i * 2 * PI / slices); // compute angle
             // Define vertex by definition of the unit circle.
             gl.glVertex3d((cos(angle) * radius), 0, (sin(angle) * radius));
+        }
+        gl.glEnd();
+    }
+    
+    private void drawRotSymShape(double[] x, double[] z, boolean sm, int slices,
+            double dmin) {
+        //initial untested version, probably includes some errors.
+        //does not use sm or dmin (yet)
+        final int N = x.length;
+        
+        //compute all necessary angles
+        double[] angle = new double[slices+1];
+        for (int i = 0; i <= slices; i++) {
+            angle[i] = (i * 2 * PI / slices);
+        }
+        
+        gl.glBegin(GL_QUADS);
+        for (int i = 0; i < N - 1; i++) {
+            for (int j = 0; j < slices; j++) {
+                gl.glVertex3d(cos(angle[j]) * x[i], sin(angle[j]) * x[i], z[i]);
+                gl.glVertex3d(cos(angle[j+1]) * x[i], sin(angle[j+1]) * x[i], z[i]);
+                gl.glVertex3d(cos(angle[j+1]) * x[i+1], sin(angle[j+1]) * x[i+1], z[i+1]);
+                gl.glVertex3d(cos(angle[j]) * x[i+1], sin(angle[j]) * x[i+1], z[i+1]);
+            }
         }
         gl.glEnd();
     }
