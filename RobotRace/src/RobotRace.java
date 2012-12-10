@@ -73,12 +73,6 @@ public class RobotRace extends Base {
         gl.glEnable(GL_TEXTURE_2D);
         gl.glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 
-        // Enable lighting.
-        gl.glEnable(GL_LIGHTING);
-        gl.glEnable(GL_LIGHT0);
-        gl.glEnable(GL_COLOR_MATERIAL);
-        gl.glEnable(GL_NORMALIZE); 
-
         // Initialize robots array.
         robots = new Robot[NUMROBOTS];
         for (int i = 0; i < NUMROBOTS; i++) {
@@ -142,6 +136,15 @@ public class RobotRace extends Base {
         glu.gluLookAt(eye.x(), eye.y(), eye.z(), // eye point
                 gs.cnt.x(), gs.cnt.y(), gs.cnt.z(), // center point
                 up.x(), up.y(), up.z()); // up axis
+
+        // Enable lighting.
+        gl.glEnable(GL_LIGHTING);
+        gl.glEnable(GL_LIGHT0);
+        gl.glEnable(GL_NORMALIZE);
+        gl.glEnable(GL_COLOR_MATERIAL);
+        gl.glLoadIdentity();
+        Vector horizontal = dir.cross(up).normalized();
+        Vector eye_up = horizontal.cross(dir);
     }
 
     /**
@@ -169,20 +172,19 @@ public class RobotRace extends Base {
         Curve curve = new SimpleCurve();
         Track t = new Track(curve, 4, -1, 1);
         t.draw();
-        
+
         // Draw robot.
         gl.glPushMatrix();
-        float tAnim = gs.tAnim/8;
-        
+        float tAnim = gs.tAnim / 8;
+
         Vector pos = t.curve.getPoint(tAnim).add(t.curve.getNormalVector(tAnim).normalized().scale(1));
-        
+
         gl.glTranslated(pos.x(), pos.y(), pos.z());
         Vector tangent = t.curve.getTangent(tAnim);
         double dot = tangent.dot(Vector.Y);
         double cosangle = dot / (tangent.length() * Vector.Y.length());
-        double angle = (((tAnim)%1)>=0.5f) ? -acos(cosangle) : acos(cosangle);        
+        double angle = (((tAnim) % 1) >= 0.5f) ? -acos(cosangle) : acos(cosangle);
         gl.glRotated(toDegrees(angle), 0, 0, 1);
-        gl.glScaled(2, 2, 2); // Scale, otherwise lighting is ugly
         robots[0].draw();
         gl.glPopMatrix();
     }
@@ -294,7 +296,7 @@ public class RobotRace extends Base {
     class Robot {
 
         boolean legDirection = false; // specifies if the leg is moving forward
-        float speed = 5f; // specifies speed at which legs.angle is increased
+        float speed = 10f; // specifies speed at which legs.angle is increased
         final static private float MAXANGLE = 20; // upper bound for legs.angle
         HatPart hatPart; // object representing the hat of the robot
         HeadPart headPart; // object representing the head of the robot
@@ -394,7 +396,7 @@ public class RobotRace extends Base {
 
             // Move in y position.
             //gl.glTranslatef(0, yPos, 0);
-            
+
             // Draw parts.
             gl.glColor3fv(color.getRGBComponents(null), 0); // set color
             for (RobotPart p : parts) { // for all parts that should be drawn:
@@ -1029,7 +1031,7 @@ public class RobotRace extends Base {
                 Vector off = point.add(normal.normalized().scale(width));
                 offset_points.add(off);
             }
-            
+
             gl.glBegin(GL_LINE_STRIP);
             for (int i = 0; i <= N; i++) {
                 Vector point = points.get(i);
@@ -1042,31 +1044,31 @@ public class RobotRace extends Base {
                 gl.glVertex3d(point.x(), point.y(), point.z());
             }
             gl.glEnd();
-            
+
             gl.glBegin(GL_QUADS);
             for (int i = 0; i < N; i++) {
                 Vector point = points.get(i);
                 gl.glVertex3d(point.x(), point.y(), point.z());
                 Vector off = offset_points.get(i);
                 gl.glVertex3d(off.x(), off.y(), off.z());
-                Vector next_off = offset_points.get(i+1);
+                Vector next_off = offset_points.get(i + 1);
                 gl.glVertex3d(next_off.x(), next_off.y(), next_off.z());
-                Vector next_point = points.get(i+1);
+                Vector next_point = points.get(i + 1);
                 gl.glVertex3d(next_point.x(), next_point.y(), next_point.z());
             }
-            
+
             for (int i = 0; i < N; i++) {
                 Vector point = points.get(i);
-                Vector next_point = points.get(i+1);
+                Vector next_point = points.get(i + 1);
                 gl.glVertex3d(point.x(), point.y(), maxHeight);
                 gl.glVertex3d(next_point.x(), next_point.y(), maxHeight);
                 gl.glVertex3d(next_point.x(), next_point.y(), minHeight);
                 gl.glVertex3d(point.x(), point.y(), minHeight);
             }
-            
+
             for (int i = 0; i < N; i++) {
                 Vector point = offset_points.get(i);
-                Vector next_point = offset_points.get(i+1);
+                Vector next_point = offset_points.get(i + 1);
                 gl.glVertex3d(point.x(), point.y(), maxHeight);
                 gl.glVertex3d(next_point.x(), next_point.y(), maxHeight);
                 gl.glVertex3d(next_point.x(), next_point.y(), minHeight);
