@@ -72,6 +72,12 @@ public class RobotRace extends Base {
         // Enable textures. 
         gl.glEnable(GL_TEXTURE_2D);
         gl.glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+        
+        // Enable lighting.
+        gl.glEnable(GL_LIGHTING);
+        gl.glEnable(GL_LIGHT0);
+        gl.glEnable(GL_NORMALIZE);
+        gl.glEnable(GL_COLOR_MATERIAL);
 
         // Initialize robots array.
         robots = new Robot[NUMROBOTS];
@@ -137,14 +143,15 @@ public class RobotRace extends Base {
                 gs.cnt.x(), gs.cnt.y(), gs.cnt.z(), // center point
                 up.x(), up.y(), up.z()); // up axis
 
-        // Enable lighting.
-        gl.glEnable(GL_LIGHTING);
-        gl.glEnable(GL_LIGHT0);
-        gl.glEnable(GL_NORMALIZE);
-        gl.glEnable(GL_COLOR_MATERIAL);
-        gl.glLoadIdentity();
+        
+        //gl.glPushMatrix();
+        //gl.glLoadIdentity();
         Vector horizontal = dir.cross(up).normalized();
         Vector eye_up = horizontal.cross(dir);
+        Vector camera = eye.add(gs.cnt);
+        float[] location = {(float) camera.x(), (float) camera.y(), (float) camera.z()};
+        gl.glLightfv(GL_LIGHT0, GL_POSITION, location, 0); //set location of ls0
+        //gl.glPopMatrix();
     }
 
     /**
@@ -179,7 +186,7 @@ public class RobotRace extends Base {
 
         Vector pos = t.curve.getPoint(tAnim).add(t.curve.getNormalVector(tAnim).normalized().scale(1));
 
-        gl.glTranslated(pos.x(), pos.y(), pos.z());
+        //gl.glTranslated(pos.x(), pos.y(), pos.z());
         Vector tangent = t.curve.getTangent(tAnim);
         double dot = tangent.dot(Vector.Y);
         double cosangle = dot / (tangent.length() * Vector.Y.length());
