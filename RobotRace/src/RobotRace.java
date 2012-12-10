@@ -77,6 +77,7 @@ public class RobotRace extends Base {
         gl.glEnable(GL_LIGHTING);
         gl.glEnable(GL_LIGHT0);
         gl.glEnable(GL_COLOR_MATERIAL);
+        gl.glEnable(GL_NORMALIZE); 
 
         // Initialize robots array.
         robots = new Robot[NUMROBOTS];
