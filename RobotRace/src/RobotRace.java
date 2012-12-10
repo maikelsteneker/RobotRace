@@ -148,9 +148,10 @@ public class RobotRace extends Base {
         //gl.glLoadIdentity();
         Vector horizontal = dir.cross(up).normalized();
         Vector eye_up = horizontal.cross(dir);
-        Vector camera = eye.add(gs.cnt);
-        float[] location = {(float) camera.x(), (float) camera.y(), (float) camera.z()};
-        //gl.glLightfv(GL_LIGHT0, GL_POSITION, location, 0); //set location of ls0
+        Vector camera = eye;
+        float[] location = {(float) camera.x(), (float) camera.y(), (float) camera.z(),1};
+        //float[] location = {1,1,1,1};
+        gl.glLightfv(GL_LIGHT0, GL_POSITION, location, 0); //set location of ls0
         //gl.glPopMatrix();
     }
 
@@ -178,7 +179,7 @@ public class RobotRace extends Base {
         gl.glColor3f(0, 1, 0);
         Curve curve = new SimpleCurve();
         Track t = new Track(curve, 4, -1, 1);
-        t.draw();
+        //t.draw();
 
         // Draw robot.
         gl.glPushMatrix();
@@ -197,7 +198,7 @@ public class RobotRace extends Base {
         
         double[] x = {1,2,3,2,1,2,1};
         double[] z = {1,2,3,4,5,6,7};
-        drawRotSymShape(x, z, true, 100, 1);
+        //drawRotSymShape(x, z, true, 100, 1);
     }
 
     /**
