@@ -198,7 +198,7 @@ public class RobotRace extends Base {
         
         double[] x = {1,2,3,2,1,2,1};
         double[] z = {1,2,3,4,5,6,7};
-        //drawRotSymShape(x, z, true, 100, 1);
+        drawRotSymShape(x, z, true, 100, 9001);
     }
 
     /**
@@ -314,6 +314,47 @@ public class RobotRace extends Base {
             angle[i] = (i * 2 * PI / slices);
         }
         
+        //insert points (subdivision)
+        List<Vector> list = new ArrayList<Vector>();
+        for (int i = 0; i < N-1; i++) {
+            Vector P = new Vector(x[i],0,z[i]);
+            Vector Q = new Vector(x[i+1],0,z[i+1]);
+            Vector V = Q.subtract(P);
+            if (V.length() >= dmin) {
+                //split up the line PQ
+                int n = (int) Math.ceil(V.length() / dmin);
+                     //minimal number of line segments PQ needs to be divided in
+                
+                double l = V.length() / n; //length of each new line segment
+                
+                //add P and points on line PQ to the list
+                for (int j = 0; j < n; j++) {
+                    list.add(P.add(V.normalized().scale(l * i)));
+                }
+            } else {
+                //add P to the list
+                list.add(P);
+            }
+        }
+        //add last point to the list
+        list.add(new Vector(x[N-1],0,z[N-1]));
+        
+        //draw the polygons
+        //TODO: specify normals
+        gl.glBegin(GL_QUADS);
+        for (int i = 0; i < list.size() - 1; i++) {
+            for (int j = 0; j < slices; j++) {
+                gl.glVertex3d(cos(angle[j]) * list.get(i).x(), sin(angle[j]) * list.get(i).x(), list.get(i).z());
+                gl.glVertex3d(cos(angle[j+1]) * list.get(i).x(), sin(angle[j+1]) * list.get(i).x(), list.get(i).z());
+                gl.glVertex3d(cos(angle[j+1]) * list.get(i+1).x(), sin(angle[j+1]) * list.get(i+1).x(), list.get(i+1).z());
+                gl.glVertex3d(cos(angle[j]) * list.get(i+1).x(), sin(angle[j]) * list.get(i+1).x(), list.get(i+1).z());
+            }
+        }
+        gl.glEnd();
+        
+        /* old way, reading directly from array:
+        //draw the polygons
+        //TODO: specify normals
         gl.glBegin(GL_QUADS);
         for (int i = 0; i < N - 1; i++) {
             for (int j = 0; j < slices; j++) {
@@ -323,7 +364,7 @@ public class RobotRace extends Base {
                 gl.glVertex3d(cos(angle[j]) * x[i+1], sin(angle[j]) * x[i+1], z[i+1]);
             }
         }
-        gl.glEnd();
+        gl.glEnd();*/
     }
 
     /**
