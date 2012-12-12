@@ -186,7 +186,6 @@ public class RobotRace extends Base {
         float tAnim = gs.tAnim / 8;
 
         Vector pos = t.curve.getPoint(tAnim).add(t.curve.getNormalVector(tAnim).normalized().scale(1));
-
         //gl.glTranslated(pos.x(), pos.y(), pos.z());
         Vector tangent = t.curve.getTangent(tAnim);
         double dot = tangent.dot(Vector.Y);
@@ -198,7 +197,7 @@ public class RobotRace extends Base {
         
         double[] x = {1,2,3,2,1,2,1};
         double[] z = {1,2,3,4,5,6,7};
-        drawRotSymShape(x, z, true, 100, 9001);
+        drawRotSymShape(x, z, true, 100, 0.01);
     }
 
     /**
@@ -329,7 +328,7 @@ public class RobotRace extends Base {
                 
                 //add P and points on line PQ to the list
                 for (int j = 0; j < n; j++) {
-                    list.add(P.add(V.normalized().scale(l * i)));
+                    list.add(P.add(V.normalized().scale(l * j)));
                 }
             } else {
                 //add P to the list
@@ -341,7 +340,8 @@ public class RobotRace extends Base {
         
         //draw the polygons
         //TODO: specify normals
-        gl.glBegin(GL_QUADS);
+        boolean points = false;
+        gl.glBegin(points ? GL_POINTS : GL_QUADS);
         for (int i = 0; i < list.size() - 1; i++) {
             for (int j = 0; j < slices; j++) {
                 gl.glVertex3d(cos(angle[j]) * list.get(i).x(), sin(angle[j]) * list.get(i).x(), list.get(i).z());
