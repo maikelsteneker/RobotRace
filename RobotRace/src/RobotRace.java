@@ -197,7 +197,7 @@ public class RobotRace extends Base {
 
         double[] x = {1, 2, 3, 2, 1, 2, 1};
         double[] z = {1, 2, 3, 4, 5, 6, 7};
-        drawRotSymShape(x, z, true, 100, 0.01);
+        drawRotSymShape(x, z, gs.showAxes, 10, gs.showStick ? 0.01 : 9001);
     }
 
     /**
@@ -319,7 +319,7 @@ public class RobotRace extends Base {
             Vector P = new Vector(x[i], 0, z[i]);
             Vector Q = new Vector(x[i + 1], 0, z[i + 1]);
             Vector V = Q.subtract(P);
-            if (V.length() >= dmin) {
+            if (V.length() > dmin) {
                 //split up the line PQ
                 int n = (int) Math.ceil(V.length() / dmin); //minimal number of line segments PQ needs to be divided in
 
@@ -338,15 +338,36 @@ public class RobotRace extends Base {
         list.add(new Vector(x[N - 1], 0, z[N - 1]));
 
         //draw the polygons
-        //TODO: specify normals
-        boolean points = false;
-        gl.glBegin(points ? GL_POINTS : GL_QUADS);
+        gl.glBegin(GL_QUADS);
         for (int i = 0; i < list.size() - 1; i++) {
             for (int j = 0; j < slices; j++) {
-                gl.glVertex3d(cos(angle[j]) * list.get(i).x(), sin(angle[j]) * list.get(i).x(), list.get(i).z());
-                gl.glVertex3d(cos(angle[j + 1]) * list.get(i).x(), sin(angle[j + 1]) * list.get(i).x(), list.get(i).z());
-                gl.glVertex3d(cos(angle[j + 1]) * list.get(i + 1).x(), sin(angle[j + 1]) * list.get(i + 1).x(), list.get(i + 1).z());
-                gl.glVertex3d(cos(angle[j]) * list.get(i + 1).x(), sin(angle[j]) * list.get(i + 1).x(), list.get(i + 1).z());
+                Vector bl, br, ur, ul;
+                bl = new Vector(cos(angle[j]) * list.get(i).x(), sin(angle[j]) * list.get(i).x(), list.get(i).z());
+                br = new Vector(cos(angle[j + 1]) * list.get(i).x(), sin(angle[j + 1]) * list.get(i).x(), list.get(i).z());
+                ur = new Vector(cos(angle[j + 1]) * list.get(i + 1).x(), sin(angle[j + 1]) * list.get(i + 1).x(), list.get(i + 1).z());
+                ul = new Vector(cos(angle[j]) * list.get(i + 1).x(), sin(angle[j]) * list.get(i + 1).x(), list.get(i + 1).z());
+                if (sm) {
+                    gl.glNormal3d(bl.x(), bl.y(), bl.z());
+                    gl.glVertex3d(bl.x(), bl.y(), bl.z());
+
+                    gl.glNormal3d(br.x(), br.y(), br.z());
+                    gl.glVertex3d(br.x(), br.y(), br.z());
+
+                    gl.glNormal3d(ur.x(), ur.y(), ur.z());
+                    gl.glVertex3d(ur.x(), ur.y(), ur.z());
+
+                    gl.glNormal3d(ul.x(), ul.y(), ur.z());
+                    gl.glVertex3d(ul.x(), ul.y(), ur.z());
+                } else {
+                    Vector up = ul.subtract(bl);
+                    Vector right = br.subtract(bl);
+                    Vector normal = right.cross(up);
+                    gl.glNormal3d(normal.x(), normal.y(), normal.z());
+                    gl.glVertex3d(bl.x(), bl.y(), bl.z());
+                    gl.glVertex3d(br.x(), br.y(), br.z());
+                    gl.glVertex3d(ur.x(), ur.y(), ur.z());
+                    gl.glVertex3d(ul.x(), ul.y(), ur.z());
+                }
             }
         }
         gl.glEnd();
