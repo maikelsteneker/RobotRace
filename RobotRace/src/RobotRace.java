@@ -8,6 +8,8 @@ import static java.lang.Math.*;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import javax.media.opengl.GL2;
 
@@ -48,14 +50,13 @@ public class RobotRace extends Base {
     Robot[] robots; // array to store drawable robots
     final private static int NUMROBOTS = 1; // size of robots array
     Vector eye; // current location of the camera
-    Vector light = new Vector(10,0,0);
+    Vector light = new Vector(10, 0, 0);
     double[][] initm = {
-        {0.1,0,0,0},
-        {0,1,0,0},
-        {0,0,1,0},
-        {0,0,0,1}
+        {0.1, 0, 0, 0},
+        {0, 1, 0, 0},
+        {0, 0, 1, 0},
+        {0, 0, 0, 1}
     };
-    
     Matrix m_0 = new Matrix(initm);
 
     /**
@@ -107,7 +108,7 @@ public class RobotRace extends Base {
 
         // Calculate position of the camera.
         eye = gs.cnt.add(dir.scale(gs.vDist));
-        
+
         final float AR = gs.w / (float) gs.h; // aspect ratio
         float vHeight = gs.vWidth / AR; // height of scene to be shown
         Vector up = Vector.Z; // up vector
@@ -159,47 +160,46 @@ public class RobotRace extends Base {
         Vector horizontal = dir.cross(up).normalized();
         Vector eye_up = horizontal.cross(dir);
         double[][] matrix = {
-            {eye.normalized().x(),horizontal.normalized().x(), eye_up.normalized().x(),eye.x()},
-            {eye.normalized().y(),horizontal.normalized().y(),eye_up.normalized().y(),eye.y()},
-            {eye.normalized().z(),horizontal.normalized().z(),eye_up.normalized().z(),eye.z()},
-            {0,0,0,1}
+            {eye.normalized().x(), horizontal.normalized().x(), eye_up.normalized().x(), eye.x()},
+            {eye.normalized().y(), horizontal.normalized().y(), eye_up.normalized().y(), eye.y()},
+            {eye.normalized().z(), horizontal.normalized().z(), eye_up.normalized().z(), eye.z()},
+            {0, 0, 0, 1}
         };
         Matrix m = new Matrix(matrix);
         //Vector P = new Vector(1,0,0);
         //System.out.println(m.times(P).toString());
-        Vector Q = new Vector(0,1,0);
+        Vector Q = new Vector(0, 1, 0);
         //System.out.println(m.times(Q).toString());
-        Vector R = new Vector(0,0,1);
+        Vector R = new Vector(0, 0, 1);
         //System.out.println(m.times(R).toString());
         //System.out.println();
-        
-       
+
+
         //System.out.println(light.toString());
-        
+
         //light = m.times(old_light);
-        
+
         if (gs.lightCamera) {
-            
         } else {
             //light stays where it was
-            m_0=m;
-                    
+            m_0 = m;
+
 
         }
         //Vector try1 = m_0.times(light);
         //Vector try2 = try1.subtract(eye);
         light = m.transposed().times(m_0.times(light));
         //light.add(eye);
-        m_0=m;
+        m_0 = m;
         System.out.println(light);
-        
+
         for (int i = 0; i < m.numbers.length; i++) {
             for (int j = 0; j < m.numbers.length; j++) {
                 System.out.print(m.numbers[i][j] + ",");
             }
             System.out.println();
         }
-        
+
         float[] location = {(float) light.x(), (float) light.y(), (float) light.z(), 1};
         //float[] location = {0,0,10,1};
         gl.glLightfv(GL_LIGHT0, GL_POSITION, location, 0); //set location of ls0
@@ -249,7 +249,7 @@ public class RobotRace extends Base {
         double[] x = {1, 2, 3, 2, 1, 2, 1};
         double[] z = {1, 2, 3, 4, 5, 6, 7};
         drawRotSymShape(x, z, false, 10, gs.showStick ? 0.01 : 9001);
-        
+
         gl.glPushMatrix();
         gl.glColor3f(1, 0, 0);
         Vector src = light.scale(.1);
@@ -392,6 +392,28 @@ public class RobotRace extends Base {
         }
         //add last point to the list
         list.add(new Vector(x[N - 1], 0, z[N - 1]));
+
+        //determine normals
+        //TODO: finish. and get rid of that map...
+        Map<Entry<Entry<Double,Double>,Double>, Set<Vector>> m;
+        if (sm) {
+            for (int i = 0; i < list.size(); i++) {
+                for (int j = 0; j < slices; j++) {
+                    Vector bl, br, ur, ul;
+                    bl = new Vector(cos(angle[j]) * list.get(i).x(), sin(angle[j]) * list.get(i).x(), list.get(i).z());
+                    br = new Vector(cos(angle[j + 1]) * list.get(i).x(), sin(angle[j + 1]) * list.get(i).x(), list.get(i).z());
+                    ur = new Vector(cos(angle[j + 1]) * list.get(i + 1).x(), sin(angle[j + 1]) * list.get(i + 1).x(), list.get(i + 1).z());
+                    ul = new Vector(cos(angle[j]) * list.get(i + 1).x(), sin(angle[j]) * list.get(i + 1).x(), list.get(i + 1).z());
+                    Vector[] vertices = {bl,br,ur,ul};
+                    Vector up = ul.subtract(bl);
+                    Vector right = br.subtract(bl);
+                    Vector normal = right.cross(up);
+                    for(Vector P : vertices) {
+                        //s = m.get(new Entry<Entry<, Object>)
+                    }
+                }
+            }
+        }
 
         //draw the polygons
         gl.glBegin(GL_QUADS);
@@ -1173,7 +1195,7 @@ public class RobotRace extends Base {
                 normals2D.add(normal2D);
                 Vector off = point.add(normal2D.normalized().scale(width));
                 offset_points.add(off);
-                
+
                 normals.add(normal2D.cross(curve.getTangent(t)));
             }
 
@@ -1196,9 +1218,9 @@ public class RobotRace extends Base {
                 Vector off = offset_points.get(i);
                 Vector next_off = offset_points.get(i + 1);
                 Vector next_point = points.get(i + 1);
-                
+
                 gl.glNormal3d(normals.get(i).x(), normals.get(i).y(), normals.get(i).z());
-                
+
                 gl.glVertex3d(point.x(), point.y(), point.z());
                 gl.glVertex3d(off.x(), off.y(), off.z());
                 gl.glVertex3d(next_off.x(), next_off.y(), next_off.z());
