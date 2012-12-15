@@ -248,7 +248,7 @@ public class RobotRace extends Base {
 
         double[] x = {1, 2, 3, 2, 1, 2, 1};
         double[] z = {1, 2, 3, 4, 5, 6, 7};
-        drawRotSymShape(x, z, false, 10, gs.showStick ? 0.01 : 9001);
+        drawRotSymShape(x, z, !gs.showAxes, 10, gs.showStick ? 0.01 : 9001);
 
         gl.glPushMatrix();
         gl.glColor3f(1, 0, 0);
@@ -360,7 +360,7 @@ public class RobotRace extends Base {
     }
 
     private void drawRotSymShape(double[] x, double[] z, boolean sm, int slices,
-            double dmin) {
+            double dmin) { //TODO: fix smooth shading for last slice
         final int N = x.length;
 
         //compute all necessary angles
@@ -394,23 +394,45 @@ public class RobotRace extends Base {
         list.add(new Vector(x[N - 1], 0, z[N - 1]));
 
         //determine normals
-        //TODO: finish. and get rid of that map...
-        Map<Entry<Entry<Double,Double>,Double>, Set<Vector>> m;
+        Set[][] normal_summands = new Set[list.size()][slices];
+        Vector[][] normals = new Vector[normal_summands.length][normal_summands[0].length];
         if (sm) {
-            for (int i = 0; i < list.size(); i++) {
+            for (int i = 0; i < normal_summands.length; i++) {
+                for (int j = 0; j < normal_summands[0].length; j++) {
+                    normal_summands[i][j] = new HashSet<Vector>();
+                }
+            }
+            //for each quad:
+            for (int i = 0; i < list.size() - 2; i++) {
                 for (int j = 0; j < slices; j++) {
+                    //compute the normal of the quad
                     Vector bl, br, ur, ul;
                     bl = new Vector(cos(angle[j]) * list.get(i).x(), sin(angle[j]) * list.get(i).x(), list.get(i).z());
                     br = new Vector(cos(angle[j + 1]) * list.get(i).x(), sin(angle[j + 1]) * list.get(i).x(), list.get(i).z());
                     ur = new Vector(cos(angle[j + 1]) * list.get(i + 1).x(), sin(angle[j + 1]) * list.get(i + 1).x(), list.get(i + 1).z());
                     ul = new Vector(cos(angle[j]) * list.get(i + 1).x(), sin(angle[j]) * list.get(i + 1).x(), list.get(i + 1).z());
-                    Vector[] vertices = {bl,br,ur,ul};
                     Vector up = ul.subtract(bl);
                     Vector right = br.subtract(bl);
                     Vector normal = right.cross(up);
-                    for(Vector P : vertices) {
-                        //s = m.get(new Entry<Entry<, Object>)
+
+                    //add the normal to the normal_summands set for each vertex
+                    for (int k = i; k <= i + 1; k++) {
+                        for (int l = j; l <= (j + 1) % (slices-1); l++) {
+                            normal_summands[k][l].add(normal);
+                        }
                     }
+                }
+            }
+
+            //now compute the normal for each vertex by taking the average of 
+            //the normals in normal_summands
+            for (int i = 0; i < normal_summands.length; i++) {
+                for (int j = 0; j < normal_summands[0].length; j++) {
+                    Vector sum = Vector.O;
+                    for (Object normal : normal_summands[i][j]) {
+                        sum = sum.add((Vector) normal);
+                    }
+                    normals[i][j] = (sum.length() > 0) ? sum.scale(1 / normal_summands[i][j].size()) : sum;
                 }
             }
         }
@@ -425,17 +447,22 @@ public class RobotRace extends Base {
                 ur = new Vector(cos(angle[j + 1]) * list.get(i + 1).x(), sin(angle[j + 1]) * list.get(i + 1).x(), list.get(i + 1).z());
                 ul = new Vector(cos(angle[j]) * list.get(i + 1).x(), sin(angle[j]) * list.get(i + 1).x(), list.get(i + 1).z());
                 if (sm) {
-                    //TODO: fix normal vectors for smooth shading
-                    gl.glNormal3d(bl.x(), bl.y(), bl.z());
+                    Vector bl_normal, br_normal, ur_normal, ul_normal;
+                    bl_normal = normals[i][j];
+                    br_normal = normals[i][(j + 1) % (slices - 1)];
+                    ur_normal = normals[i + 1][(j + 1) % (slices - 1)];
+                    ul_normal = normals[i + 1][j];
+
+                    gl.glNormal3d(bl_normal.x(), bl_normal.y(), bl_normal.z());
                     gl.glVertex3d(bl.x(), bl.y(), bl.z());
 
-                    gl.glNormal3d(br.x(), br.y(), br.z());
+                    gl.glNormal3d(br_normal.x(), br_normal.y(), br_normal.z());
                     gl.glVertex3d(br.x(), br.y(), br.z());
 
-                    gl.glNormal3d(ur.x(), ur.y(), ur.z());
+                    gl.glNormal3d(ur_normal.x(), ur_normal.y(), ur_normal.z());
                     gl.glVertex3d(ur.x(), ur.y(), ur.z());
 
-                    gl.glNormal3d(ul.x(), ul.y(), ur.z());
+                    gl.glNormal3d(ul_normal.x(), ul_normal.y(), ur_normal.z());
                     gl.glVertex3d(ul.x(), ul.y(), ur.z());
                 } else {
                     Vector up = ul.subtract(bl);
