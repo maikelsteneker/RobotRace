@@ -57,7 +57,7 @@ public class RobotRace extends Base {
         {0, 0, 1, 0},
         {0, 0, 0, 1}
     };
-    Matrix m_0 = new Matrix(initm);
+    Matrix m_0 = null;//new Matrix(initm);
 
     /**
      * Called upon the start of the application. Primarily used to configure
@@ -188,10 +188,18 @@ public class RobotRace extends Base {
         }
         //Vector try1 = m_0.times(light);
         //Vector try2 = try1.subtract(eye);
-        light = m.transposed().times(m_0.times(light));
+        if (m_0 != null) {
+            light = m_0.inverseCheating().times(m.times(light));
+        } else {
+            //light stays the same for now
+        }
         //light.add(eye);
         m_0 = m;
         System.out.println(light);
+        gl.glPushMatrix();
+        gl.glTranslated(light.x(), light.y(), light.z());
+        glut.glutSolidSphere(1, 100, 100);
+        gl.glPopMatrix();
 
         for (int i = 0; i < m.numbers.length; i++) {
             for (int j = 0; j < m.numbers.length; j++) {
@@ -417,7 +425,7 @@ public class RobotRace extends Base {
 
                     //add the normal to the normal_summands set for each vertex
                     for (int k = i; k <= i + 1; k++) {
-                        for (int l = j; l <= (j + 1) % (slices-1); l++) {
+                        for (int l = j; l <= (j + 1) % (slices - 1); l++) {
                             normal_summands[k][l].add(normal);
                         }
                     }
