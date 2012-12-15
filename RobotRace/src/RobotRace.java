@@ -176,8 +176,10 @@ public class RobotRace extends Base {
             System.out.println("rob: " + toDegrees(angle));
           // gl.glRotated(toDegrees(angle), 0, 1, 0);
         
-            Vector camPos = pos.add(new Vector(0, 1.8*angle, 0));
-            glu.gluLookAt(camPos.x(), camPos.y(), camPos.z(), pos.x(), pos.y(), pos.z(), 0, 0, 1);
+            Vector camPos = pos.add(t.curve.getNormalVector(tAnim).normalized().scale(2));
+            glu.gluLookAt(camPos.x(), camPos.y(), camPos.z(),
+                    pos.x(), pos.y(), pos.z(),
+                    0, 0, 1);
             
         }
 
@@ -273,19 +275,19 @@ public class RobotRace extends Base {
         gl.glColor3f(0, 1, 0);
         curve = new SimpleCurve();
         t = new Track(curve, 4, -1, 1);
-        //t.draw();
+        t.draw();
 
         // Draw robot.
         gl.glPushMatrix();
         tAnim = gs.tAnim / 8;
 
         pos = t.curve.getPoint(tAnim).add(t.curve.getNormalVector(tAnim).normalized().scale(1));
-        //gl.glTranslated(pos.x(), pos.y(), pos.z());
+        gl.glTranslated(pos.x(), pos.y(), pos.z());
         Vector tangent = t.curve.getTangent(tAnim);
         double dot = tangent.dot(Vector.Y);
         double cosangle = dot / (tangent.length() * Vector.Y.length());
         double angle = (((tAnim) % 1) >= 0.5f) ? -acos(cosangle) : acos(cosangle);
-        //gl.glRotated(toDegrees(angle), 0, 0, 1);
+        gl.glRotated(toDegrees(angle), 0, 0, 1);
         robots[0].draw();
         gl.glPopMatrix();
 
