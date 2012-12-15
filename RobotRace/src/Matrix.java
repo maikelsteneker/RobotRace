@@ -95,4 +95,26 @@ public class Matrix {
         }
         return result;
     }
+    
+    public boolean equalsTo(Matrix m) {
+        boolean result = true;
+        for (int i = 0; i < numbers.length; i++) {
+            for (int j = 0; j < numbers[0].length; j++) {
+                result = result && (numbers[i][j] == m.numbers[i][j]);
+            }
+        }
+        return result;
+    }
+    
+    public void print() {
+        final double EPS = Math.pow(10, -13);
+        for (int i = 0; i < numbers.length; i++) {
+            for (int j = 0; j < numbers[0].length; j++) {
+                double n = numbers[i][j];
+                System.out.print((Math.abs(n) < EPS ? 0 : n) + ",");
+            }
+            System.out.println();
+        }
+        System.out.println();
+    }
 }

@@ -50,7 +50,7 @@ public class RobotRace extends Base {
     Robot[] robots; // array to store drawable robots
     final private static int NUMROBOTS = 1; // size of robots array
     Vector eye; // current location of the camera
-    Vector light = new Vector(10, 0, 0);
+    Vector light = new Vector(0, 0, 0);
     double[][] initm = {
         {0.1, 0, 0, 0},
         {0, 1, 0, 0},
@@ -180,6 +180,7 @@ public class RobotRace extends Base {
         //light = m.times(old_light);
 
         if (gs.lightCamera) {
+            boolean test = true;
         } else {
             //light stays where it was
             m_0 = m;
@@ -189,24 +190,30 @@ public class RobotRace extends Base {
         //Vector try1 = m_0.times(light);
         //Vector try2 = try1.subtract(eye);
         if (m_0 != null) {
-            light = m_0.inverseCheating().times(m.times(light));
+            //light = m_0.inverseCheating().times(m.times(light));
+            
+            Jama.Matrix jm = new Jama.Matrix(matrix);
+            Jama.Matrix jm0 = new Jama.Matrix(m_0.numbers);
+            Jama.Matrix inverse = jm0.inverse();
+            Jama.Matrix product = inverse.times(jm);
+            Matrix ourproduct = new Matrix(product.getArray());
+            light = ourproduct.times(light);
+            ourproduct.print();
+            System.out.println(light);
         } else {
             //light stays the same for now
         }
         //light.add(eye);
         m_0 = m;
-        System.out.println(light);
-        gl.glPushMatrix();
-        gl.glTranslated(light.x(), light.y(), light.z());
-        glut.glutSolidSphere(1, 100, 100);
-        gl.glPopMatrix();
+        //System.out.println(light);
+        
 
-        for (int i = 0; i < m.numbers.length; i++) {
+        /*for (int i = 0; i < m.numbers.length; i++) {
             for (int j = 0; j < m.numbers.length; j++) {
                 System.out.print(m.numbers[i][j] + ",");
             }
             System.out.println();
-        }
+        }*/
 
         float[] location = {(float) light.x(), (float) light.y(), (float) light.z(), 1};
         //float[] location = {0,0,10,1};
@@ -238,7 +245,7 @@ public class RobotRace extends Base {
         gl.glColor3f(0, 1, 0);
         Curve curve = new SimpleCurve();
         Track t = new Track(curve, 4, -1, 1);
-        t.draw();
+        //t.draw();
 
         // Draw robot.
         gl.glPushMatrix();
@@ -256,13 +263,19 @@ public class RobotRace extends Base {
 
         double[] x = {1, 2, 3, 2, 1, 2, 1};
         double[] z = {1, 2, 3, 4, 5, 6, 7};
-        drawRotSymShape(x, z, !gs.showAxes, 10, gs.showStick ? 0.01 : 9001);
+        drawRotSymShape(x, z, false, 10, gs.showStick ? 0.01 : 9001);
 
         gl.glPushMatrix();
         gl.glColor3f(1, 0, 0);
         Vector src = light.scale(.1);
         gl.glTranslated(src.x(), src.y(), src.z());
         //glut.glutSolidCube(1f);
+        gl.glPopMatrix();
+        
+        gl.glPushMatrix();
+        gl.glTranslated(light.x(), light.y(), light.z());
+        gl.glColor3f(1, 0, 0);
+        glut.glutSolidSphere(0.1, 100, 100);
         gl.glPopMatrix();
     }
 
