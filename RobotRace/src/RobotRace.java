@@ -153,34 +153,34 @@ public class RobotRace extends Base {
         // Set camera.
         gl.glMatrixMode(GL_MODELVIEW);
         gl.glLoadIdentity();
-        if (gs.camMode == 0) {
-            glu.gluLookAt(eye.x(), eye.y(), eye.z(), // eye point
-                    gs.cnt.x(), gs.cnt.y(), gs.cnt.z(), // center point
-                    up.x(), up.y(), up.z()); // up axis
-        } else if (gs.camMode == 1) {
-        //I think this is helicopter mode, but it rotates  too much.   
-            Vector camPos = pos.add(new Vector(0, 1, 10));
-            tAnim = gs.tAnim / 8;
-            Vector tangent = t.curve.getTangent(tAnim);
-            glu.gluLookAt(camPos.x(), camPos.y(), camPos.z(), pos.x(), pos.y(), pos.z(), 
-                         tangent.x(), tangent.y(), tangent.z());
-            
-        } else {
-             
-             tAnim = gs.tAnim / 8;
-            
-             Vector tangent = t.curve.getTangent(tAnim);
-            double dot = tangent.dot(Vector.Y);
-            double cosangle = dot / (tangent.length() * Vector.Y.length());
-            double angle = (((tAnim) % 1) >= 0.5f) ? -acos(cosangle) : acos(cosangle);
-            System.out.println("rob: " + toDegrees(angle));
-          // gl.glRotated(toDegrees(angle), 0, 1, 0);
+        //gs.vWidth = vWidth_old;
         
-            Vector camPos = pos.add(t.curve.getNormalVector(tAnim).normalized().scale(2));
-            glu.gluLookAt(camPos.x(), camPos.y(), camPos.z(),
-                    pos.x(), pos.y(), pos.z(),
-                    0, 0, 1);
-            
+        System.out.println(tAnim);
+        switch (gs.camMode) {
+            case 0:
+                setOverviewCamMode(up);
+                break;
+            case 1:
+                setHelicopterCamMode();
+                break;
+            case 2:
+                setMotorcycleCamMode();
+                break;
+            case 3:
+                setFirstPersonCamMode();
+                break;
+            case 4: // Auto mode - not really equal time for each of them
+                int val = (int) (tAnim % 10);
+                if (val < 3) {
+                   setOverviewCamMode(up); 
+                } else if (val < 6) {
+                   setHelicopterCamMode();
+                } else if (val < 8){
+                    setFirstPersonCamMode();
+                } else {
+                    setFirstPersonCamMode();
+                }
+                break;
         }
 
 
@@ -221,30 +221,30 @@ public class RobotRace extends Base {
         //Vector try2 = try1.subtract(eye);
         if (m_0 != null) {
             //light = m_0.inverseCheating().times(m.times(light));
-            
+
             Jama.Matrix jm = new Jama.Matrix(matrix);
             Jama.Matrix jm0 = new Jama.Matrix(m_0.numbers);
             Jama.Matrix inverse = jm0.inverse();
             Jama.Matrix product = inverse.times(jm);
             Matrix ourproduct = new Matrix(product.getArray());
             light = ourproduct.times(light);
-            ourproduct.print();
-            System.out.println(light);
+            //ourproduct.print();
+            //System.out.println(light);
         } else {
             //light stays the same for now
         }
         //light.add(eye);
         m_0 = m;
         //System.out.println(light);
-        
+
 
         /*for (int i = 0; i < m.numbers.length; i++) {
-            for (int j = 0; j < m.numbers.length; j++) {
-                System.out.print(m.numbers[i][j] + ",");
-            }
-            System.out.println();
-        }*/
-
+         for (int j = 0; j < m.numbers.length; j++) {
+         System.out.print(m.numbers[i][j] + ",");
+         }
+         System.out.println();
+         }*/
+light = eye;
         float[] location = {(float) light.x(), (float) light.y(), (float) light.z(), 1};
         //float[] location = {0,0,10,1};
         gl.glLightfv(GL_LIGHT0, GL_POSITION, location, 0); //set location of ls0
@@ -272,7 +272,7 @@ public class RobotRace extends Base {
         drawAxisFrame();
 
         // Draw track.
-        gl.glColor3f(0, 1, 0);
+        //gl.glColor3f(0, 1, 0);
         curve = new SimpleCurve();
         t = new Track(curve, 4, -1, 1);
         t.draw();
@@ -280,6 +280,7 @@ public class RobotRace extends Base {
         // Draw robot.
         gl.glPushMatrix();
         tAnim = gs.tAnim / 8;
+        
 
         pos = t.curve.getPoint(tAnim).add(t.curve.getNormalVector(tAnim).normalized().scale(1));
         gl.glTranslated(pos.x(), pos.y(), pos.z());
@@ -301,7 +302,7 @@ public class RobotRace extends Base {
         gl.glTranslated(src.x(), src.y(), src.z());
         //glut.glutSolidCube(1f);
         gl.glPopMatrix();
-        
+
         gl.glPushMatrix();
         gl.glTranslated(light.x(), light.y(), light.z());
         gl.glColor3f(1, 0, 0);
@@ -528,6 +529,53 @@ public class RobotRace extends Base {
             }
         }
         gl.glEnd();
+    }
+
+    private void setOverviewCamMode(Vector up) {
+        // Overview
+        glu.gluLookAt(eye.x(), eye.y(), eye.z(), // eye point
+                gs.cnt.x(), gs.cnt.y(), gs.cnt.z(), // center point
+                up.x(), up.y(), up.z()); // up axis
+    }
+
+    private void setHelicopterCamMode() {
+        Vector camPos;
+        Vector tangent;
+        // Tracking helicopter
+        camPos = pos.add(new Vector(0, 1, 10));
+        tAnim = gs.tAnim / 8;
+        tangent = t.curve.getTangent(tAnim);
+        glu.gluLookAt(camPos.x(), camPos.y(), camPos.z(), pos.x(), pos.y(), pos.z(),
+                tangent.x(), tangent.y(), tangent.z());
+    }
+
+    private void setMotorcycleCamMode() {
+        Vector camPos;
+        Vector center;
+        // Motorcycle
+        tAnim = gs.tAnim / 8;
+        Vector height = new Vector(0, 0, 1);
+        camPos = pos.add(t.curve.getNormalVector(tAnim).normalized().scale(2)).add(height).scale(1.1);
+        center = pos.add(height);
+        glu.gluLookAt(camPos.x(), camPos.y(), camPos.z(), center.x(), center.y(), center.z(), 0, 0, 1);
+    }
+
+    private void setFirstPersonCamMode() {
+        Vector camPos;
+        Vector center;
+        // First Person mode
+        if (gs.persp) {
+            camPos = pos.add(new Vector(0, 0, 2)).add(t.curve.getTangent(tAnim).normalized());
+            center = camPos.add(t.curve.getTangent(tAnim).normalized().scale(5));
+            //tangent = t.curve.getPoint(tAnim + 1);
+        } else {
+            camPos = pos.add(new Vector(0, 0, 2)).add(t.curve.getTangent(tAnim).normalized().scale(2));
+            center = pos.add(t.curve.getTangent(tAnim).normalized().scale(5)).add(new Vector(0, 0, 1));
+            //gs.vDist = 0;
+        }
+        //vWidth_old = gs.vWidth;
+        //gs.vWidth = 4.5f;
+        glu.gluLookAt(camPos.x(), camPos.y(), camPos.z(), center.x(), center.y(), center.z(), 0, 0, 1);
     }
 
     /**
@@ -1298,10 +1346,14 @@ public class RobotRace extends Base {
                 Vector next_point = points.get(i + 1);
 
                 gl.glNormal3d(normals.get(i).x(), normals.get(i).y(), normals.get(i).z());
-
+                //track.bind(gl);
+                //gl.glTexCoord2d(0, 0);
                 gl.glVertex3d(point.x(), point.y(), point.z());
+                //gl.glTexCoord2d(1, 0);
                 gl.glVertex3d(off.x(), off.y(), off.z());
+                //gl.glTexCoord2d(1, 1);
                 gl.glVertex3d(next_off.x(), next_off.y(), next_off.z());
+                //gl.glTexCoord2d(0, 1);
                 gl.glVertex3d(next_point.x(), next_point.y(), next_point.z());
             }
 
