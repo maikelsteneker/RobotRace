@@ -59,54 +59,74 @@ public class RobotRace extends Base {
      */
     public final static class Material {
 
+        // Array contanining the parameters for a gold material. Contains similar
+        // values for the diffues and specular reflection to give a metal look.
         public final static float[] GOLD = {
             0.24725f, 0.1995f, 0.0745f, 1.0f, //ambient
             0.75164f, 0.60648f, 0.22648f, 1.0f, //diffuse
             0.628281f, 0.555802f, 0.366065f, 1.0f, //specular
             51.2f //shininess
         };
+        
+        // Array containing the parameters for yet an other gold material.
         public final static float[] VERA_GOLD = {
             0.24725f, 0.1995f, 0.0745f, 1.0f, //ambient
             0.8f, 0.6f, 0.1f, 1.0f, //diffuse
             0.8f, 0.6f, 0.1f, 1.0f, //specular
             51.2f //shininess
         };
+        
+        // Array containing the parameteres for a silver material. Just like for
+        // gold, the values for the diffuse and specular reflection are similar in order
+        // to get a metal look.
         public final static float[] SILVER = {
-            0.19225f, 0.19225f, 0.19225f, 1.0f,
-            0.50754f, 0.50754f, 0.50754f, 1.0f,
-            0.508273f, 0.508273f, 0.508273f, 1.0f,
-            51.2f
+            0.19225f, 0.19225f, 0.19225f, 1.0f,  //ambient
+            0.50754f, 0.50754f, 0.50754f, 1.0f,  //diffuse
+            0.508273f, 0.508273f, 0.508273f, 1.0f, //specular 
+            51.2f //shininess
         };
+        
+        // Array containing parameters for a green plastic material. 
         public final static float[] GREEN_PLASTIC = {
-            0.0f, 0.0f, 0.0f, 1.0f,
-            0.1f, 0.35f, 0.1f, 1.0f,
-            0.45f, 0.55f, 0.45f, 1.0f,
-            32f
+            0.0f, 0.0f, 0.0f, 1.0f, //ambient
+            0.1f, 0.35f, 0.1f, 1.0f, //diffuse
+            0.45f, 0.55f, 0.45f, 1.0f, //specular
+            32f //shininess
         };
+        
+        //Array containing parameteres for a yellow plastic materail.
         public final static float[] YELLOW_PLASTIC = {
-            0.0f, 0.0f, 0.0f, 1.0f,
-            0.5f, 0.5f, 0.0f, 1.0f,
-            0.60f, 0.60f, 0.50f, 1.0f,
-            32f
+            0.0f, 0.0f, 0.0f, 1.0f, //ambient
+            0.5f, 0.5f, 0.0f, 1.0f, //diffuse
+            0.60f, 0.60f, 0.50f, 1.0f, //specualr
+            32f //shininess
         };
+        
+        // Array containing parameteres for a red plastic material.
         public final static float[] RED_PLASTIC = {
-            0.0f, 0.0f, 0.0f, 1.0f,
-            1.0f, 0f, 0.0f, 1.0f,
-            0.60f, 0.60f, 0.50f, 1.0f,
-            32f
+            0.0f, 0.0f, 0.0f, 1.0f, //ambient
+            1.0f, 0f, 0.0f, 1.0f, //diffuse
+            0.60f, 0.60f, 0.50f, 1.0f, //specular
+            32f //shininess
         };
+        
+        // Array containing parameters for a blue plastci material.
         public final static float[] BLUE_PLASTIC = {
-            0.0f, 0.0f, 0.0f, 1.0f,
-            0f, 0.5f, 1.0f, 1.0f,
-            0.60f, 0.60f, 0.50f, 1.0f,
-            32f
+            0.0f, 0.0f, 0.0f, 1.0f, //ambient
+            0f, 0.5f, 1.0f, 1.0f, //diffuse
+            0.60f, 0.60f, 0.50f, 1.0f, //specualr
+            32f //shininess
         };
+        
+        // Array containing parameters for an orange plastic material.
         public final static float[] ORANGE_PLASTIC = {
-            0.0f, 0.0f, 0.0f, 1.0f,
-            1f, 0.65f, 0.0f, 1.0f,
-            1f, 0.65f, 0.0f, 1.0f,
-            90f
+            0.0f, 0.0f, 0.0f, 1.0f, //ambient
+            1f, 0.65f, 0.0f, 1.0f, //diffuse
+            1f, 0.65f, 0.0f, 1.0f, //specualr
+            90f //shininess
         };
+        
+        // Array containing parameters  for a wood-like material.
         public final static float[] WOOD = {
             0.0f, 0.0f, 0.0f, 1.0f, //ambient
             0.36f, 0.2f, 0.01f, 1.0f, //diffuse
@@ -206,21 +226,23 @@ public class RobotRace extends Base {
         // Set camera.
         gl.glMatrixMode(GL_MODELVIEW);
         gl.glLoadIdentity();
-
+        
+        // Choose the way that the camera is placed, according to the gs.camMode 
+        // parameter.
         switch (gs.camMode) {
-            case 0:
+            case 0: //Set the view to overview when gs.camMode = 0.
                 setOverviewCamMode();
                 break;
-            case 1:
+            case 1: //Set the view to helicopter when gs.camMode = 1.
                 setHelicopterCamMode();
                 break;
-            case 2:
-                setMotorcycleCamMode();
+            case 2: // Set the view to motorcycle when gs.camMode = 2.
+                setMotorcycleCamMode(); 
                 break;
-            case 3:
-                setFirstPersonCamMode();
+            case 3: // Set the view to first person when gs.camMode = 3.
+                setFirstPersonCamMode(); 
                 break;
-            case 4: // Auto mode - not really equal time for each of them
+            case 4: // Switch every 3 seconds between the view modes when gs.camMode = 4.
                 int val = (int) (gs.tAnim % 12);
                 if (val < 3) {
                     setOverviewCamMode();
@@ -322,21 +344,24 @@ public class RobotRace extends Base {
         // Draw Axis Frame.
         drawAxisFrame();
 
-        // Draw track.
-        //gl.glColor3f(0, 1, 0);
+ 
+        // Make a track in the shape of a simple curve, with the wdith of the
+        // number of robots plus 1. Let the heiht of the track be between -1 and 1.
         t = new Track(new SimpleCurve(), NUMROBOTS + 1, -1, 1);
-        setMaterial(Material.GREEN_PLASTIC);
-        t.draw();
+        setMaterial(Material.GREEN_PLASTIC); // Set the material of the track to plastic green.
+        t.draw(); // Draw track.
 
         // Draw robots to showcase materials.
         float[][] robot_materials = {Material.GOLD, Material.SILVER, Material.WOOD, Material.ORANGE_PLASTIC};
         gl.glPushMatrix();
+        // Translate such that the robots will be in the middle of the field.
         gl.glTranslatef(-3, 0, 0);
-        for (float[] material : robot_materials) {
-            Robot robot = new Robot();
-            robot.speed = 0;
-            setMaterial(material);
-            robot.draw();
+        for (float[] material : robot_materials) { // Make a robot for each material.
+            Robot robot = new Robot(); // Construct the robot.
+            robot.speed = 0; // Make the robots stand still.
+            setMaterial(material); // Set the material
+            robot.draw(); // Draw the robot.
+            //Translate two units to the right to make space for the new robot.
             gl.glTranslatef(2, 0, 0);
         }
         gl.glPopMatrix();
@@ -345,15 +370,27 @@ public class RobotRace extends Base {
         for (int i = 0; i < robots.length; i++) {
             Robot robot = robots[i];
             gl.glPushMatrix();
+            // Calculate the position of the robot. First get the point where the
+            // robot is currently and add to it the normal of the curve normalized,
+            // so that the robots will follow the shape of the track, and scaled
+            // such that the robots will keep the same line on the track.   
             Vector pos = t.curve.getPoint(robot.position).add(t.curve.getNormalVector(robot.position).normalized().scale(i + 1));
+            // Translate the robot to the position.
             gl.glTranslated(pos.x(), pos.y(), pos.z());
+            
+            // Caluclate the angle for which the robots need to be rotated such
+            // that they will always seem to walk straight. First get the track 
+            // tangent at the robot position.
             Vector tangent = t.curve.getTangent(robot.position);
+            // Calculate the dot product between the tangent and the Y axis.
             double dot = tangent.dot(Vector.Y);
+            // Get the cos angle between the tangent and the Y axis.
             double cosangle = dot / (tangent.length() * Vector.Y.length());
+            // If the robot is on the 2nd half of the track flip the sign of the angle.
             double angle = (((robot.position) % 1) >= 0.5f) ? -acos(cosangle) : acos(cosangle);
             gl.glRotated(toDegrees(angle), 0, 0, 1);
-            setMaterial(Material.SILVER);
-            robot.draw();
+            setMaterial(Material.SILVER); // Set the material to silver.
+            robot.draw(); // Draw the robot
             gl.glPopMatrix();
         }
 
@@ -368,6 +405,7 @@ public class RobotRace extends Base {
         gl.glPopMatrix();
 
         // Draw random light stuff.
+        //TODO: delete this before committing
         gl.glPushMatrix();
         gl.glColor3f(1, 0, 0);
         Vector src = light.scale(.1);
@@ -431,7 +469,7 @@ public class RobotRace extends Base {
             gl.glPushMatrix();
             gl.glRotatef(90, 0, 1, 0); // rotate 90 degrees around y axis
             gl.glColor3f(1.0f, 0, 0); // set color to red
-            setMaterial(Material.RED_PLASTIC);
+            setMaterial(Material.RED_PLASTIC); // set material to red plastic
             drawArrow(1, 0.01f, 0.05f); // draw arrow
             gl.glPopMatrix();
 
@@ -439,17 +477,16 @@ public class RobotRace extends Base {
             gl.glPushMatrix();
             gl.glRotatef(-90, 1, 0, 0); // rotate -90 degrees around x axis
             gl.glColor3f(0, 1.0f, 0); // set color to green
-            setMaterial(Material.GREEN_PLASTIC);
+            setMaterial(Material.GREEN_PLASTIC); // set material to green plastic
             drawArrow(1, 0.01f, 0.05f); // draw arrow
             gl.glPopMatrix();
 
             // Draw arrow for Z axis.
             gl.glPushMatrix();
             gl.glColor3f(0, 0, 1.0f); // set color to blue
-            setMaterial(Material.BLUE_PLASTIC);
+            setMaterial(Material.BLUE_PLASTIC); // set material to blue plastic
             drawArrow(1, 0.01f, 0.05f); // draw arrow
             gl.glPopMatrix();
-
             gl.glPopAttrib();
         }
     }
@@ -648,36 +685,62 @@ public class RobotRace extends Base {
         gl.glEnd();
     }
 
+    /**
+     * Sets the camera such that it will show an overview of the scene.
+     * The camera is positioned at the eye point and is looking towards
+     * the center point. Is using the Z axis as the up vector.
+     */
     private void setOverviewCamMode() {
         glu.gluLookAt(eye.x(), eye.y(), eye.z(), // eye point
                 gs.cnt.x(), gs.cnt.y(), gs.cnt.z(), // center point
                 0, 0, 1); // up axis
     }
 
+    /**
+     * Sets the camera such that it will give a helicopter view of the scene. The
+     * camera will be placed at the average position of the robots on the track.
+     */
     private void setHelicopterCamMode() {
         float total = 0;
+        // Calculate the total position of the robots. 
         for (Robot robot : robots) {
             total += robot.position;
         }
-        float avg = total / NUMROBOTS;
+        float avg = total / NUMROBOTS; // Compute the average position.
+        // Set the center point to be at the average position of the robots on the
+        // track plus the normal vector with a magnitude of half of the number of robots.
         Vector center = t.curve.getPoint(avg).add(t.curve.getNormalVector(avg).normalized().scale(NUMROBOTS / 2));
+        // Set the camers position to be 10 units above the center point.
         Vector camPos = center.add(new Vector(0, 0, 10));
+        // Get the track tangent at the current point. 
         Vector tangent = t.curve.getTangent(avg);
+        // Set the camera to be positioned at the camPos, to look towards the defined
+        // center and give the tangent as the up vector such that the camer will
+        // follow the center point in a straight line relative to the track.
         glu.gluLookAt(camPos.x(), camPos.y(), camPos.z(),
                 center.x(), center.y(), center.z(),
                 tangent.x(), tangent.y(), tangent.z());
     }
 
+    /**
+     * Set the camera such that it will follow the robots from the side of track
+     * - like a motorcycle. The camera is following the fastest robot.
+     */
     private void setMotorcycleCamMode() {
         float max = 0;
+        // Get the position of the robot that is in front.
         for (Robot robot : robots) {
             max = max(max, robot.position);
         }
-        Vector pos = t.curve.getPoint(max).add(new Vector(0, 0, 1));
+        // 
+        Vector center = t.curve.getPoint(max).add(new Vector(0, 0, 1));
         Vector camPos = t.curve.getPoint(max).add(t.curve.getNormalVector(max).normalized().scale(NUMROBOTS + 1)).add(new Vector(0, 0, 1));
-        glu.gluLookAt(camPos.x(), camPos.y(), camPos.z(), pos.x(), pos.y(), pos.z(), 0, 0, 1);
+        glu.gluLookAt(camPos.x(), camPos.y(), camPos.z(), center.x(), center.y(), center.z(), 0, 0, 1);
     }
 
+    /**
+     * 
+     */
     private void setFirstPersonCamMode() {
         Robot robot = robots[0];
         Vector pos = t.curve.getPoint(robot.position);
