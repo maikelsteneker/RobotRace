@@ -48,7 +48,7 @@ public class RobotRace extends Base {
 
     double fovy = -1; // vertical field of view angle
     Robot[] robots; // array to store drawable robots
-    final private static int NUMROBOTS = 1; // size of robots array
+    final private static int NUMROBOTS = 2; // size of robots array
     Vector eye; // current location of the camera
     Vector light = new Vector(0, 0, 0);
     double[][] initm = {
@@ -62,6 +62,55 @@ public class RobotRace extends Base {
     Track t = new Track(curve, 4, -1, 1);
     float tAnim = gs.tAnim / 8;
     Vector pos = t.curve.getPoint(tAnim).add(t.curve.getNormalVector(tAnim).normalized().scale(1));
+    
+    final static float[] GOLD = {
+            0.24725f, 0.1995f, 0.0745f, 1.0f, //ambient
+            0.75164f, 0.60648f, 0.22648f, 1.0f, //diffuse
+            0.628281f, 0.555802f, 0.366065f, 1.0f, //specular
+            51.2f //shininess
+        };
+
+        final static float[] VERA_GOLD = {
+            0.24725f, 0.1995f, 0.0745f, 1.0f, //ambient
+            0.8f, 0.6f, 0.1f, 1.0f, //diffuse
+            0.8f, 0.6f, 0.1f, 1.0f, //specular
+            51.2f //shininess
+        };
+
+        final static float[] SILVER = {
+            0.19225f, 0.19225f, 0.19225f, 1.0f,
+            0.50754f, 0.50754f, 0.50754f, 1.0f,
+            0.508273f, 0.508273f, 0.508273f, 1.0f,
+            51.2f
+        };
+
+        final static float[] GREEN_PLASTIC = {
+            0.0f, 0.0f, 0.0f, 1.0f,
+            0.1f, 0.35f, 0.1f, 1.0f,
+            0.45f, 0.55f, 0.45f, 1.0f,
+            32f
+        };
+
+        final static float[] YELLOW_PLASTIC = {
+            0.0f, 0.0f, 0.0f, 1.0f,
+            0.5f, 0.5f, 0.0f, 1.0f,
+            0.60f, 0.60f, 0.50f, 1.0f,
+            32f
+        };
+
+        final static float[] ORANGE_PLASTIC = {
+            0.0f, 0.0f, 0.0f, 1.0f,
+            1f, 0.55f, 0.0f, 1.0f,
+            0.60f, 0.60f, 0.50f, 1.0f,
+            90f
+        };
+
+        final static float[] WOOD = {
+            0.0f, 0.0f, 0.0f, 1.0f, //ambient
+            0.36f, 0.2f, 0.01f, 1.0f, //diffuse
+            0.36f, 0.2f, 0.01f, 1.0f, //specular
+            0f //shininess
+        };
 
     /**
      * Called upon the start of the application. Primarily used to configure
@@ -91,7 +140,8 @@ public class RobotRace extends Base {
         gl.glEnable(GL_LIGHTING);
         gl.glEnable(GL_LIGHT0);
         gl.glEnable(GL_NORMALIZE);
-        gl.glEnable(GL_COLOR_MATERIAL);
+        //gl.glColorMaterial ( GL_FRONT_AND_BACK, GL_EMISSION ) ;
+        //gl.glEnable(GL_COLOR_MATERIAL);
 
         // Initialize robots array.
         robots = new Robot[NUMROBOTS];
@@ -154,7 +204,7 @@ public class RobotRace extends Base {
         gl.glMatrixMode(GL_MODELVIEW);
         gl.glLoadIdentity();
         //gs.vWidth = vWidth_old;
-        
+
         System.out.println(tAnim);
         switch (gs.camMode) {
             case 0:
@@ -170,13 +220,13 @@ public class RobotRace extends Base {
                 setFirstPersonCamMode();
                 break;
             case 4: // Auto mode - not really equal time for each of them
-                int val = (int) (tAnim % 10);
+                int val = (int) (gs.tAnim % 12);
                 if (val < 3) {
-                   setOverviewCamMode(up); 
+                    setOverviewCamMode(up);
                 } else if (val < 6) {
-                   setHelicopterCamMode();
-                } else if (val < 8){
-                    setFirstPersonCamMode();
+                    setHelicopterCamMode();
+                } else if (val < 9) {
+                    setMotorcycleCamMode();
                 } else {
                     setFirstPersonCamMode();
                 }
@@ -244,7 +294,7 @@ public class RobotRace extends Base {
          }
          System.out.println();
          }*/
-light = eye;
+        light = eye;
         float[] location = {(float) light.x(), (float) light.y(), (float) light.z(), 1};
         //float[] location = {0,0,10,1};
         gl.glLightfv(GL_LIGHT0, GL_POSITION, location, 0); //set location of ls0
@@ -275,12 +325,28 @@ light = eye;
         //gl.glColor3f(0, 1, 0);
         curve = new SimpleCurve();
         t = new Track(curve, 4, -1, 1);
+        setMaterial(GREEN_PLASTIC);
         t.draw();
 
         // Draw robot.
         gl.glPushMatrix();
         tAnim = gs.tAnim / 8;
+
+
+
         
+
+        float[][] robot_materials = {GOLD, SILVER, WOOD, ORANGE_PLASTIC};
+        gl.glPushMatrix();
+        robots[0].speed = 0;
+        gl.glTranslatef(-3, 0, 0);
+        for (float[] material : robot_materials) {
+            setMaterial(material);
+            robots[0].draw();
+            gl.glTranslatef(2, 0, 0);
+        }
+        gl.glPopMatrix();
+
 
         pos = t.curve.getPoint(tAnim).add(t.curve.getNormalVector(tAnim).normalized().scale(1));
         gl.glTranslated(pos.x(), pos.y(), pos.z());
@@ -289,12 +355,17 @@ light = eye;
         double cosangle = dot / (tangent.length() * Vector.Y.length());
         double angle = (((tAnim) % 1) >= 0.5f) ? -acos(cosangle) : acos(cosangle);
         gl.glRotated(toDegrees(angle), 0, 0, 1);
-        robots[0].draw();
+        setMaterial(SILVER);
+        robots[1].draw();
         gl.glPopMatrix();
 
+        gl.glPushMatrix();
+        gl.glTranslatef(0, 0, 5);
         double[] x = {1, 2, 3, 2, 1, 2, 1};
         double[] z = {1, 2, 3, 4, 5, 6, 7};
+        setMaterial(YELLOW_PLASTIC);
         drawRotSymShape(x, z, false, 10, gs.showStick ? 0.01 : 9001);
+        gl.glPopMatrix();
 
         gl.glPushMatrix();
         gl.glColor3f(1, 0, 0);
@@ -576,6 +647,13 @@ light = eye;
         //vWidth_old = gs.vWidth;
         //gs.vWidth = 4.5f;
         glu.gluLookAt(camPos.x(), camPos.y(), camPos.z(), center.x(), center.y(), center.z(), 0, 0, 1);
+    }
+
+    private void setMaterial(float[] material) {
+        gl.glMaterialfv(GL_FRONT, GL_AMBIENT, material, 0);
+        gl.glMaterialfv(GL_FRONT, GL_DIFFUSE, material, 4);
+        gl.glMaterialfv(GL_FRONT, GL_SPECULAR, material, 8);
+        gl.glMaterialfv(GL_FRONT, GL_SHININESS, material, 12);
     }
 
     /**
