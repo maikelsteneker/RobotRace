@@ -50,18 +50,13 @@ public class RobotRace extends Base {
     Robot[] robots; // array to store drawable robots
     final private static int NUMROBOTS = 10; // size of robots array
     Vector eye; // current location of the camera
-    Vector light = new Vector(0, 0, 0);
-    double[][] initm = {
-        {0.1, 0, 0, 0},
-        {0, 1, 0, 0},
-        {0, 0, 1, 0},
-        {0, 0, 0, 1}
-    };
-    Matrix m_0 = null;//new Matrix(initm);
-    Curve curve = new SimpleCurve();
-    Track t = new Track(curve, 4, -1, 1);
-    float tAnim = gs.tAnim / 8;
+    Vector light = new Vector(0, 0, 0); // current location of the light source
+    Matrix m_0 = null; // matrix to transfer from world to camera coordinates
+    Track t; // the track the robots are moving on
 
+    /**
+     * Class containing static variables representing different materials.
+     */
     public final static class Material {
 
         public final static float[] GOLD = {
@@ -329,8 +324,7 @@ public class RobotRace extends Base {
 
         // Draw track.
         //gl.glColor3f(0, 1, 0);
-        curve = new SimpleCurve();
-        t = new Track(curve, NUMROBOTS + 1, -1, 1);
+        t = new Track(new SimpleCurve(), NUMROBOTS + 1, -1, 1);
         setMaterial(Material.GREEN_PLASTIC);
         t.draw();
 
