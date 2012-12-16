@@ -6,6 +6,7 @@ import robotrace.Base;
 import robotrace.Vector;
 import static java.lang.Math.*;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -67,7 +68,6 @@ public class RobotRace extends Base {
             0.628281f, 0.555802f, 0.366065f, 1.0f, //specular
             51.2f //shininess
         };
-        
         // Array containing the parameters for yet an other gold material.
         public final static float[] VERA_GOLD = {
             0.24725f, 0.1995f, 0.0745f, 1.0f, //ambient
@@ -75,17 +75,15 @@ public class RobotRace extends Base {
             0.8f, 0.6f, 0.1f, 1.0f, //specular
             51.2f //shininess
         };
-        
         // Array containing the parameteres for a silver material. Just like for
         // gold, the values for the diffuse and specular reflection are similar in order
         // to get a metal look.
         public final static float[] SILVER = {
-            0.19225f, 0.19225f, 0.19225f, 1.0f,  //ambient
-            0.50754f, 0.50754f, 0.50754f, 1.0f,  //diffuse
+            0.19225f, 0.19225f, 0.19225f, 1.0f, //ambient
+            0.50754f, 0.50754f, 0.50754f, 1.0f, //diffuse
             0.508273f, 0.508273f, 0.508273f, 1.0f, //specular 
             51.2f //shininess
         };
-        
         // Array containing parameters for a green plastic material. 
         public final static float[] GREEN_PLASTIC = {
             0.0f, 0.0f, 0.0f, 1.0f, //ambient
@@ -93,7 +91,6 @@ public class RobotRace extends Base {
             0.45f, 0.55f, 0.45f, 1.0f, //specular
             32f //shininess
         };
-        
         //Array containing parameteres for a yellow plastic materail.
         public final static float[] YELLOW_PLASTIC = {
             0.0f, 0.0f, 0.0f, 1.0f, //ambient
@@ -101,7 +98,6 @@ public class RobotRace extends Base {
             0.60f, 0.60f, 0.50f, 1.0f, //specualr
             32f //shininess
         };
-        
         // Array containing parameteres for a red plastic material.
         public final static float[] RED_PLASTIC = {
             0.0f, 0.0f, 0.0f, 1.0f, //ambient
@@ -109,7 +105,6 @@ public class RobotRace extends Base {
             0.60f, 0.60f, 0.50f, 1.0f, //specular
             32f //shininess
         };
-        
         // Array containing parameters for a blue plastci material.
         public final static float[] BLUE_PLASTIC = {
             0.0f, 0.0f, 0.0f, 1.0f, //ambient
@@ -117,7 +112,6 @@ public class RobotRace extends Base {
             0.60f, 0.60f, 0.50f, 1.0f, //specualr
             32f //shininess
         };
-        
         // Array containing parameters for an orange plastic material.
         public final static float[] ORANGE_PLASTIC = {
             0.0f, 0.0f, 0.0f, 1.0f, //ambient
@@ -125,7 +119,6 @@ public class RobotRace extends Base {
             1f, 0.65f, 0.0f, 1.0f, //specualr
             90f //shininess
         };
-        
         // Array containing parameters  for a wood-like material.
         public final static float[] WOOD = {
             0.0f, 0.0f, 0.0f, 1.0f, //ambient
@@ -226,7 +219,7 @@ public class RobotRace extends Base {
         // Set camera.
         gl.glMatrixMode(GL_MODELVIEW);
         gl.glLoadIdentity();
-        
+
         // Choose the way that the camera is placed, according to the gs.camMode 
         // parameter.
         switch (gs.camMode) {
@@ -237,10 +230,10 @@ public class RobotRace extends Base {
                 setHelicopterCamMode();
                 break;
             case 2: // Set the view to motorcycle when gs.camMode = 2.
-                setMotorcycleCamMode(); 
+                setMotorcycleCamMode();
                 break;
             case 3: // Set the view to first person when gs.camMode = 3.
-                setFirstPersonCamMode(); 
+                setFirstPersonCamMode();
                 break;
             case 4: // Switch every 3 seconds between the view modes when gs.camMode = 4.
                 int val = (int) (gs.tAnim % 12);
@@ -344,12 +337,12 @@ public class RobotRace extends Base {
         // Draw Axis Frame.
         drawAxisFrame();
 
- 
+
         // Make a track in the shape of a simple curve, with the wdith of the
         // number of robots plus 1. Let the heiht of the track be between -1 and 1.
         t = new Track(new SimpleCurve(), NUMROBOTS + 1, -1, 1);
         setMaterial(Material.GREEN_PLASTIC); // Set the material of the track to plastic green.
-        t.draw(); // Draw track.
+        //t.draw(); // Draw track.
 
         // Draw robots to showcase materials.
         float[][] robot_materials = {Material.GOLD, Material.SILVER, Material.WOOD, Material.ORANGE_PLASTIC};
@@ -360,7 +353,7 @@ public class RobotRace extends Base {
             Robot robot = new Robot(); // Construct the robot.
             robot.speed = 0; // Make the robots stand still.
             setMaterial(material); // Set the material
-            robot.draw(); // Draw the robot.
+            //robot.draw(); // Draw the robot.
             //Translate two units to the right to make space for the new robot.
             gl.glTranslatef(2, 0, 0);
         }
@@ -377,7 +370,7 @@ public class RobotRace extends Base {
             Vector pos = t.curve.getPoint(robot.position).add(t.curve.getNormalVector(robot.position).normalized().scale(i + 1));
             // Translate the robot to the position.
             gl.glTranslated(pos.x(), pos.y(), pos.z());
-            
+
             // Caluclate the angle for which the robots need to be rotated such
             // that they will always seem to walk straight. First get the track 
             // tangent at the robot position.
@@ -390,18 +383,18 @@ public class RobotRace extends Base {
             double angle = (((robot.position) % 1) >= 0.5f) ? -acos(cosangle) : acos(cosangle);
             gl.glRotated(toDegrees(angle), 0, 0, 1);
             setMaterial(Material.SILVER); // Set the material to silver.
-            robot.draw(); // Draw the robot
+            //robot.draw(); // Draw the robot
             gl.glPopMatrix();
         }
 
 
         // Draw shape.
         gl.glPushMatrix();
-        gl.glTranslatef(0, 0, 5);
+        //gl.glTranslatef(0, 0, 5);
         double[] x = {1, 2, 3, 2, 1, 2, 1};
         double[] z = {1, 2, 3, 4, 5, 6, 7};
         setMaterial(Material.YELLOW_PLASTIC);
-        drawRotSymShape(x, z, false, 10, gs.showStick ? 0.01 : 9001);
+        drawRotSymShape(x, z, !gs.showAxes, 10, 9001);
         gl.glPopMatrix();
 
         // Draw random light stuff.
@@ -583,7 +576,7 @@ public class RobotRace extends Base {
 
         // Determine normals for all vertices of the 3D shape.
         // This step will be skipped if smooth shading is disabled.
-        Set[][] normal_summands = new Set[list.size()][slices];
+        Collection[][] normal_summands = new Collection[list.size()][slices];
         Vector[][] normals = new Vector[normal_summands.length][normal_summands[0].length];
         if (sm) {
             for (int i = 0; i < normal_summands.length; i++) {
@@ -605,11 +598,14 @@ public class RobotRace extends Base {
                     Vector normal = right.cross(up);
 
                     //add the normal to the normal_summands set for each vertex
-                    for (int k = i; k <= i + 1; k++) {
-                        for (int l = j; l <= (j + 1) % (slices - 1); l++) {
-                            normal_summands[k][l].add(normal);
-                        }
-                    }
+                    //for (int k = i; k <= i + 1; k++) {
+                        //for (int l = j; l <= (j + 1) % (slices - 1); l++) {
+                    //int k = i, l=j;
+                            //normal_summands[k][l].add(normal);
+                        //}
+                    //}
+                    normal_summands[i][j].add(normal);
+                    //normal_summands[i+1][j].add(normal);
                 }
             }
 
@@ -622,12 +618,15 @@ public class RobotRace extends Base {
                         sum = sum.add((Vector) normal);
                     }
                     normals[i][j] = (sum.length() > 0) ? sum.scale(1 / normal_summands[i][j].size()) : sum;
+                    //normals[i][j] = sum;
+                    if (sum.length() == 0) {
+                        boolean debug = true;
+                    }
                 }
             }
         }
 
         // Draw the polygons
-        gl.glBegin(GL_QUADS);
         for (int i = 0; i < list.size() - 1; i++) {
             for (int j = 0; j < slices; j++) {
                 Vector bl, // bottom left corner of the quad
@@ -656,39 +655,78 @@ public class RobotRace extends Base {
                     br_normal = normals[i][(j + 1) % (slices - 1)];
                     ur_normal = normals[i + 1][(j + 1) % (slices - 1)];
                     ul_normal = normals[i + 1][j];
+                    //System.out.println(bl_normal);
+                    gl.glBegin(GL_QUADS);
 
                     gl.glNormal3d(bl_normal.x(), bl_normal.y(), bl_normal.z());
                     gl.glVertex3d(bl.x(), bl.y(), bl.z());
-
+                    
+                    
                     gl.glNormal3d(br_normal.x(), br_normal.y(), br_normal.z());
                     gl.glVertex3d(br.x(), br.y(), br.z());
-
+                    
+                    
                     gl.glNormal3d(ur_normal.x(), ur_normal.y(), ur_normal.z());
                     gl.glVertex3d(ur.x(), ur.y(), ur.z());
 
                     gl.glNormal3d(ul_normal.x(), ul_normal.y(), ur_normal.z());
                     gl.glVertex3d(ul.x(), ul.y(), ur.z());
+
+                    gl.glEnd();
+                    
+                    
+                    Vector end = bl.add(bl_normal.normalized());
+                    gl.glBegin(GL_LINES);
+                    gl.glVertex3d(bl.x(), bl.y(), bl.z());
+                    gl.glVertex3d(end.x(), end.y(), end.z());
+                    gl.glEnd();
+                    
+                    /*
+                    end = bl.add(br_normal.normalized());
+                    gl.glBegin(GL_LINES);
+                    gl.glVertex3d(bl.x(), bl.y(), bl.z());
+                    gl.glVertex3d(end.x(), end.y(), end.z());
+                    gl.glEnd();
+                    
+                    end = bl.add(ul_normal.normalized());
+                    gl.glBegin(GL_LINES);
+                    gl.glVertex3d(bl.x(), bl.y(), bl.z());
+                    gl.glVertex3d(end.x(), end.y(), end.z());
+                    gl.glEnd();
+                    
+                    end = bl.add(ur_normal.normalized());
+                    gl.glBegin(GL_LINES);
+                    gl.glVertex3d(bl.x(), bl.y(), bl.z());
+                    gl.glVertex3d(end.x(), end.y(), end.z());*/
+                    gl.glEnd();
                 } else {
                     // Use flat shading; calculate normal for this quad
                     Vector up = ul.subtract(bl); // vector from bl to ul
                     Vector right = br.subtract(bl); // vector from bl to br
                     Vector normal = right.cross(up); // normal vector
 
+                    gl.glBegin(GL_QUADS);
                     gl.glNormal3d(normal.x(), normal.y(), normal.z());
                     gl.glVertex3d(bl.x(), bl.y(), bl.z());
                     gl.glVertex3d(br.x(), br.y(), br.z());
                     gl.glVertex3d(ur.x(), ur.y(), ur.z());
                     gl.glVertex3d(ul.x(), ul.y(), ur.z());
+                    gl.glEnd();
+
+                    Vector end = bl.add(normal.normalized());
+                    gl.glBegin(GL_LINES);
+                    gl.glVertex3d(bl.x(), bl.y(), bl.z());
+                    gl.glVertex3d(end.x(), end.y(), end.z());
+                    gl.glEnd();
                 }
             }
         }
-        gl.glEnd();
     }
 
     /**
-     * Sets the camera such that it will show an overview of the scene.
-     * The camera is positioned at the eye point and is looking towards
-     * the center point. Is using the Z axis as the up vector.
+     * Sets the camera such that it will show an overview of the scene. The
+     * camera is positioned at the eye point and is looking towards the center
+     * point. Is using the Z axis as the up vector.
      */
     private void setOverviewCamMode() {
         glu.gluLookAt(eye.x(), eye.y(), eye.z(), // eye point
@@ -697,8 +735,9 @@ public class RobotRace extends Base {
     }
 
     /**
-     * Sets the camera such that it will give a helicopter view of the scene. The
-     * camera will be placed at the average position of the robots on the track.
+     * Sets the camera such that it will give a helicopter view of the scene.
+     * The camera will be placed at the average position of the robots on the
+     * track.
      */
     private void setHelicopterCamMode() {
         float total = 0;
@@ -739,7 +778,7 @@ public class RobotRace extends Base {
     }
 
     /**
-     * 
+     *
      */
     private void setFirstPersonCamMode() {
         Robot robot = robots[0];
