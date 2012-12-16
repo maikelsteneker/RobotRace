@@ -48,7 +48,7 @@ public class RobotRace extends Base {
 
     double fovy = -1; // vertical field of view angle
     Robot[] robots; // array to store drawable robots
-    final private static int NUMROBOTS = 2; // size of robots array
+    final private static int NUMROBOTS = 10; // size of robots array
     Vector eye; // current location of the camera
     Vector light = new Vector(0, 0, 0);
     double[][] initm = {
@@ -61,56 +61,60 @@ public class RobotRace extends Base {
     Curve curve = new SimpleCurve();
     Track t = new Track(curve, 4, -1, 1);
     float tAnim = gs.tAnim / 8;
-    Vector pos = t.curve.getPoint(tAnim).add(t.curve.getNormalVector(tAnim).normalized().scale(1));
-    
     final static float[] GOLD = {
-            0.24725f, 0.1995f, 0.0745f, 1.0f, //ambient
-            0.75164f, 0.60648f, 0.22648f, 1.0f, //diffuse
-            0.628281f, 0.555802f, 0.366065f, 1.0f, //specular
-            51.2f //shininess
-        };
-
-        final static float[] VERA_GOLD = {
-            0.24725f, 0.1995f, 0.0745f, 1.0f, //ambient
-            0.8f, 0.6f, 0.1f, 1.0f, //diffuse
-            0.8f, 0.6f, 0.1f, 1.0f, //specular
-            51.2f //shininess
-        };
-
-        final static float[] SILVER = {
-            0.19225f, 0.19225f, 0.19225f, 1.0f,
-            0.50754f, 0.50754f, 0.50754f, 1.0f,
-            0.508273f, 0.508273f, 0.508273f, 1.0f,
-            51.2f
-        };
-
-        final static float[] GREEN_PLASTIC = {
-            0.0f, 0.0f, 0.0f, 1.0f,
-            0.1f, 0.35f, 0.1f, 1.0f,
-            0.45f, 0.55f, 0.45f, 1.0f,
-            32f
-        };
-
-        final static float[] YELLOW_PLASTIC = {
-            0.0f, 0.0f, 0.0f, 1.0f,
-            0.5f, 0.5f, 0.0f, 1.0f,
-            0.60f, 0.60f, 0.50f, 1.0f,
-            32f
-        };
-
-        final static float[] ORANGE_PLASTIC = {
-            0.0f, 0.0f, 0.0f, 1.0f,
-            1f, 0.55f, 0.0f, 1.0f,
-            0.60f, 0.60f, 0.50f, 1.0f,
-            90f
-        };
-
-        final static float[] WOOD = {
-            0.0f, 0.0f, 0.0f, 1.0f, //ambient
-            0.36f, 0.2f, 0.01f, 1.0f, //diffuse
-            0.36f, 0.2f, 0.01f, 1.0f, //specular
-            0f //shininess
-        };
+        0.24725f, 0.1995f, 0.0745f, 1.0f, //ambient
+        0.75164f, 0.60648f, 0.22648f, 1.0f, //diffuse
+        0.628281f, 0.555802f, 0.366065f, 1.0f, //specular
+        51.2f //shininess
+    };
+    final static float[] VERA_GOLD = {
+        0.24725f, 0.1995f, 0.0745f, 1.0f, //ambient
+        0.8f, 0.6f, 0.1f, 1.0f, //diffuse
+        0.8f, 0.6f, 0.1f, 1.0f, //specular
+        51.2f //shininess
+    };
+    final static float[] SILVER = {
+        0.19225f, 0.19225f, 0.19225f, 1.0f,
+        0.50754f, 0.50754f, 0.50754f, 1.0f,
+        0.508273f, 0.508273f, 0.508273f, 1.0f,
+        51.2f
+    };
+    final static float[] GREEN_PLASTIC = {
+        0.0f, 0.0f, 0.0f, 1.0f,
+        0.1f, 0.35f, 0.1f, 1.0f,
+        0.45f, 0.55f, 0.45f, 1.0f,
+        32f
+    };
+    final static float[] YELLOW_PLASTIC = {
+        0.0f, 0.0f, 0.0f, 1.0f,
+        0.5f, 0.5f, 0.0f, 1.0f,
+        0.60f, 0.60f, 0.50f, 1.0f,
+        32f
+    };
+    final static float[] RED_PLASTIC = {
+        0.0f, 0.0f, 0.0f, 1.0f,
+        1.0f, 0f, 0.0f, 1.0f,
+        0.60f, 0.60f, 0.50f, 1.0f,
+        32f
+    };
+    final static float[] BLUE_PLASTIC = {
+        0.0f, 0.0f, 0.0f, 1.0f,
+        0f, 0.5f, 1.0f, 1.0f,
+        0.60f, 0.60f, 0.50f, 1.0f,
+        32f
+    };
+    final static float[] ORANGE_PLASTIC = {
+        0.0f, 0.0f, 0.0f, 1.0f,
+        1f, 0.65f, 0.0f, 1.0f,
+        1f, 0.65f, 0.0f, 1.0f,
+        90f
+    };
+    final static float[] WOOD = {
+        0.0f, 0.0f, 0.0f, 1.0f, //ambient
+        0.36f, 0.2f, 0.01f, 1.0f, //diffuse
+        0.36f, 0.2f, 0.01f, 1.0f, //specular
+        0f //shininess
+    };
 
     /**
      * Called upon the start of the application. Primarily used to configure
@@ -203,12 +207,10 @@ public class RobotRace extends Base {
         // Set camera.
         gl.glMatrixMode(GL_MODELVIEW);
         gl.glLoadIdentity();
-        //gs.vWidth = vWidth_old;
 
-        System.out.println(tAnim);
         switch (gs.camMode) {
             case 0:
-                setOverviewCamMode(up);
+                setOverviewCamMode();
                 break;
             case 1:
                 setHelicopterCamMode();
@@ -222,7 +224,7 @@ public class RobotRace extends Base {
             case 4: // Auto mode - not really equal time for each of them
                 int val = (int) (gs.tAnim % 12);
                 if (val < 3) {
-                    setOverviewCamMode(up);
+                    setOverviewCamMode();
                 } else if (val < 6) {
                     setHelicopterCamMode();
                 } else if (val < 9) {
@@ -324,41 +326,41 @@ public class RobotRace extends Base {
         // Draw track.
         //gl.glColor3f(0, 1, 0);
         curve = new SimpleCurve();
-        t = new Track(curve, 4, -1, 1);
+        t = new Track(curve, NUMROBOTS + 1, -1, 1);
         setMaterial(GREEN_PLASTIC);
         t.draw();
 
-        // Draw robot.
-        gl.glPushMatrix();
-        tAnim = gs.tAnim / 8;
-
-
-
-        
-
+        // Draw robots to showcase materials.
         float[][] robot_materials = {GOLD, SILVER, WOOD, ORANGE_PLASTIC};
         gl.glPushMatrix();
-        robots[0].speed = 0;
         gl.glTranslatef(-3, 0, 0);
         for (float[] material : robot_materials) {
+            Robot robot = new Robot();
+            robot.speed = 0;
             setMaterial(material);
-            robots[0].draw();
+            robot.draw();
             gl.glTranslatef(2, 0, 0);
         }
         gl.glPopMatrix();
 
+        // Draw robots participating in the race.
+        for (int i = 0; i < robots.length; i++) {
+            Robot robot = robots[i];        
+            gl.glPushMatrix();
+            Vector pos = t.curve.getPoint(robot.position).add(t.curve.getNormalVector(robot.position).normalized().scale(i+1));
+            gl.glTranslated(pos.x(), pos.y(), pos.z());
+            Vector tangent = t.curve.getTangent(robot.position);
+            double dot = tangent.dot(Vector.Y);
+            double cosangle = dot / (tangent.length() * Vector.Y.length());
+            double angle = (((robot.position) % 1) >= 0.5f) ? -acos(cosangle) : acos(cosangle);
+            gl.glRotated(toDegrees(angle), 0, 0, 1);
+            setMaterial(SILVER);            
+            robot.draw();
+            gl.glPopMatrix();
+        }
+        
 
-        pos = t.curve.getPoint(tAnim).add(t.curve.getNormalVector(tAnim).normalized().scale(1));
-        gl.glTranslated(pos.x(), pos.y(), pos.z());
-        Vector tangent = t.curve.getTangent(tAnim);
-        double dot = tangent.dot(Vector.Y);
-        double cosangle = dot / (tangent.length() * Vector.Y.length());
-        double angle = (((tAnim) % 1) >= 0.5f) ? -acos(cosangle) : acos(cosangle);
-        gl.glRotated(toDegrees(angle), 0, 0, 1);
-        setMaterial(SILVER);
-        robots[1].draw();
-        gl.glPopMatrix();
-
+        // Draw shape.
         gl.glPushMatrix();
         gl.glTranslatef(0, 0, 5);
         double[] x = {1, 2, 3, 2, 1, 2, 1};
@@ -367,6 +369,7 @@ public class RobotRace extends Base {
         drawRotSymShape(x, z, false, 10, gs.showStick ? 0.01 : 9001);
         gl.glPopMatrix();
 
+        // Draw random light stuff.
         gl.glPushMatrix();
         gl.glColor3f(1, 0, 0);
         Vector src = light.scale(.1);
@@ -423,12 +426,14 @@ public class RobotRace extends Base {
 
             // Draw yellow sphere in origin.
             gl.glColor3f(1.0f, 1.0f, 0); // set color to yellow
+            setMaterial(YELLOW_PLASTIC);
             glut.glutSolidSphere(0.10f, 20, 20); // draw sphere
 
             // Draw arrow for X axis.
             gl.glPushMatrix();
             gl.glRotatef(90, 0, 1, 0); // rotate 90 degrees around y axis
             gl.glColor3f(1.0f, 0, 0); // set color to red
+            setMaterial(RED_PLASTIC);
             drawArrow(1, 0.01f, 0.05f); // draw arrow
             gl.glPopMatrix();
 
@@ -436,12 +441,14 @@ public class RobotRace extends Base {
             gl.glPushMatrix();
             gl.glRotatef(-90, 1, 0, 0); // rotate -90 degrees around x axis
             gl.glColor3f(0, 1.0f, 0); // set color to green
+            setMaterial(GREEN_PLASTIC);
             drawArrow(1, 0.01f, 0.05f); // draw arrow
             gl.glPopMatrix();
 
             // Draw arrow for Z axis.
             gl.glPushMatrix();
             gl.glColor3f(0, 0, 1.0f); // set color to blue
+            setMaterial(BLUE_PLASTIC);
             drawArrow(1, 0.01f, 0.05f); // draw arrow
             gl.glPopMatrix();
 
@@ -602,17 +609,16 @@ public class RobotRace extends Base {
         gl.glEnd();
     }
 
-    private void setOverviewCamMode(Vector up) {
-        // Overview
+    private void setOverviewCamMode() {
         glu.gluLookAt(eye.x(), eye.y(), eye.z(), // eye point
                 gs.cnt.x(), gs.cnt.y(), gs.cnt.z(), // center point
-                up.x(), up.y(), up.z()); // up axis
+                0, 0, 1); // up axis
     }
 
     private void setHelicopterCamMode() {
+        Vector pos = Vector.O; //TODO: replace by position of robot we want to track
         Vector camPos;
         Vector tangent;
-        // Tracking helicopter
         camPos = pos.add(new Vector(0, 1, 10));
         tAnim = gs.tAnim / 8;
         tangent = t.curve.getTangent(tAnim);
@@ -621,9 +627,9 @@ public class RobotRace extends Base {
     }
 
     private void setMotorcycleCamMode() {
+        Vector pos = Vector.O; //TODO: replace by position of robot we want to track
         Vector camPos;
         Vector center;
-        // Motorcycle
         tAnim = gs.tAnim / 8;
         Vector height = new Vector(0, 0, 1);
         camPos = pos.add(t.curve.getNormalVector(tAnim).normalized().scale(2)).add(height).scale(1.1);
@@ -632,9 +638,9 @@ public class RobotRace extends Base {
     }
 
     private void setFirstPersonCamMode() {
+        Vector pos = Vector.O; //TODO: replace by position of robot we want to track
         Vector camPos;
         Vector center;
-        // First Person mode
         if (gs.persp) {
             camPos = pos.add(new Vector(0, 0, 2)).add(t.curve.getTangent(tAnim).normalized());
             center = camPos.add(t.curve.getTangent(tAnim).normalized().scale(5));
@@ -644,8 +650,6 @@ public class RobotRace extends Base {
             center = pos.add(t.curve.getTangent(tAnim).normalized().scale(5)).add(new Vector(0, 0, 1));
             //gs.vDist = 0;
         }
-        //vWidth_old = gs.vWidth;
-        //gs.vWidth = 4.5f;
         glu.gluLookAt(camPos.x(), camPos.y(), camPos.z(), center.x(), center.y(), center.z(), 0, 0, 1);
     }
 
@@ -671,6 +675,8 @@ public class RobotRace extends Base {
         LegsPart legs; // object representing the legs of the robot
         Set<RobotPart> parts; // set containing all components which are drawn
         Color color; // color of this robot
+        float position = 0; // current position on the track
+        float tAnim_old = 0;
 
         /**
          * Constructs a Robot with some default dimensions.
@@ -757,19 +763,16 @@ public class RobotRace extends Base {
          * Draws the robot.
          */
         public void draw() {
+            this.handleMovement();
+            
             gl.glPushMatrix();
             gl.glPushAttrib(GL_CURRENT_BIT);
 
-            // Move in y position.
-            //gl.glTranslatef(0, yPos, 0);
-
             // Draw parts.
-            gl.glColor3fv(color.getRGBComponents(null), 0); // set color
             for (RobotPart p : parts) { // for all parts that should be drawn:
                 p.draw(); //draw the part
             }
 
-            handleMovement();
             gl.glPopAttrib();
             gl.glPopMatrix();
         }
@@ -779,7 +782,7 @@ public class RobotRace extends Base {
          * {@code legDirection}, {@code legs.angle} and {@code yPos} based on
          * {@code legDirection}, {@code speed} and {@code MAXANGLE}.
          */
-        private void handleMovement() {
+        public void handleMovement() {
             /*
              * We do not document this method in detail, since it is not
              * required for this assignment and will likely be replaced by a
@@ -796,6 +799,13 @@ public class RobotRace extends Base {
             } else {
                 legs.angle -= speed;
             }
+
+            float dt = gs.tAnim - tAnim_old;
+            float random = new java.util.Random().nextFloat() / 8;
+            position += dt * random;
+            tAnim_old = gs.tAnim;
+            System.out.println(dt);
+            //position = gs.tAnim / 8;
         }
 
         /**
