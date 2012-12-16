@@ -487,41 +487,65 @@ public class RobotRace extends Base {
         gl.glEnd();
     }
 
+    /**
+     * Draws a rotationally symmetric shape. This is done by rotating a contour
+     * around the Z axis and drawing the result in 3D.
+     *
+     * The contour is defined as multiple coordinates (x,z), which are connected
+     * by lines. In this sense, the input is assumed to be sorted. The contour
+     * is rotated in a few different directions (slices). The resulting lines
+     * will be connected. If any two adjacent points in the contour are further
+     * away than the minimum specified distance, subdivision along the line is
+     * applied.
+     *
+     * @param x x coordinates of the points defining the contour
+     * @param z z coordinates of the points defining the contour
+     * @param sm if true, use smooth shading. if false, use flat shading.
+     * @param slices the number of slices to use
+     * @param dmin the minimum distance between to points in the contour
+     */
     private void drawRotSymShape(double[] x, double[] z, boolean sm, int slices,
-            double dmin) { //TODO: fix smooth shading for last slice
-        final int N = x.length;
+            double dmin) {
+        //TODO: fix smooth shading
+        final int N = x.length; // numbers of points in contour
 
-        //compute all necessary angles
+        // Compute all necessary angles.
         double[] angle = new double[slices + 1];
         for (int i = 0; i <= slices; i++) {
-            angle[i] = (i * 2 * PI / slices);
+            // The angle between two slices is a=2*PI/slices.
+            // The angle between the first slice and slice i is i*a.
+            angle[i] = i * (2 * PI / slices);
         }
 
-        //insert points (subdivision)
-        List<Vector> list = new ArrayList<Vector>();
-        for (int i = 0; i < N - 1; i++) {
-            Vector P = new Vector(x[i], 0, z[i]);
-            Vector Q = new Vector(x[i + 1], 0, z[i + 1]);
-            Vector V = Q.subtract(P);
+        // Apply subdivision.
+        List<Vector> list = new ArrayList<Vector>(); // list of points
+        int n; //minimal number of line segments a line needs to be divided in
+        for (int i = 0; i < N - 1; i++) { // for each line between two points
+            Vector P = new Vector(x[i], 0, z[i]); // first point
+            Vector Q = new Vector(x[i + 1], 0, z[i + 1]); // second point
+            Vector V = Q.subtract(P); // vector from P to Q
+
             if (V.length() > dmin) {
-                //split up the line PQ
-                int n = (int) Math.ceil(V.length() / dmin); //minimal number of line segments PQ needs to be divided in
+                // ||PQ| > dmin; divide PQ into equal parts
+                n = (int) Math.ceil(V.length() / dmin); // calculate n            
+                double l = V.length() / n; // length of each new line segment
 
-                double l = V.length() / n; //length of each new line segment
-
-                //add P and points on line PQ to the list
+                // Add P and new points on line PQ to the list.
                 for (int j = 0; j < n; j++) {
+                    // Add (P+V*(l*j)).
                     list.add(P.add(V.normalized().scale(l * j)));
                 }
             } else {
-                //add P to the list
+                // ||PQ| <= dmin; no need to apply subdivision.
+                // Add P to the list
                 list.add(P);
             }
         }
-        //add last point to the list
+        // Add last point of the contour to the list.
         list.add(new Vector(x[N - 1], 0, z[N - 1]));
 
-        //determine normals
+        // Determine normals for all vertices of the 3D shape.
+        // This step will be skipped if smooth shading is disabled.
         Set[][] normal_summands = new Set[list.size()][slices];
         Vector[][] normals = new Vector[normal_summands.length][normal_summands[0].length];
         if (sm) {
@@ -565,17 +589,32 @@ public class RobotRace extends Base {
             }
         }
 
-        //draw the polygons
+        // Draw the polygons
         gl.glBegin(GL_QUADS);
         for (int i = 0; i < list.size() - 1; i++) {
             for (int j = 0; j < slices; j++) {
-                Vector bl, br, ur, ul;
-                bl = new Vector(cos(angle[j]) * list.get(i).x(), sin(angle[j]) * list.get(i).x(), list.get(i).z());
-                br = new Vector(cos(angle[j + 1]) * list.get(i).x(), sin(angle[j + 1]) * list.get(i).x(), list.get(i).z());
-                ur = new Vector(cos(angle[j + 1]) * list.get(i + 1).x(), sin(angle[j + 1]) * list.get(i + 1).x(), list.get(i + 1).z());
-                ul = new Vector(cos(angle[j]) * list.get(i + 1).x(), sin(angle[j]) * list.get(i + 1).x(), list.get(i + 1).z());
+                Vector bl, // bottom left corner of the quad
+                        br, // bottom right corner of the quad
+                        ur, // upper right corner of the quad
+                        ul; // upper left corner of the quad
+
+                // Compute vertices for this quad.
+                bl = new Vector(cos(angle[j]) * list.get(i).x(),
+                        sin(angle[j]) * list.get(i).x(), list.get(i).z());
+                br = new Vector(cos(angle[j + 1]) * list.get(i).x(),
+                        sin(angle[j + 1]) * list.get(i).x(), list.get(i).z());
+                ur = new Vector(cos(angle[j + 1]) * list.get(i + 1).x(),
+                        sin(angle[j + 1]) * list.get(i + 1).x(), list.get(i + 1).z());
+                ul = new Vector(cos(angle[j]) * list.get(i + 1).x(),
+                        sin(angle[j]) * list.get(i + 1).x(), list.get(i + 1).z());
+
                 if (sm) {
-                    Vector bl_normal, br_normal, ur_normal, ul_normal;
+                    // Use smooth shading; use normal per vertex.
+                    Vector bl_normal, // normal vector for bottom left vertex
+                            br_normal, // normal vector for bottom right vertex
+                            ur_normal, // normal vector for upper right vertex
+                            ul_normal; // normal vector for upper left vertex
+
                     bl_normal = normals[i][j];
                     br_normal = normals[i][(j + 1) % (slices - 1)];
                     ur_normal = normals[i + 1][(j + 1) % (slices - 1)];
@@ -593,9 +632,11 @@ public class RobotRace extends Base {
                     gl.glNormal3d(ul_normal.x(), ul_normal.y(), ur_normal.z());
                     gl.glVertex3d(ul.x(), ul.y(), ur.z());
                 } else {
-                    Vector up = ul.subtract(bl);
-                    Vector right = br.subtract(bl);
-                    Vector normal = right.cross(up);
+                    // Use flat shading; calculate normal for this quad
+                    Vector up = ul.subtract(bl); // vector from bl to ul
+                    Vector right = br.subtract(bl); // vector from bl to br
+                    Vector normal = right.cross(up); // normal vector
+
                     gl.glNormal3d(normal.x(), normal.y(), normal.z());
                     gl.glVertex3d(bl.x(), bl.y(), bl.z());
                     gl.glVertex3d(br.x(), br.y(), br.z());
@@ -677,7 +718,7 @@ public class RobotRace extends Base {
         Set<RobotPart> parts; // set containing all components which are drawn
         Color color; // color of this robot
         float position = 0; // current position on the track
-        float tAnim_old = 0;
+        float tAnim_old = 0; // value for tAnim when last updating position
 
         /**
          * Constructs a Robot with some default dimensions.
@@ -780,33 +821,40 @@ public class RobotRace extends Base {
 
         /**
          * Moves the robot and turns the arms and legs by updating
-         * {@code legDirection}, {@code legs.angle} and {@code yPos} based on
-         * {@code legDirection}, {@code speed} and {@code MAXANGLE}.
+         * {@code legDirection}, {@code legs.angle} and {@code position} based
+         * on {@code legDirection}, {@code speed}, {@code MAXANGLE} and
+         * {@code gs.tAnim}.
          */
         public void handleMovement() {
+            if (abs(legs.angle) >= MAXANGLE) {
+                // The maximum angle has been reached.
+                // Reverse the direction.
+                legDirection = !legDirection;
+            }
+
+            // When moving the leg forwards, increase the angle.
+            // When moving the leg backwards, decrease the angle.
+            legs.angle += (legDirection ? 1 : -1) * speed;
+
+            // Update current position on the track.
             /*
-             * We do not document this method in detail, since it is not
-             * required for this assignment and will likely be replaced by a
-             * more complex method later on.
+             * The position should be increased by a value that is:
+             * - positive; robots should not move backwards
+             * - random; the race should be exciting
+             * - dependent on time; gs.tAnim decides how fast time progresses.
+             *                      Rendering using higher FPS should not
+             *                      influence the speeds of the robots.
+             * To accomplish this, we compute the time that has passed since the
+             * last update of the position. We then increase the position by
+             * the product of this difference, a random variable and some scalar
+             * to prevent the robots from moving to fast.
              */
-            if (legs.angle > MAXANGLE) {
-                legDirection = false;
-            } else if (legs.angle < -MAXANGLE) {
-                legDirection = true;
-            }
-
-            if (legDirection) {
-                legs.angle += speed;
-            } else {
-                legs.angle -= speed;
-            }
-
-            float dt = gs.tAnim - tAnim_old;
-            float random = new java.util.Random().nextFloat() / 8;
-            position += dt * random;
-            tAnim_old = gs.tAnim;
-            System.out.println(dt);
-            //position = gs.tAnim / 8;
+            float tAnim = gs.tAnim; // the current time
+            float dt = tAnim - tAnim_old; // change in time since last update
+            float random =
+                    new java.util.Random().nextFloat(); // random value in [0,1]
+            position += dt * random / 8; // increase the position
+            tAnim_old = tAnim; // store the current time for future reference
         }
 
         /**
