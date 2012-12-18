@@ -116,7 +116,7 @@ public class RobotRace extends Base {
         public final static float[] ORANGE_PLASTIC = {
             0.0f, 0.0f, 0.0f, 1.0f, //ambient
             1f, 0.65f, 0.0f, 1.0f, //diffuse
-            1f, 0.65f, 0.0f, 1.0f, //specualr
+            0.5f, 0.5f, 0.5f, 1.0f, //specualr
             90f //shininess
         };
         // Array containing parameters  for a wood-like material.
@@ -158,7 +158,7 @@ public class RobotRace extends Base {
         gl.glEnable(GL_NORMALIZE);
         //gl.glColorMaterial ( GL_FRONT_AND_BACK, GL_EMISSION ) ;
         //gl.glEnable(GL_COLOR_MATERIAL);
-
+        
         // Initialize robots array.
         robots = new Robot[NUMROBOTS];
         for (int i = 0; i < NUMROBOTS; i++) {
@@ -256,9 +256,9 @@ public class RobotRace extends Base {
         Vector horizontal = dir.cross(up).normalized();
         Vector eye_up = horizontal.cross(dir);
         double[][] matrix = {
-            {eye.normalized().x(), horizontal.normalized().x(), eye_up.normalized().x(), eye.x()},
-            {eye.normalized().y(), horizontal.normalized().y(), eye_up.normalized().y(), eye.y()},
-            {eye.normalized().z(), horizontal.normalized().z(), eye_up.normalized().z(), eye.z()},
+            {eye.normalized().x(), horizontal.normalized().x(), eye_up.normalized().x(), -eye.x()},
+            {eye.normalized().y(), horizontal.normalized().y(), eye_up.normalized().y(), -eye.y()},
+            {eye.normalized().z(), horizontal.normalized().z(), eye_up.normalized().z(), -eye.z()},
             {0, 0, 0, 1}
         };
         Matrix m = new Matrix(matrix);
@@ -310,7 +310,7 @@ public class RobotRace extends Base {
          }
          System.out.println();
          }*/
-        light = eye;
+        //light = eye;
         float[] location = {(float) light.x(), (float) light.y(), (float) light.z(), 1};
         //float[] location = {0,0,10,1};
         gl.glLightfv(GL_LIGHT0, GL_POSITION, location, 0); //set location of ls0
@@ -342,7 +342,7 @@ public class RobotRace extends Base {
         // number of robots plus 1. Let the heiht of the track be between -1 and 1.
         t = new Track(new SimpleCurve(), NUMROBOTS + 1, -1, 1);
         setMaterial(Material.GREEN_PLASTIC); // Set the material of the track to plastic green.
-        //t.draw(); // Draw track.
+        t.draw(); // Draw track.
 
         // Draw robots to showcase materials.
         float[][] robot_materials = {Material.GOLD, Material.SILVER, Material.WOOD, Material.ORANGE_PLASTIC};
@@ -383,7 +383,7 @@ public class RobotRace extends Base {
             double angle = (((robot.position) % 1) >= 0.5f) ? -acos(cosangle) : acos(cosangle);
             gl.glRotated(toDegrees(angle), 0, 0, 1);
             setMaterial(Material.SILVER); // Set the material to silver.
-            //robot.draw(); // Draw the robot
+            robot.draw(); // Draw the robot
             gl.glPopMatrix();
         }
 
@@ -391,10 +391,10 @@ public class RobotRace extends Base {
         // Draw shape.
         gl.glPushMatrix();
         //gl.glTranslatef(0, 0, 5);
-        double[] x = {1, 2, 3, 2, 1, 2, 1};
-        double[] z = {1, 2, 3, 4, 5, 6, 7};
+        double[] x = {2,1,2,0};
+        double[] z = {1, 2, 3,4};
         setMaterial(Material.YELLOW_PLASTIC);
-        drawRotSymShape(x, z, !gs.showAxes, 10, 9001);
+        drawRotSymShape(x, z, !gs.showAxes, 8, 0.5);
         gl.glPopMatrix();
 
         // Draw random light stuff.
@@ -541,7 +541,7 @@ public class RobotRace extends Base {
 
         // Compute all necessary angles.
         double[] angle = new double[slices + 1];
-        for (int i = 0; i <= slices; i++) {
+        for (int i = 0; i < slices; i++) {
             // The angle between two slices is a=2*PI/slices.
             // The angle between the first slice and slice i is i*a.
             angle[i] = i * (2 * PI / slices);
@@ -576,16 +576,21 @@ public class RobotRace extends Base {
 
         // Determine normals for all vertices of the 3D shape.
         // This step will be skipped if smooth shading is disabled.
-        Collection[][] normal_summands = new Collection[list.size()][slices];
-        Vector[][] normals = new Vector[normal_summands.length][normal_summands[0].length];
+        //Collection[][] normal_summands = new Collection[list.size()][slices];
+        Vector[][] normals = new Vector[list.size()][slices];
         if (sm) {
-            for (int i = 0; i < normal_summands.length; i++) {
+            /*for (int i = 0; i < normal_summands.length; i++) {
                 for (int j = 0; j < normal_summands[0].length; j++) {
                     normal_summands[i][j] = new HashSet<Vector>();
                 }
+            }*/
+            for (int i = 0; i < normals.length; i++) {
+                for (int j = 0; j < normals[i].length; j++) {
+                    normals[i][j] = Vector.O;
+                }
             }
             //for each quad:
-            for (int i = 0; i < list.size() - 2; i++) {
+            for (int i = 0; i < list.size() - 1; i++) {
                 for (int j = 0; j < slices; j++) {
                     //compute the normal of the quad
                     Vector bl, br, ur, ul;
@@ -595,23 +600,25 @@ public class RobotRace extends Base {
                     ul = new Vector(cos(angle[j]) * list.get(i + 1).x(), sin(angle[j]) * list.get(i + 1).x(), list.get(i + 1).z());
                     Vector up = ul.subtract(bl);
                     Vector right = br.subtract(bl);
-                    Vector normal = right.cross(up);
+                    Vector normal = right.cross(up).normalized();
 
                     //add the normal to the normal_summands set for each vertex
-                    //for (int k = i; k <= i + 1; k++) {
-                        //for (int l = j; l <= (j + 1) % (slices - 1); l++) {
-                    //int k = i, l=j;
-                            //normal_summands[k][l].add(normal);
-                        //}
-                    //}
-                    normal_summands[i][j].add(normal);
-                    //normal_summands[i+1][j].add(normal);
+                    /*for (int k = i; k <= i + 1; k++) {
+                        for (int l = j; l <= (j + 1) % (slices - 1); l++) {
+                            //ormal_summands[k][l].add(normal);
+                            normals[k][l] = normals[k][l].add(normal);
+                        }
+                    }*/
+                    normals[i][j] = normals[i][j].add(normal);
+                    normals[i][(j+1)%(slices)] = normals[i][(j+1)%(slices)].add(normal);
+                    normals[(i+1) % list.size()][j] = normals[(i+1) % list.size()][j].add(normal);
+                    normals[(i+1) % list.size()][(j+1)%(slices)] = normals[(i+1) % list.size()][(j+1)%(slices)].add(normal);
                 }
             }
 
             //now compute the normal for each vertex by taking the average of 
             //the normals in normal_summands
-            for (int i = 0; i < normal_summands.length; i++) {
+            /*for (int i = 0; i < normal_summands.length; i++) {
                 for (int j = 0; j < normal_summands[0].length; j++) {
                     Vector sum = Vector.O;
                     for (Object normal : normal_summands[i][j]) {
@@ -623,7 +630,7 @@ public class RobotRace extends Base {
                         boolean debug = true;
                     }
                 }
-            }
+            }*/
         }
 
         // Draw the polygons
@@ -651,10 +658,10 @@ public class RobotRace extends Base {
                             ur_normal, // normal vector for upper right vertex
                             ul_normal; // normal vector for upper left vertex
 
-                    bl_normal = normals[i][j];
-                    br_normal = normals[i][(j + 1) % (slices - 1)];
-                    ur_normal = normals[i + 1][(j + 1) % (slices - 1)];
-                    ul_normal = normals[i + 1][j];
+                    bl_normal = normals[i][j].normalized();
+                    br_normal = normals[i][(j + 1) % (slices - 1)].normalized();
+                    ur_normal = normals[(i+1) % list.size()][(j + 1) % (slices - 1)].normalized();
+                    ul_normal = normals[(i+1) % list.size()][j].normalized();
                     //System.out.println(bl_normal);
                     gl.glBegin(GL_QUADS);
 
@@ -674,30 +681,29 @@ public class RobotRace extends Base {
 
                     gl.glEnd();
                     
-                    
                     Vector end = bl.add(bl_normal.normalized());
                     gl.glBegin(GL_LINES);
                     gl.glVertex3d(bl.x(), bl.y(), bl.z());
                     gl.glVertex3d(end.x(), end.y(), end.z());
                     gl.glEnd();
                     
-                    /*
-                    end = bl.add(br_normal.normalized());
+                    
+                    end = br.add(br_normal.normalized());
                     gl.glBegin(GL_LINES);
-                    gl.glVertex3d(bl.x(), bl.y(), bl.z());
+                    gl.glVertex3d(br.x(), br.y(), br.z());
                     gl.glVertex3d(end.x(), end.y(), end.z());
                     gl.glEnd();
                     
-                    end = bl.add(ul_normal.normalized());
+                    end = ul.add(ul_normal.normalized());
                     gl.glBegin(GL_LINES);
-                    gl.glVertex3d(bl.x(), bl.y(), bl.z());
+                    gl.glVertex3d(ul.x(), ul.y(), ul.z());
                     gl.glVertex3d(end.x(), end.y(), end.z());
                     gl.glEnd();
                     
-                    end = bl.add(ur_normal.normalized());
+                    end = ur.add(ur_normal.normalized());
                     gl.glBegin(GL_LINES);
-                    gl.glVertex3d(bl.x(), bl.y(), bl.z());
-                    gl.glVertex3d(end.x(), end.y(), end.z());*/
+                    gl.glVertex3d(ur.x(), ur.y(), ur.z());
+                    gl.glVertex3d(end.x(), end.y(), end.z());
                     gl.glEnd();
                 } else {
                     // Use flat shading; calculate normal for this quad
@@ -798,10 +804,10 @@ public class RobotRace extends Base {
     }
 
     private void setMaterial(float[] material) {
-        gl.glMaterialfv(GL_FRONT, GL_AMBIENT, material, 0);
-        gl.glMaterialfv(GL_FRONT, GL_DIFFUSE, material, 4);
-        gl.glMaterialfv(GL_FRONT, GL_SPECULAR, material, 8);
-        gl.glMaterialfv(GL_FRONT, GL_SHININESS, material, 12);
+        gl.glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, material, 0);
+        gl.glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, material, 4);
+        gl.glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, material, 8);
+        gl.glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, material, 12);
     }
 
     /**
