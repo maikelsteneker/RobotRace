@@ -158,7 +158,7 @@ public class RobotRace extends Base {
         gl.glEnable(GL_NORMALIZE);
         //gl.glColorMaterial ( GL_FRONT_AND_BACK, GL_EMISSION ) ;
         //gl.glEnable(GL_COLOR_MATERIAL);
-        
+
         // Initialize robots array.
         robots = new Robot[NUMROBOTS];
         for (int i = 0; i < NUMROBOTS; i++) {
@@ -391,8 +391,8 @@ public class RobotRace extends Base {
         // Draw shape.
         gl.glPushMatrix();
         //gl.glTranslatef(0, 0, 5);
-        double[] x = {2,1,2,0};
-        double[] z = {1, 2, 3,4};
+        double[] x = {2, 1, 2, 0};
+        double[] z = {1, 2, 3, 4};
         setMaterial(Material.YELLOW_PLASTIC);
         drawRotSymShape(x, z, !gs.showAxes, 8, 0.5);
         gl.glPopMatrix();
@@ -536,11 +536,10 @@ public class RobotRace extends Base {
      */
     private void drawRotSymShape(double[] x, double[] z, boolean sm, int slices,
             double dmin) {
-        //TODO: fix smooth shading
         final int N = x.length; // numbers of points in contour
 
         // Compute all necessary angles.
-        double[] angle = new double[slices + 1];
+        double[] angle = new double[slices + 1]; // angle from first to ith slice
         for (int i = 0; i < slices; i++) {
             // The angle between two slices is a=2*PI/slices.
             // The angle between the first slice and slice i is i*a.
@@ -576,14 +575,19 @@ public class RobotRace extends Base {
 
         // Determine normals for all vertices of the 3D shape.
         // This step will be skipped if smooth shading is disabled.
-        //Collection[][] normal_summands = new Collection[list.size()][slices];
-        Vector[][] normals = new Vector[list.size()][slices];
+        Vector[][] normals = new Vector[list.size()][slices]; // normal for each vertex
+        /*
+         * Our goal is to store the normal for each vertex in this array. The
+         * normal of a vertex is defined to be the average of the normals
+         * of the surrounding quads.
+         * 
+         * Note that we normalize these normals later, so the length of the
+         * normal has no meaning. Therefore, we can simply add the normals for
+         * the quads together.
+         */
         if (sm) {
-            /*for (int i = 0; i < normal_summands.length; i++) {
-                for (int j = 0; j < normal_summands[0].length; j++) {
-                    normal_summands[i][j] = new HashSet<Vector>();
-                }
-            }*/
+            // Smooth shading enabled.
+            // Initialize array to zero vector for all vertices.
             for (int i = 0; i < normals.length; i++) {
                 for (int j = 0; j < normals[i].length; j++) {
                     normals[i][j] = Vector.O;
@@ -604,33 +608,33 @@ public class RobotRace extends Base {
 
                     //add the normal to the normal_summands set for each vertex
                     /*for (int k = i; k <= i + 1; k++) {
-                        for (int l = j; l <= (j + 1) % (slices - 1); l++) {
-                            //ormal_summands[k][l].add(normal);
-                            normals[k][l] = normals[k][l].add(normal);
-                        }
-                    }*/
+                     for (int l = j; l <= (j + 1) % (slices - 1); l++) {
+                     //ormal_summands[k][l].add(normal);
+                     normals[k][l] = normals[k][l].add(normal);
+                     }
+                     }*/
                     normals[i][j] = normals[i][j].add(normal);
-                    normals[i][(j+1)%(slices)] = normals[i][(j+1)%(slices)].add(normal);
-                    normals[(i+1) % list.size()][j] = normals[(i+1) % list.size()][j].add(normal);
-                    normals[(i+1) % list.size()][(j+1)%(slices)] = normals[(i+1) % list.size()][(j+1)%(slices)].add(normal);
+                    normals[i][(j + 1) % (slices)] = normals[i][(j + 1) % (slices)].add(normal);
+                    normals[(i + 1) % list.size()][j] = normals[(i + 1) % list.size()][j].add(normal);
+                    normals[(i + 1) % list.size()][(j + 1) % (slices)] = normals[(i + 1) % list.size()][(j + 1) % (slices)].add(normal);
                 }
             }
 
             //now compute the normal for each vertex by taking the average of 
             //the normals in normal_summands
             /*for (int i = 0; i < normal_summands.length; i++) {
-                for (int j = 0; j < normal_summands[0].length; j++) {
-                    Vector sum = Vector.O;
-                    for (Object normal : normal_summands[i][j]) {
-                        sum = sum.add((Vector) normal);
-                    }
-                    normals[i][j] = (sum.length() > 0) ? sum.scale(1 / normal_summands[i][j].size()) : sum;
-                    //normals[i][j] = sum;
-                    if (sum.length() == 0) {
-                        boolean debug = true;
-                    }
-                }
-            }*/
+             for (int j = 0; j < normal_summands[0].length; j++) {
+             Vector sum = Vector.O;
+             for (Object normal : normal_summands[i][j]) {
+             sum = sum.add((Vector) normal);
+             }
+             normals[i][j] = (sum.length() > 0) ? sum.scale(1 / normal_summands[i][j].size()) : sum;
+             //normals[i][j] = sum;
+             if (sum.length() == 0) {
+             boolean debug = true;
+             }
+             }
+             }*/
         }
 
         // Draw the polygons
@@ -660,19 +664,19 @@ public class RobotRace extends Base {
 
                     bl_normal = normals[i][j].normalized();
                     br_normal = normals[i][(j + 1) % (slices)].normalized();
-                    ur_normal = normals[(i+1) % list.size()][(j + 1) % (slices)].normalized();
-                    ul_normal = normals[(i+1) % list.size()][j].normalized();
+                    ur_normal = normals[(i + 1) % list.size()][(j + 1) % (slices)].normalized();
+                    ul_normal = normals[(i + 1) % list.size()][j].normalized();
                     //System.out.println(bl_normal);
                     gl.glBegin(GL_QUADS);
 
                     gl.glNormal3d(bl_normal.x(), bl_normal.y(), bl_normal.z());
                     gl.glVertex3d(bl.x(), bl.y(), bl.z());
-                    
-                    
+
+
                     gl.glNormal3d(br_normal.x(), br_normal.y(), br_normal.z());
                     gl.glVertex3d(br.x(), br.y(), br.z());
-                    
-                    
+
+
                     gl.glNormal3d(ur_normal.x(), ur_normal.y(), ur_normal.z());
                     gl.glVertex3d(ur.x(), ur.y(), ur.z());
 
@@ -680,26 +684,26 @@ public class RobotRace extends Base {
                     gl.glVertex3d(ul.x(), ul.y(), ur.z());
 
                     gl.glEnd();
-                    
+
                     Vector end = bl.add(bl_normal.normalized());
                     gl.glBegin(GL_LINES);
                     gl.glVertex3d(bl.x(), bl.y(), bl.z());
                     gl.glVertex3d(end.x(), end.y(), end.z());
                     gl.glEnd();
-                    
-                    
+
+
                     end = br.add(br_normal.normalized());
                     gl.glBegin(GL_LINES);
                     gl.glVertex3d(br.x(), br.y(), br.z());
                     gl.glVertex3d(end.x(), end.y(), end.z());
                     gl.glEnd();
-                    
+
                     end = ul.add(ul_normal.normalized());
                     gl.glBegin(GL_LINES);
                     gl.glVertex3d(ul.x(), ul.y(), ul.z());
                     gl.glVertex3d(end.x(), end.y(), end.z());
                     gl.glEnd();
-                    
+
                     end = ur.add(ur_normal.normalized());
                     gl.glBegin(GL_LINES);
                     gl.glVertex3d(ur.x(), ur.y(), ur.z());
@@ -710,7 +714,8 @@ public class RobotRace extends Base {
                     Vector up = ul.subtract(bl); // vector from bl to ul
                     Vector right = br.subtract(bl); // vector from bl to br
                     Vector normal = right.cross(up); // normal vector
-
+                    normal = normal.normalized();
+                    
                     gl.glBegin(GL_QUADS);
                     gl.glNormal3d(normal.x(), normal.y(), normal.z());
                     gl.glVertex3d(bl.x(), bl.y(), bl.z());
