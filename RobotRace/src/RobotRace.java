@@ -51,7 +51,7 @@ public class RobotRace extends Base {
     Robot[] robots; // array to store drawable robots
     final private static int NUMROBOTS = 10; // size of robots array
     Vector eye; // current location of the camera
-    Vector light = new Vector(0, 0, 0); // current location of the light source
+    Vector light = new Vector(0, 10, 10); // current location of the light source
     Matrix m_0 = null; // matrix to transfer from world to camera coordinates
     Track t; // the track the robots are moving on
 
@@ -659,8 +659,8 @@ public class RobotRace extends Base {
                             ul_normal; // normal vector for upper left vertex
 
                     bl_normal = normals[i][j].normalized();
-                    br_normal = normals[i][(j + 1) % (slices - 1)].normalized();
-                    ur_normal = normals[(i+1) % list.size()][(j + 1) % (slices - 1)].normalized();
+                    br_normal = normals[i][(j + 1) % (slices)].normalized();
+                    ur_normal = normals[(i+1) % list.size()][(j + 1) % (slices)].normalized();
                     ul_normal = normals[(i+1) % list.size()][j].normalized();
                     //System.out.println(bl_normal);
                     gl.glBegin(GL_QUADS);
