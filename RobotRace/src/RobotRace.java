@@ -49,11 +49,12 @@ public class RobotRace extends Base {
 
     double fovy = -1; // vertical field of view angle
     Robot[] robots; // array to store drawable robots
-    final private static int NUMROBOTS = 10; // size of robots array
+    final private static int NUMROBOTS = 4; // size of robots array
     Vector eye; // current location of the camera
     Vector light = new Vector(0, 10, 10); // current location of the light source
     Matrix m_0 = null; // matrix to transfer from world to camera coordinates
     Track t; // the track the robots are moving on
+    float phi_old, theta_old; // holds old values for phi and theta
 
     /**
      * Class containing static variables representing different materials.
@@ -95,7 +96,7 @@ public class RobotRace extends Base {
         public final static float[] YELLOW_PLASTIC = {
             0.0f, 0.0f, 0.0f, 1.0f, //ambient
             0.5f, 0.5f, 0.0f, 1.0f, //diffuse
-            0.60f, 0.60f, 0.50f, 1.0f, //specualr
+            0.60f, 0.60f, 0.50f, 1.0f, //specular
             32f //shininess
         };
         // Array containing parameteres for a red plastic material.
@@ -109,14 +110,14 @@ public class RobotRace extends Base {
         public final static float[] BLUE_PLASTIC = {
             0.0f, 0.0f, 0.0f, 1.0f, //ambient
             0f, 0.5f, 1.0f, 1.0f, //diffuse
-            0.60f, 0.60f, 0.50f, 1.0f, //specualr
+            0.60f, 0.60f, 0.50f, 1.0f, //specular
             32f //shininess
         };
         // Array containing parameters for an orange plastic material.
         public final static float[] ORANGE_PLASTIC = {
             0.0f, 0.0f, 0.0f, 1.0f, //ambient
             1f, 0.65f, 0.0f, 1.0f, //diffuse
-            0.5f, 0.5f, 0.5f, 1.0f, //specualr
+            0.5f, 0.5f, 0.5f, 1.0f, //specular
             90f //shininess
         };
         // Array containing parameters  for a wood-like material.
@@ -156,8 +157,6 @@ public class RobotRace extends Base {
         gl.glEnable(GL_LIGHTING);
         gl.glEnable(GL_LIGHT0);
         gl.glEnable(GL_NORMALIZE);
-        //gl.glColorMaterial ( GL_FRONT_AND_BACK, GL_EMISSION ) ;
-        //gl.glEnable(GL_COLOR_MATERIAL);
 
         // Initialize robots array.
         robots = new Robot[NUMROBOTS];
@@ -181,7 +180,6 @@ public class RobotRace extends Base {
 
         final float AR = gs.w / (float) gs.h; // aspect ratio
         float vHeight = gs.vWidth / AR; // height of scene to be shown
-        Vector up = Vector.Z; // up vector
 
         // We only compute the field of view once to prevent strange effects.
         if (fovy == -1) { // If the field of view has not yet been computed:
@@ -249,72 +247,38 @@ public class RobotRace extends Base {
                 break;
         }
 
-
-        //gl.glPushMatrix();
-        //gl.glLoadIdentity();
-        //TODO: change back
-        Vector horizontal = dir.cross(up).normalized();
-        Vector eye_up = horizontal.cross(dir);
-        double[][] matrix = {
-            {eye.normalized().x(), horizontal.normalized().x(), eye_up.normalized().x(), -eye.x()},
-            {eye.normalized().y(), horizontal.normalized().y(), eye_up.normalized().y(), -eye.y()},
-            {eye.normalized().z(), horizontal.normalized().z(), eye_up.normalized().z(), -eye.z()},
-            {0, 0, 0, 1}
-        };
-        Matrix m = new Matrix(matrix);
-        //Vector P = new Vector(1,0,0);
-        //System.out.println(m.times(P).toString());
-        Vector Q = new Vector(0, 1, 0);
-        //System.out.println(m.times(Q).toString());
-        Vector R = new Vector(0, 0, 1);
-        //System.out.println(m.times(R).toString());
-        //System.out.println();
-
-
-        //System.out.println(light.toString());
-
-        //light = m.times(old_light);
-
-        if (gs.lightCamera) {
-            boolean test = true;
-        } else {
-            //light stays where it was
-            m_0 = m;
-
-
+        if (!gs.lightCamera) {
+            // The light should remain static, so set old values to get an
+            // identity matrix in the calculations.
+            phi_old = gs.phi;
+            theta_old = gs.theta;
         }
-        //Vector try1 = m_0.times(light);
-        //Vector try2 = try1.subtract(eye);
-        if (m_0 != null) {
-            //light = m_0.inverseCheating().times(m.times(light));
+        
+        // Matrices to switch from world to eye coordinates and back.
+        /*
+         * The eyeToWorld matrix is defined as a matrix that rotates over the
+         * phi and theta angles in the correct way to change from world to eye
+         * coordinates.
+         * The worldToEye matrix is defined as the inverse of eyeToWorld, but
+         * using the old values for phi and theta. Since the vectors in the
+         * matrices are perpendicular, we can use the transposed for this.
+         */
+        Matrix worldToEye = eyeToWorldMatrix(phi_old, theta_old).transposed();
+        Matrix eyeToWorld = eyeToWorldMatrix(gs.phi, gs.theta);
 
-            Jama.Matrix jm = new Jama.Matrix(matrix);
-            Jama.Matrix jm0 = new Jama.Matrix(m_0.numbers);
-            Jama.Matrix inverse = jm0.inverse();
-            Jama.Matrix product = inverse.times(jm);
-            Matrix ourproduct = new Matrix(product.getArray());
-            light = ourproduct.times(light);
-            //ourproduct.print();
-            //System.out.println(light);
-        } else {
-            //light stays the same for now
-        }
-        //light.add(eye);
-        m_0 = m;
-        //System.out.println(light);
-
-
-        /*for (int i = 0; i < m.numbers.length; i++) {
-         for (int j = 0; j < m.numbers.length; j++) {
-         System.out.print(m.numbers[i][j] + ",");
-         }
-         System.out.println();
-         }*/
-        //light = eye;
-        float[] location = {(float) light.x(), (float) light.y(), (float) light.z(), 1};
-        //float[] location = {0,0,10,1};
+        // The new position of the light is the product of the worldToEye matrix
+        // (switching the coordinates of light to the previous eye coordinates)
+        // and the eyeToWorld matrix (switching the coordinates back to world
+        // coordinates using the new angles) applied on the light vector.
+        light = eyeToWorld.times(worldToEye.times(light));
+       
+        // Set the light source in the direction of the calculated light vector.
+        float[] location = {(float) light.x(), (float) light.y(), (float) light.z(), 0};
         gl.glLightfv(GL_LIGHT0, GL_POSITION, location, 0); //set location of ls0
-        //gl.glPopMatrix();
+        
+        // Update the old values of phi and theta.
+        phi_old = gs.phi;
+        theta_old = gs.theta;
     }
 
     /**
@@ -337,11 +301,12 @@ public class RobotRace extends Base {
         // Draw Axis Frame.
         drawAxisFrame();
 
-
         // Make a track in the shape of a simple curve, with the wdith of the
-        // number of robots plus 1. Let the heiht of the track be between -1 and 1.
+        // number of robots plus 1. Let the height of the track be between -1
+        // and 1.
         t = new Track(new SimpleCurve(), NUMROBOTS + 1, -1, 1);
-        setMaterial(Material.GREEN_PLASTIC); // Set the material of the track to plastic green.
+        // Set the material of the track to plastic green.
+        setMaterial(Material.GREEN_PLASTIC);
         t.draw(); // Draw track.
 
         // Draw robots to showcase materials.
@@ -353,7 +318,7 @@ public class RobotRace extends Base {
             Robot robot = new Robot(); // Construct the robot.
             robot.speed = 0; // Make the robots stand still.
             setMaterial(material); // Set the material
-            //robot.draw(); // Draw the robot.
+            robot.draw(); // Draw the robot.
             //Translate two units to the right to make space for the new robot.
             gl.glTranslatef(2, 0, 0);
         }
@@ -367,50 +332,35 @@ public class RobotRace extends Base {
             // robot is currently and add to it the normal of the curve normalized,
             // so that the robots will follow the shape of the track, and scaled
             // such that the robots will keep the same line on the track.   
-            Vector pos = t.curve.getPoint(robot.position).add(t.curve.getNormalVector(robot.position).normalized().scale(i + 1));
+            Vector pos = t.curve.getPoint(robot.position).add(
+                    t.curve.getNormalVector(robot.position).normalized().scale(i + 1));
             // Translate the robot to the position.
             gl.glTranslated(pos.x(), pos.y(), pos.z());
 
-            // Caluclate the angle for which the robots need to be rotated such
-            // that they will always seem to walk straight. First get the track 
-            // tangent at the robot position.
+            // Calculate the angle for which the robots need to be rotated such
+            // that they will always seem to walk straight.
+
+            // First get the track tangent at the robot position.
             Vector tangent = t.curve.getTangent(robot.position);
             // Calculate the dot product between the tangent and the Y axis.
             double dot = tangent.dot(Vector.Y);
             // Get the cos angle between the tangent and the Y axis.
             double cosangle = dot / (tangent.length() * Vector.Y.length());
-            // If the robot is on the 2nd half of the track flip the sign of the angle.
-            double angle = (((robot.position) % 1) >= 0.5f) ? -acos(cosangle) : acos(cosangle);
+            // If the robot is on the 2nd half of the track flip the sign of the
+            // angle. We do this because the acos method always returns a value
+            // between 0 and PI.
+            double angle = (robot.position % 1 >= 0.5f) ? -acos(cosangle) : acos(cosangle);
             gl.glRotated(toDegrees(angle), 0, 0, 1);
             setMaterial(Material.SILVER); // Set the material to silver.
             robot.draw(); // Draw the robot
             gl.glPopMatrix();
         }
 
-
-        // Draw shape.
-        gl.glPushMatrix();
-        //gl.glTranslatef(0, 0, 5);
+        // Draw rotationally symmetric shape (for demonstration purposes).
         double[] x = {2, 1, 2, 0};
-        double[] z = {1, 2, 3, 4};
+        double[] z = {3, 4, 5, 6};
         setMaterial(Material.YELLOW_PLASTIC);
-        drawRotSymShape(x, z, !gs.showAxes, 8, 0.5);
-        gl.glPopMatrix();
-
-        // Draw random light stuff.
-        //TODO: delete this before committing
-        gl.glPushMatrix();
-        gl.glColor3f(1, 0, 0);
-        Vector src = light.scale(.1);
-        gl.glTranslated(src.x(), src.y(), src.z());
-        //glut.glutSolidCube(1f);
-        gl.glPopMatrix();
-
-        gl.glPushMatrix();
-        gl.glTranslated(light.x(), light.y(), light.z());
-        gl.glColor3f(1, 0, 0);
-        glut.glutSolidSphere(0.1, 100, 100);
-        gl.glPopMatrix();
+        drawRotSymShape(x, z, true, 100, 0.05);
     }
 
     /**
@@ -548,14 +498,14 @@ public class RobotRace extends Base {
 
         // Apply subdivision.
         List<Vector> list = new ArrayList<Vector>(); // list of points
-        int n; //minimal number of line segments a line needs to be divided in
+        int n; // minimal number of line segments a line needs to be divided in
         for (int i = 0; i < N - 1; i++) { // for each line between two points
             Vector P = new Vector(x[i], 0, z[i]); // first point
             Vector Q = new Vector(x[i + 1], 0, z[i + 1]); // second point
             Vector V = Q.subtract(P); // vector from P to Q
 
             if (V.length() > dmin) {
-                // ||PQ| > dmin; divide PQ into equal parts
+                // |PQ| > dmin; divide PQ into equal parts
                 n = (int) Math.ceil(V.length() / dmin); // calculate n            
                 double l = V.length() / n; // length of each new line segment
 
@@ -565,8 +515,8 @@ public class RobotRace extends Base {
                     list.add(P.add(V.normalized().scale(l * j)));
                 }
             } else {
-                // ||PQ| <= dmin; no need to apply subdivision.
-                // Add P to the list
+                // |PQ| <= dmin; no need to apply subdivision.
+                // Add P to the list.
                 list.add(P);
             }
         }
@@ -593,51 +543,33 @@ public class RobotRace extends Base {
                     normals[i][j] = Vector.O;
                 }
             }
-            //for each quad:
-            for (int i = 0; i < list.size() - 1; i++) {
+
+            for (int i = 0; i < list.size() - 1; i++) { // for each quad:
                 for (int j = 0; j < slices; j++) {
-                    //compute the normal of the quad
-                    Vector bl, br, ur, ul;
-                    bl = new Vector(cos(angle[j]) * list.get(i).x(), sin(angle[j]) * list.get(i).x(), list.get(i).z());
-                    br = new Vector(cos(angle[j + 1]) * list.get(i).x(), sin(angle[j + 1]) * list.get(i).x(), list.get(i).z());
-                    ur = new Vector(cos(angle[j + 1]) * list.get(i + 1).x(), sin(angle[j + 1]) * list.get(i + 1).x(), list.get(i + 1).z());
-                    ul = new Vector(cos(angle[j]) * list.get(i + 1).x(), sin(angle[j]) * list.get(i + 1).x(), list.get(i + 1).z());
+                    // Compute the normal of the quad.
+                    Vector bl, br, ul; // vertices of this quad
+                    bl = new Vector(cos(angle[j]) * list.get(i).x(),
+                            sin(angle[j]) * list.get(i).x(), list.get(i).z());
+                    br = new Vector(cos(angle[j + 1]) * list.get(i).x(),
+                            sin(angle[j + 1]) * list.get(i).x(), list.get(i).z());
+                    ul = new Vector(cos(angle[j]) * list.get(i + 1).x(),
+                            sin(angle[j]) * list.get(i + 1).x(),
+                            list.get(i + 1).z());
                     Vector up = ul.subtract(bl);
                     Vector right = br.subtract(bl);
                     Vector normal = right.cross(up).normalized();
 
-                    //add the normal to the normal_summands set for each vertex
-                    /*for (int k = i; k <= i + 1; k++) {
-                     for (int l = j; l <= (j + 1) % (slices - 1); l++) {
-                     //ormal_summands[k][l].add(normal);
-                     normals[k][l] = normals[k][l].add(normal);
-                     }
-                     }*/
+                    // Add the normal to the current normal for each vertex.
                     normals[i][j] = normals[i][j].add(normal);
                     normals[i][(j + 1) % (slices)] = normals[i][(j + 1) % (slices)].add(normal);
                     normals[(i + 1) % list.size()][j] = normals[(i + 1) % list.size()][j].add(normal);
                     normals[(i + 1) % list.size()][(j + 1) % (slices)] = normals[(i + 1) % list.size()][(j + 1) % (slices)].add(normal);
                 }
             }
-
-            //now compute the normal for each vertex by taking the average of 
-            //the normals in normal_summands
-            /*for (int i = 0; i < normal_summands.length; i++) {
-             for (int j = 0; j < normal_summands[0].length; j++) {
-             Vector sum = Vector.O;
-             for (Object normal : normal_summands[i][j]) {
-             sum = sum.add((Vector) normal);
-             }
-             normals[i][j] = (sum.length() > 0) ? sum.scale(1 / normal_summands[i][j].size()) : sum;
-             //normals[i][j] = sum;
-             if (sum.length() == 0) {
-             boolean debug = true;
-             }
-             }
-             }*/
         }
 
-        // Draw the polygons
+        // Draw the polygons.
+        gl.glBegin(GL_QUADS);
         for (int i = 0; i < list.size() - 1; i++) {
             for (int j = 0; j < slices; j++) {
                 Vector bl, // bottom left corner of the quad
@@ -662,20 +594,18 @@ public class RobotRace extends Base {
                             ur_normal, // normal vector for upper right vertex
                             ul_normal; // normal vector for upper left vertex
 
+                    // Get normals from the array we constructed earlier.
                     bl_normal = normals[i][j].normalized();
                     br_normal = normals[i][(j + 1) % (slices)].normalized();
                     ur_normal = normals[(i + 1) % list.size()][(j + 1) % (slices)].normalized();
                     ul_normal = normals[(i + 1) % list.size()][j].normalized();
-                    //System.out.println(bl_normal);
-                    gl.glBegin(GL_QUADS);
 
+                    // Draw all vertices with their respective normals.
                     gl.glNormal3d(bl_normal.x(), bl_normal.y(), bl_normal.z());
                     gl.glVertex3d(bl.x(), bl.y(), bl.z());
 
-
                     gl.glNormal3d(br_normal.x(), br_normal.y(), br_normal.z());
                     gl.glVertex3d(br.x(), br.y(), br.z());
-
 
                     gl.glNormal3d(ur_normal.x(), ur_normal.y(), ur_normal.z());
                     gl.glVertex3d(ur.x(), ur.y(), ur.z());
@@ -683,55 +613,23 @@ public class RobotRace extends Base {
                     gl.glNormal3d(ul_normal.x(), ul_normal.y(), ur_normal.z());
                     gl.glVertex3d(ul.x(), ul.y(), ur.z());
 
-                    gl.glEnd();
-
-                    Vector end = bl.add(bl_normal.normalized());
-                    gl.glBegin(GL_LINES);
-                    gl.glVertex3d(bl.x(), bl.y(), bl.z());
-                    gl.glVertex3d(end.x(), end.y(), end.z());
-                    gl.glEnd();
-
-
-                    end = br.add(br_normal.normalized());
-                    gl.glBegin(GL_LINES);
-                    gl.glVertex3d(br.x(), br.y(), br.z());
-                    gl.glVertex3d(end.x(), end.y(), end.z());
-                    gl.glEnd();
-
-                    end = ul.add(ul_normal.normalized());
-                    gl.glBegin(GL_LINES);
-                    gl.glVertex3d(ul.x(), ul.y(), ul.z());
-                    gl.glVertex3d(end.x(), end.y(), end.z());
-                    gl.glEnd();
-
-                    end = ur.add(ur_normal.normalized());
-                    gl.glBegin(GL_LINES);
-                    gl.glVertex3d(ur.x(), ur.y(), ur.z());
-                    gl.glVertex3d(end.x(), end.y(), end.z());
-                    gl.glEnd();
                 } else {
-                    // Use flat shading; calculate normal for this quad
+                    // Use flat shading; calculate normal for this quad.
                     Vector up = ul.subtract(bl); // vector from bl to ul
                     Vector right = br.subtract(bl); // vector from bl to br
                     Vector normal = right.cross(up); // normal vector
-                    normal = normal.normalized();
-                    
-                    gl.glBegin(GL_QUADS);
+                    normal = normal.normalized(); // normalize the vector
+
+                    // Draw the vertices with the calculated normal.
                     gl.glNormal3d(normal.x(), normal.y(), normal.z());
                     gl.glVertex3d(bl.x(), bl.y(), bl.z());
                     gl.glVertex3d(br.x(), br.y(), br.z());
                     gl.glVertex3d(ur.x(), ur.y(), ur.z());
                     gl.glVertex3d(ul.x(), ul.y(), ur.z());
-                    gl.glEnd();
-
-                    Vector end = bl.add(normal.normalized());
-                    gl.glBegin(GL_LINES);
-                    gl.glVertex3d(bl.x(), bl.y(), bl.z());
-                    gl.glVertex3d(end.x(), end.y(), end.z());
-                    gl.glEnd();
                 }
             }
         }
+        gl.glEnd();
     }
 
     /**
@@ -757,24 +655,24 @@ public class RobotRace extends Base {
             total += robot.position;
         }
         float avg = total / NUMROBOTS; // Compute the average position.
-        // Set the center point to be at the average position of the robots on the
-        // track plus the normal vector with a magnitude of half of the number of robots.
+        // Set the center point to be at the average position of the robots on
+        // the track plus the normal vector with a magnitude of half of the
+        // number of robots. This places the center in the middle of the robots.
         Vector center = t.curve.getPoint(avg).add(t.curve.getNormalVector(avg).normalized().scale(NUMROBOTS / 2));
         // Set the camers position to be 10 units above the center point.
         Vector camPos = center.add(new Vector(0, 0, 10));
         // Get the track tangent at the current point. 
         Vector tangent = t.curve.getTangent(avg);
-        // Set the camera to be positioned at the camPos, to look towards the defined
-        // center and give the tangent as the up vector such that the camer will
-        // follow the center point in a straight line relative to the track.
+        // Set the camera. The up vector is set to be the tangent vector to make
+        // it turn with the track.
         glu.gluLookAt(camPos.x(), camPos.y(), camPos.z(), //eye point
                 center.x(), center.y(), center.z(), //center point
                 tangent.x(), tangent.y(), tangent.z()); //up vector
     }
 
     /**
-     * Sets the camera such that it will follow the robots from the side of track
-     * like a motorcycle. The camera is following the fastest robot.
+     * Sets the camera such that it will follow the robots from the side of
+     * track like a motorcycle. The camera is following the fastest robot.
      */
     private void setMotorcycleCamMode() {
         float max = 0;
@@ -788,17 +686,18 @@ public class RobotRace extends Base {
         // of one unit.
         Vector camPos = t.curve.getPoint(max).add(t.curve.getNormalVector(max).normalized().scale(NUMROBOTS + 1)).add(new Vector(0, 0, 1));
         glu.gluLookAt(camPos.x(), camPos.y(), camPos.z(), //eye point
-                      center.x(), center.y(), center.z(), //center point
-                      0, 0, 1);//up vector
+                center.x(), center.y(), center.z(), //center point
+                0, 0, 1);//up vector
     }
 
     /**
      * Sets the camera such that the view will appear to be from the perspective
-     * of a robot. 
+     * of a robot. We chose this robot to be the one closest to the center
+     * because he sees the most other robots.
      */
     private void setFirstPersonCamMode() {
         Robot robot = robots[0];
-        // Get the position of the first created robot. 
+        // Get the position of the first created robot.
         Vector pos = t.curve.getPoint(robot.position);
         Vector camPos;
         Vector center;
@@ -810,30 +709,27 @@ public class RobotRace extends Base {
             // Set the camera to look from it's position towards the tangent of the
             // robot with the track.
             center = camPos.add(t.curve.getTangent(robot.position).normalized().scale(5));
-            //tangent = t.curve.getPoint(tAnim + 1);
         } else {
             // For the isometric projection set the camerato be the position of the 
             // robot plus 2 units height (which is the height of the robot) and
-            // add the tanget of the robot with the track, normalized and scaled
-            // two untis.
+            // add the tangent of the robot with the track, normalized and
+            // scaled two untis.
             camPos = pos.add(new Vector(0, 0, 2)).add(t.curve.getTangent(robot.position).normalized().scale(2));
-            // Set the camera to look from it's position towards the tangent of the
-            // robot with the track 
+            // Set the camera to look from its position along the tangent vector.
             center = pos.add(t.curve.getTangent(robot.position).normalized().scale(7)).subtract(new Vector(0, 0, 1));
-            //gs.vDist = 0;
         }
         glu.gluLookAt(camPos.x(), camPos.y(), camPos.z(), // eye point 
-                      center.x(), center.y(), center.z(), // center point
-                      0, 0, 1); // up vector
+                center.x(), center.y(), center.z(), // center point
+                0, 0, 1); // up vector
     }
 
     /**
-     * Parses an array and sets the given parameters for the ambient,
-     * diffuse, specular and shininess values of the material.
-     * 
-     * @param material An array with 13 floats where the first 4 values represents
-     * the ambient, the next 4 the diffuse factor, the next 4 the specular factor,
-     * and the last the shininess value of the material.
+     * Parses an array and sets the given parameters for the ambient, diffuse,
+     * specular and shininess values of the material.
+     *
+     * @param material An array with 13 floats where the first 4 values
+     * represents the ambient, the next 4 the diffuse factor, the next 4 the
+     * specular factor, and the last the shininess value of the material.
      */
     private void setMaterial(float[] material) {
         gl.glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, material, 0);
@@ -1574,18 +1470,19 @@ public class RobotRace extends Base {
      */
     public class Track {
 
-        private Curve curve; //determines the shape of the track.
-        private float width;
-        private float minHeight;
-        private float maxHeight;
-        final static private int N = 100;
+        private Curve curve; //determines the shape of the track
+        private float width; // width of the track
+        private float minHeight; // height at which the track starts
+        private float maxHeight; // height at which the track ends
+        final static private int N = 100; // number of polygons used to display
 
         /**
          * Constructs a truck with the given parameters.
+         *
          * @param curve The shape that the track will have.
          * @param width The width of the track.
-         * @param minHeight 
-         * @param maxHeight 
+         * @param minHeight height at which the track starts
+         * @param maxHeight height at which the track ends
          */
         public Track(Curve curve, float width, float minHeight, float maxHeight) {
             this.curve = curve;
@@ -1598,29 +1495,30 @@ public class RobotRace extends Base {
          * Draws the track.
          */
         public void draw() {
-            List<Vector> points = new ArrayList<Vector>();
-            List<Vector> offset_points = new ArrayList<Vector>();
-            List<Vector> normals = new ArrayList<Vector>();
-            List<Vector> normals2D = new ArrayList<Vector>();
+            List<Vector> points = new ArrayList<Vector>(); // points defining inside of the track
+            List<Vector> offset_points = new ArrayList<Vector>(); // points defining the outside of the track
+            List<Vector> normals = new ArrayList<Vector>(); // vectors pointing pointing outwards
+
+            // Compute all points and normals.
             for (int i = 0; i <= N; i++) {
                 float t = (float) i / N;
                 Vector point = curve.getPoint(t);
                 points.add(point);
 
-                Vector normal2D = curve.getNormalVector(t);
-                normals2D.add(normal2D);
-                Vector off = point.add(normal2D.normalized().scale(width));
+                Vector normal = curve.getNormalVector(t);
+                normals.add(normal);
+                Vector off = point.add(normal.normalized().scale(width));
                 offset_points.add(off);
-                normals.add(normal2D.cross(curve.getTangent(t)));
             }
 
             gl.glBegin(GL_LINE_STRIP);
+            // Draw a line on the inside of the track.
             for (int i = 0; i <= N; i++) {
                 Vector point = points.get(i);
                 gl.glVertex3d(point.x(), point.y(), point.z());
             }
-            //gl.glEnd();
-            //gl.glBegin(GL_LINE_STRIP);
+            // Draw a line on the outside of the track (and connect the two to
+            // show a start/finish line).
             for (int i = 0; i <= N; i++) {
                 Vector point = offset_points.get(i);
                 gl.glVertex3d(point.x(), point.y(), point.z());
@@ -1628,40 +1526,40 @@ public class RobotRace extends Base {
             gl.glEnd();
 
             gl.glBegin(GL_QUADS);
+            // Draw the top of the track.
             for (int i = 0; i < N; i++) {
-                Vector point = points.get(i);
-                Vector off = offset_points.get(i);
-                Vector next_off = offset_points.get(i + 1);
-                Vector next_point = points.get(i + 1);
+                Vector point = points.get(i); // point on the inside
+                Vector off = offset_points.get(i); // point on the outside
+                Vector next_off = offset_points.get(i + 1); // next point (outside)
+                Vector next_point = points.get(i + 1); // next point (inside)
 
-                gl.glNormal3d(normals.get(i).x(), normals.get(i).y(), normals.get(i).z());
-                //track.bind(gl);
-                //gl.glTexCoord2d(0, 0);
+                gl.glNormal3d(0, 0, 1); // upwards pointing normal
                 gl.glVertex3d(point.x(), point.y(), point.z());
-                //gl.glTexCoord2d(1, 0);
                 gl.glVertex3d(off.x(), off.y(), off.z());
-                //gl.glTexCoord2d(1, 1);
                 gl.glVertex3d(next_off.x(), next_off.y(), next_off.z());
-                //gl.glTexCoord2d(0, 1);
                 gl.glVertex3d(next_point.x(), next_point.y(), next_point.z());
             }
 
+            // Draw the sides of the track.
             for (int i = 0; i < N; i++) {
-                Vector normal = normals2D.get(i).scale(-1);
+                // Draw inside of the track.
+                Vector normal = normals.get(i).scale(-1); // use reverse normal
                 gl.glNormal3d(normal.x(), normal.y(), normal.z());
-                Vector point = points.get(i);
+
+                // Draw quad spanning between two points between minHeight, maxHeight.
+                Vector point = points.get(i); // point on inside of the track
                 Vector next_point = points.get(i + 1);
                 gl.glVertex3d(point.x(), point.y(), maxHeight);
                 gl.glVertex3d(next_point.x(), next_point.y(), maxHeight);
                 gl.glVertex3d(next_point.x(), next_point.y(), minHeight);
                 gl.glVertex3d(point.x(), point.y(), minHeight);
-            }
 
-            for (int i = 0; i < N; i++) {
-                Vector normal = normals2D.get(i);
+                // Draw outside of the track.
+                normal = normals.get(i);
                 gl.glNormal3d(normal.x(), normal.y(), normal.z());
-                Vector point = offset_points.get(i);
-                Vector next_point = offset_points.get(i + 1);
+                // Draw quad spanning between two points between minHeight, maxHeight.
+                point = offset_points.get(i); // point on outside of the track
+                next_point = offset_points.get(i + 1);
                 gl.glVertex3d(point.x(), point.y(), maxHeight);
                 gl.glVertex3d(next_point.x(), next_point.y(), maxHeight);
                 gl.glVertex3d(next_point.x(), next_point.y(), minHeight);
@@ -1678,34 +1576,38 @@ public class RobotRace extends Base {
 
         /**
          * Converts a given parameter into a point on the curve.
-         * 
+         *
          * @param t A parameter in the range 0 to 1.
-         * @return A vector representing the point resulting from the conversion.
+         * @return A vector representing the point resulting from the
+         * conversion.
          */
         public Vector getPoint(double t);
 
         /**
          * Returns the tangent of a given parameter with the curve.
-         * 
+         *
          * @param t A parameter in the range 0 to 1.
-         * @return  A vector representing the tangent between t and the curve.
+         * @return A vector representing the tangent at getPoint(t).
          */
         public Vector getTangent(double t);
 
         /**
          * Returns the normal of a given parameter with the curve.
+         *
          * @param t A parameter in the range 0 to 1.
-         * @return  A vector representing the normal between t and the curve.
+         * @return A vector representing the normal between t and the curve.
          */
         public Vector getNormalVector(double t);
     }
 
-    
+    /**
+     * Simple implementation of Curve specifying an ellipse.
+     */
     public static class SimpleCurve implements Curve {
 
         @Override
         public Vector getPoint(double t) {
-            double x, y, z;
+            double x, y, z; // x,y,z coordinates as defined in the assignment
             x = 10 * cos(2 * PI * t);
             y = 14 * sin(2 * PI * t);
             z = 1;
@@ -1714,7 +1616,7 @@ public class RobotRace extends Base {
 
         @Override
         public Vector getTangent(double t) {
-            double x, y, z;
+            double x, y, z; // x,y,z coordinates as defined in the assignment
             x = -20 * PI * sin(2 * PI * t);
             y = 28 * PI * cos(2 * PI * t);
             z = 0;
@@ -1729,6 +1631,11 @@ public class RobotRace extends Base {
         }
     }
 
+    /**
+     * Implementation of Curve that models a Bezier curve.
+     *
+     * N.B. This is not implemented yet.
+     */
     public static class BezierCurve implements Curve {
 
         final private Vector P0, P1, P2, P3;
@@ -1765,6 +1672,77 @@ public class RobotRace extends Base {
         public Vector getNormalVector(double t) {
             throw new UnsupportedOperationException("Not supported yet.");
         }
+    }
+
+    /**
+     * Class representing a matrix.
+     */
+    public static class Matrix {
+
+        double[][] numbers; // stores the numbers in the matrix
+
+        /**
+         * Construct a matrix.
+         * 
+         * @param numbers numbers in the matrix
+         */
+        public Matrix(double[][] numbers) {
+            this.numbers = numbers;
+        }
+
+        /**
+         * Returns the result of the matrix-vector multiplication of
+         * {@code this} and {@code v}.
+         * 
+         * @param v the vector
+         * @return the result of the multiplication
+         */
+        public Vector times(Vector v) {
+            Vector h1 = new Vector(numbers[0][0], numbers[0][1], numbers[0][2]);
+            double x = v.dot(h1); // dot product of first row and vector v
+
+            Vector h2 = new Vector(numbers[1][0], numbers[1][1], numbers[1][2]);
+            double y = v.dot(h2); // dot product of second row and vector v
+
+            Vector h3 = new Vector(numbers[2][0], numbers[2][1], numbers[2][2]);
+            double z = v.dot(h3); // dot product of third row and vector v
+
+            return new Vector(x, y, z);
+        }
+
+        /**
+         * Calculates the transposed matrix, that is, a matrix with the indices
+         * reversed.
+         * 
+         * @return the transposed matrix
+         */
+        public Matrix transposed() {
+            double[][] result = new double[numbers.length][numbers.length];
+
+            for (int i = 0; i < numbers.length; i++) {
+                for (int j = 0; j < numbers.length; j++) {
+                    result[j][i] = numbers[i][j];
+                }
+            }
+            return new Matrix(result);
+        }
+    }
+
+    /**
+     * Calculates a transformation matrix that rotates over an angle {@code phi}
+     * around the Z axis and then over an angle {@code theta} around the y axis.
+     * 
+     * @param phi phi angle mentioned above
+     * @param theta theta angle mentioned above
+     * @return the transformation matrix
+     */
+    public static Matrix eyeToWorldMatrix(float phi, float theta) {
+        double[][] worldToEyeMatrix = {
+            {cos(phi) * cos(theta), -sin(phi), -cos(phi) * sin(theta)},
+            {sin(phi) * cos(theta), cos(phi), -sin(phi) * sin(theta)},
+            {sin(theta), 0, cos(theta)}
+        };
+        return new Matrix(worldToEyeMatrix);
     }
 
     /**
