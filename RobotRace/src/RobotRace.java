@@ -253,7 +253,7 @@ public class RobotRace extends Base {
             phi_old = gs.phi;
             theta_old = gs.theta;
         }
-        
+
         // Matrices to switch from world to eye coordinates and back.
         /*
          * The eyeToWorld matrix is defined as a matrix that rotates over the
@@ -271,11 +271,11 @@ public class RobotRace extends Base {
         // and the eyeToWorld matrix (switching the coordinates back to world
         // coordinates using the new angles) applied on the light vector.
         light = eyeToWorld.times(worldToEye.times(light));
-       
+
         // Set the light source in the direction of the calculated light vector.
         float[] location = {(float) light.x(), (float) light.y(), (float) light.z(), 0};
         gl.glLightfv(GL_LIGHT0, GL_POSITION, location, 0); //set location of ls0
-        
+
         // Update the old values of phi and theta.
         phi_old = gs.phi;
         theta_old = gs.theta;
@@ -702,21 +702,36 @@ public class RobotRace extends Base {
         Vector camPos;
         Vector center;
         if (gs.persp) {
-            // For the perspective projection set the camerato be the position of the 
-            // robot plus 2 units height (which is the height of the robot) and
-            // add the tanget of the robot with the track normalized.
-            camPos = pos.add(new Vector(0, 0, 2)).add(t.curve.getTangent(robot.position).normalized());
-            // Set the camera to look from it's position towards the tangent of the
+            // For the perspective projection set the camera to be the position
+            // of the robot plus the height of the robot and
+            // add the tangent of the robot with the track normalized.
+            camPos = pos.add(new Vector(0, 0, robot.hatPart.getHeight())).add(t.curve.getTangent(robot.position).normalized());
+            // Set the camera to look from its position towards the tangent of the
             // robot with the track.
             center = camPos.add(t.curve.getTangent(robot.position).normalized().scale(5));
         } else {
             // For the isometric projection set the camerato be the position of the 
-            // robot plus 2 units height (which is the height of the robot) and
+            // robot plus the height of the robot and
             // add the tangent of the robot with the track, normalized and
             // scaled two untis.
-            camPos = pos.add(new Vector(0, 0, 2)).add(t.curve.getTangent(robot.position).normalized().scale(2));
+            camPos = pos.add(new Vector(0, 0, robot.hatPart.getHeight())).add(t.curve.getTangent(robot.position).normalized().scale(2));
             // Set the camera to look from its position along the tangent vector.
-            center = pos.add(t.curve.getTangent(robot.position).normalized().scale(7)).subtract(new Vector(0, 0, 1));
+            center = pos.add(t.curve.getTangent(robot.position).normalized().scale(7));
+            /*
+             * NB: using first person mode in isometric projection gives some
+             * strange effects.
+             * First of all, the track seems to up and down.
+             * This is because objects that get farther away are not drawn
+             * smaller in isometric projection. Therefore, when a larger part
+             * of the track is visible, it seems like it is going up.
+             * Secondly, the bottom of the track and the sides are partly
+             * visible. This is because the width of the screen is user-
+             * configurable.
+             * Finally, robots that appear close to the robot we are following
+             * partly get clipped off. This also has to do with the width of 
+             * the scene that is being displayed in combination with isometric 
+             * projection.
+             */
         }
         glu.gluLookAt(camPos.x(), camPos.y(), camPos.z(), // eye point 
                 center.x(), center.y(), center.z(), // center point
@@ -1683,7 +1698,7 @@ public class RobotRace extends Base {
 
         /**
          * Construct a matrix.
-         * 
+         *
          * @param numbers numbers in the matrix
          */
         public Matrix(double[][] numbers) {
@@ -1693,7 +1708,7 @@ public class RobotRace extends Base {
         /**
          * Returns the result of the matrix-vector multiplication of
          * {@code this} and {@code v}.
-         * 
+         *
          * @param v the vector
          * @return the result of the multiplication
          */
@@ -1713,7 +1728,7 @@ public class RobotRace extends Base {
         /**
          * Calculates the transposed matrix, that is, a matrix with the indices
          * reversed.
-         * 
+         *
          * @return the transposed matrix
          */
         public Matrix transposed() {
@@ -1731,7 +1746,7 @@ public class RobotRace extends Base {
     /**
      * Calculates a transformation matrix that rotates over an angle {@code phi}
      * around the Z axis and then over an angle {@code theta} around the y axis.
-     * 
+     *
      * @param phi phi angle mentioned above
      * @param theta theta angle mentioned above
      * @return the transformation matrix
