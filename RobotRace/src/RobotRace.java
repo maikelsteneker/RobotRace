@@ -767,14 +767,14 @@ public class RobotRace extends Base {
         // Set the camera to be positioned at the camPos, to look towards the defined
         // center and give the tangent as the up vector such that the camer will
         // follow the center point in a straight line relative to the track.
-        glu.gluLookAt(camPos.x(), camPos.y(), camPos.z(),
-                center.x(), center.y(), center.z(),
-                tangent.x(), tangent.y(), tangent.z());
+        glu.gluLookAt(camPos.x(), camPos.y(), camPos.z(), //eye point
+                center.x(), center.y(), center.z(), //center point
+                tangent.x(), tangent.y(), tangent.z()); //up vector
     }
 
     /**
-     * Set the camera such that it will follow the robots from the side of track
-     * - like a motorcycle. The camera is following the fastest robot.
+     * Sets the camera such that it will follow the robots from the side of track
+     * like a motorcycle. The camera is following the fastest robot.
      */
     private void setMotorcycleCamMode() {
         float max = 0;
@@ -782,32 +782,59 @@ public class RobotRace extends Base {
         for (Robot robot : robots) {
             max = max(max, robot.position);
         }
-        // 
+        // Set the center point to be one unit higher than the robot's position.
         Vector center = t.curve.getPoint(max).add(new Vector(0, 0, 1));
+        // Get the camer aposition such that is next to the front robot at a height
+        // of one unit.
         Vector camPos = t.curve.getPoint(max).add(t.curve.getNormalVector(max).normalized().scale(NUMROBOTS + 1)).add(new Vector(0, 0, 1));
-        glu.gluLookAt(camPos.x(), camPos.y(), camPos.z(), center.x(), center.y(), center.z(), 0, 0, 1);
+        glu.gluLookAt(camPos.x(), camPos.y(), camPos.z(), //eye point
+                      center.x(), center.y(), center.z(), //center point
+                      0, 0, 1);//up vector
     }
 
     /**
-     *
+     * Sets the camera such that the view will appear to be from the perspective
+     * of a robot. 
      */
     private void setFirstPersonCamMode() {
         Robot robot = robots[0];
+        // Get the position of the first created robot. 
         Vector pos = t.curve.getPoint(robot.position);
         Vector camPos;
         Vector center;
         if (gs.persp) {
+            // For the perspective projection set the camerato be the position of the 
+            // robot plus 2 units height (which is the height of the robot) and
+            // add the tanget of the robot with the track normalized.
             camPos = pos.add(new Vector(0, 0, 2)).add(t.curve.getTangent(robot.position).normalized());
+            // Set the camera to look from it's position towards the tangent of the
+            // robot with the track.
             center = camPos.add(t.curve.getTangent(robot.position).normalized().scale(5));
             //tangent = t.curve.getPoint(tAnim + 1);
         } else {
+            // For the isometric projection set the camerato be the position of the 
+            // robot plus 2 units height (which is the height of the robot) and
+            // add the tanget of the robot with the track, normalized and scaled
+            // two untis.
             camPos = pos.add(new Vector(0, 0, 2)).add(t.curve.getTangent(robot.position).normalized().scale(2));
-            center = pos.add(t.curve.getTangent(robot.position).normalized().scale(5)).add(new Vector(0, 0, 1));
+            // Set the camera to look from it's position towards the tangent of the
+            // robot with the track 
+            center = pos.add(t.curve.getTangent(robot.position).normalized().scale(7)).subtract(new Vector(0, 0, 1));
             //gs.vDist = 0;
         }
-        glu.gluLookAt(camPos.x(), camPos.y(), camPos.z(), center.x(), center.y(), center.z(), 0, 0, 1);
+        glu.gluLookAt(camPos.x(), camPos.y(), camPos.z(), // eye point 
+                      center.x(), center.y(), center.z(), // center point
+                      0, 0, 1); // up vector
     }
 
+    /**
+     * Parses an array and sets the given parameters for the ambient,
+     * diffuse, specular and shininess values of the material.
+     * 
+     * @param material An array with 13 floats where the first 4 values represents
+     * the ambient, the next 4 the diffuse factor, the next 4 the specular factor,
+     * and the last the shininess value of the material.
+     */
     private void setMaterial(float[] material) {
         gl.glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, material, 0);
         gl.glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, material, 4);
@@ -1542,14 +1569,24 @@ public class RobotRace extends Base {
         public float getHeight();
     }
 
+    /**
+     * Represents the track on which the robots are running.
+     */
     public class Track {
 
-        private Curve curve;
+        private Curve curve; //determines the shape of the track.
         private float width;
         private float minHeight;
         private float maxHeight;
         final static private int N = 100;
 
+        /**
+         * Constructs a truck with the given parameters.
+         * @param curve The shape that the track will have.
+         * @param width The width of the track.
+         * @param minHeight 
+         * @param maxHeight 
+         */
         public Track(Curve curve, float width, float minHeight, float maxHeight) {
             this.curve = curve;
             this.width = width;
@@ -1557,6 +1594,9 @@ public class RobotRace extends Base {
             this.maxHeight = maxHeight;
         }
 
+        /**
+         * Draws the track.
+         */
         public void draw() {
             List<Vector> points = new ArrayList<Vector>();
             List<Vector> offset_points = new ArrayList<Vector>();
@@ -1571,7 +1611,6 @@ public class RobotRace extends Base {
                 normals2D.add(normal2D);
                 Vector off = point.add(normal2D.normalized().scale(width));
                 offset_points.add(off);
-
                 normals.add(normal2D.cross(curve.getTangent(t)));
             }
 
@@ -1632,15 +1671,36 @@ public class RobotRace extends Base {
         }
     }
 
+    /**
+     * Interface that represents a curve.
+     */
     public interface Curve {
 
+        /**
+         * Converts a given parameter into a point on the curve.
+         * 
+         * @param t A parameter in the range 0 to 1.
+         * @return A vector representing the point resulting from the conversion.
+         */
         public Vector getPoint(double t);
 
+        /**
+         * Returns the tangent of a given parameter with the curve.
+         * 
+         * @param t A parameter in the range 0 to 1.
+         * @return  A vector representing the tangent between t and the curve.
+         */
         public Vector getTangent(double t);
 
+        /**
+         * Returns the normal of a given parameter with the curve.
+         * @param t A parameter in the range 0 to 1.
+         * @return  A vector representing the normal between t and the curve.
+         */
         public Vector getNormalVector(double t);
     }
 
+    
     public static class SimpleCurve implements Curve {
 
         @Override
