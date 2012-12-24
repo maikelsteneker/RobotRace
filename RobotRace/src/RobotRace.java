@@ -258,10 +258,10 @@ public class RobotRace extends Base {
         /*
          * The eyeToWorld matrix is defined as a matrix that rotates over the
          * phi and theta angles in the correct way to change from world to eye
-         * coordinates.
-         * The worldToEye matrix is defined as the inverse of eyeToWorld, but
-         * using the old values for phi and theta. Since the vectors in the
-         * matrices are perpendicular, we can use the transposed for this.
+         * coordinates. The worldToEye matrix is defined as the inverse of
+         * eyeToWorld, but using the old values for phi and theta. Since the
+         * vectors in the matrices are perpendicular, we can use the transposed
+         * for this.
          */
         Matrix worldToEye = eyeToWorldMatrix(phi_old, theta_old).transposed();
         Matrix eyeToWorld = eyeToWorldMatrix(gs.phi, gs.theta);
@@ -304,7 +304,20 @@ public class RobotRace extends Base {
         // Make a track in the shape of a simple curve, with the wdith of the
         // number of robots plus 1. Let the height of the track be between -1
         // and 1.
-        t = new Track(new SimpleCurve(), NUMROBOTS + 1, -1, 1);
+        Vector P0 = new Vector(0, 0, 0);
+        Vector P1 = new Vector(0, 10, 0);
+        Vector P2 = new Vector(10, 10, 0);
+        Vector P3 = new Vector(10, 0, 0);
+        gl.glBegin(GL_LINE_STRIP);
+        gl.glVertex3f(0, 0, 0);
+        gl.glVertex3f(0, 10, 0);
+        gl.glVertex3f(10, 10, 0);
+        gl.glVertex3f(10, 0, 0);
+        gl.glEnd();
+        Curve c = new BezierCurve(P0, P1, P2, P3);
+        t = new Track(c, NUMROBOTS + 1, -1, 1);
+
+        //t = new Track(new SimpleCurve(), NUMROBOTS + 1, -1, 1);
         // Set the material of the track to plastic green.
         setMaterial(Material.GREEN_PLASTIC);
         t.draw(); // Draw track.
@@ -528,9 +541,9 @@ public class RobotRace extends Base {
         Vector[][] normals = new Vector[list.size()][slices]; // normal for each vertex
         /*
          * Our goal is to store the normal for each vertex in this array. The
-         * normal of a vertex is defined to be the average of the normals
-         * of the surrounding quads.
-         * 
+         * normal of a vertex is defined to be the average of the normals of the
+         * surrounding quads.
+         *
          * Note that we normalize these normals later, so the length of the
          * normal has no meaning. Therefore, we can simply add the normals for
          * the quads together.
@@ -719,18 +732,15 @@ public class RobotRace extends Base {
             center = pos.add(t.curve.getTangent(robot.position).normalized().scale(7));
             /*
              * NB: using first person mode in isometric projection gives some
-             * strange effects.
-             * First of all, the track seems to up and down.
+             * strange effects. First of all, the track seems to up and down.
              * This is because objects that get farther away are not drawn
-             * smaller in isometric projection. Therefore, when a larger part
-             * of the track is visible, it seems like it is going up.
-             * Secondly, the bottom of the track and the sides are partly
-             * visible. This is because the width of the screen is user-
-             * configurable.
-             * Finally, robots that appear close to the robot we are following
-             * partly get clipped off. This also has to do with the width of 
-             * the scene that is being displayed in combination with isometric 
-             * projection.
+             * smaller in isometric projection. Therefore, when a larger part of
+             * the track is visible, it seems like it is going up. Secondly, the
+             * bottom of the track and the sides are partly visible. This is
+             * because the width of the screen is user- configurable. Finally,
+             * robots that appear close to the robot we are following partly get
+             * clipped off. This also has to do with the width of the scene that
+             * is being displayed in combination with isometric projection.
              */
         }
         glu.gluLookAt(camPos.x(), camPos.y(), camPos.z(), // eye point 
@@ -889,16 +899,15 @@ public class RobotRace extends Base {
 
             // Update current position on the track.
             /*
-             * The position should be increased by a value that is:
-             * - positive; robots should not move backwards
-             * - random; the race should be exciting
-             * - dependent on time; gs.tAnim decides how fast time progresses.
-             *                      Rendering using higher FPS should not
-             *                      influence the speeds of the robots.
-             * To accomplish this, we compute the time that has passed since the
-             * last update of the position. We then increase the position by
-             * the product of this difference, a random variable and some scalar
-             * to prevent the robots from moving to fast.
+             * The position should be increased by a value that is: - positive;
+             * robots should not move backwards - random; the race should be
+             * exciting - dependent on time; gs.tAnim decides how fast time
+             * progresses. Rendering using higher FPS should not influence the
+             * speeds of the robots. To accomplish this, we compute the time
+             * that has passed since the last update of the position. We then
+             * increase the position by the product of this difference, a random
+             * variable and some scalar to prevent the robots from moving to
+             * fast.
              */
             float tAnim = gs.tAnim; // the current time
             float dt = tAnim - tAnim_old; // change in time since last update
@@ -1485,7 +1494,7 @@ public class RobotRace extends Base {
      */
     public class Track {
 
-        private Curve curve; //determines the shape of the track
+        private Curve curve; // determines the shape of the track
         private float width; // width of the track
         private float minHeight; // height at which the track starts
         private float maxHeight; // height at which the track ends
@@ -1648,8 +1657,6 @@ public class RobotRace extends Base {
 
     /**
      * Implementation of Curve that models a Bezier curve.
-     *
-     * N.B. This is not implemented yet.
      */
     public static class BezierCurve implements Curve {
 
@@ -1674,18 +1681,26 @@ public class RobotRace extends Base {
 
         public static Vector getCubicBezierPnt(double t, Vector P0, Vector P1,
                 Vector P2, Vector P3) {
-            throw new UnsupportedOperationException("Not yet implemented");
+            return P0.scale(pow(1 - t, 3)).add(
+                    P1.scale(3 * t * pow(1 - t, 2))).add(
+                    P2.scale(3 * pow(t, 2) * (1 - t))).add(
+                    P3.scale(pow(t, 3)));
 
         }
 
         public static Vector getCubicBezierTng(double t, Vector P0, Vector P1,
                 Vector P2, Vector P3) {
-            throw new UnsupportedOperationException("Not yet implemented");
+            return P1.subtract(P0).scale(pow(1 - t, 2)).add(
+                    P2.subtract(P1).scale(2 * t * (1 - t))).add(
+                    P3.subtract(P2).scale(pow(t, 2))).scale(3);
         }
 
         @Override
         public Vector getNormalVector(double t) {
-            throw new UnsupportedOperationException("Not supported yet.");
+            Vector tangent = this.getTangent(t);
+            // Rotate 90 degrees in negative direction (outward) in XOY plane.
+            // TODO: check if minus sign is in the correct place
+            return new Vector(-tangent.y(), tangent.x(), 0);
         }
     }
 
