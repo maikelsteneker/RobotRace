@@ -300,10 +300,13 @@ public class RobotRace extends Base {
 
         // Draw Axis Frame.
         drawAxisFrame();
+        
+        // Reset to default texture.
+        track.disable(gl);
 
         // Make a track in the shape of a simple curve, with the wdith of the
         // number of robots plus 1. Let the height of the track be between -1
-        // and 1.
+        // and 1. TODO: change comment
         Vector P0 = new Vector(0, 0, 0);
         Vector P1 = new Vector(0, 10, 0);
         Vector P2 = new Vector(10, 10, 0);
@@ -318,6 +321,7 @@ public class RobotRace extends Base {
         t = new Track(c, NUMROBOTS + 1, -1, 1);
 
         //t = new Track(new SimpleCurve(), NUMROBOTS + 1, -1, 1);
+        
         // Set the material of the track to plastic green.
         setMaterial(Material.GREEN_PLASTIC);
         t.draw(); // Draw track.
@@ -337,6 +341,11 @@ public class RobotRace extends Base {
         }
         gl.glPopMatrix();
 
+        track.enable(gl);
+        track.bind(gl);
+        glut.glutSolidTeapot(1);
+        track.disable(gl);
+        
         // Draw robots participating in the race.
         for (int i = 0; i < robots.length; i++) {
             Robot robot = robots[i];
@@ -361,8 +370,10 @@ public class RobotRace extends Base {
             double cosangle = dot / (tangent.length() * Vector.Y.length());
             // If the robot is on the 2nd half of the track flip the sign of the
             // angle. We do this because the acos method always returns a value
-            // between 0 and PI.
-            double angle = (robot.position % 1 >= 0.5f) ? -acos(cosangle) : acos(cosangle);
+            // between 0 and PI. TODO: change comment
+            boolean h = (robot.position % 1 >= 0.5f); // reverse after half the track
+            boolean ypos = (t.curve.getTangent(robot.position).x() >= 0); // reverse if tangent points in negative Y direction
+            double angle = ypos ? -acos(cosangle) : acos(cosangle);
             gl.glRotated(toDegrees(angle), 0, 0, 1);
             setMaterial(Material.SILVER); // Set the material to silver.
             robot.draw(); // Draw the robot
@@ -1563,9 +1574,14 @@ public class RobotRace extends Base {
                 gl.glVertex3d(next_off.x(), next_off.y(), next_off.z());
                 gl.glVertex3d(next_point.x(), next_point.y(), next_point.z());
             }
+            gl.glEnd();
 
             // Draw the sides of the track.
+            brick.enable(gl);
+            brick.bind(gl);
+            gl.glBegin(GL_QUADS);
             for (int i = 0; i < N; i++) {
+                // TODO: vertically split up quads
                 // Draw inside of the track.
                 Vector normal = normals.get(i).scale(-1); // use reverse normal
                 gl.glNormal3d(normal.x(), normal.y(), normal.z());
@@ -1573,9 +1589,13 @@ public class RobotRace extends Base {
                 // Draw quad spanning between two points between minHeight, maxHeight.
                 Vector point = points.get(i); // point on inside of the track
                 Vector next_point = points.get(i + 1);
+                gl.glTexCoord2f(0, 0);
                 gl.glVertex3d(point.x(), point.y(), maxHeight);
+                gl.glTexCoord2f(1, 0);
                 gl.glVertex3d(next_point.x(), next_point.y(), maxHeight);
+                gl.glTexCoord2f(1, 1);
                 gl.glVertex3d(next_point.x(), next_point.y(), minHeight);
+                gl.glTexCoord2f(0, 1);
                 gl.glVertex3d(point.x(), point.y(), minHeight);
 
                 // Draw outside of the track.
@@ -1584,12 +1604,18 @@ public class RobotRace extends Base {
                 // Draw quad spanning between two points between minHeight, maxHeight.
                 point = offset_points.get(i); // point on outside of the track
                 next_point = offset_points.get(i + 1);
+                gl.glTexCoord2f(0, 0);
                 gl.glVertex3d(point.x(), point.y(), maxHeight);
+                gl.glTexCoord2f(1, 0);
                 gl.glVertex3d(next_point.x(), next_point.y(), maxHeight);
+                gl.glTexCoord2f(1, 1);
                 gl.glVertex3d(next_point.x(), next_point.y(), minHeight);
+                gl.glTexCoord2f(0, 1);
                 gl.glVertex3d(point.x(), point.y(), minHeight);
             }
+            
             gl.glEnd();
+            brick.disable(gl);
         }
     }
 
