@@ -385,6 +385,13 @@ public class RobotRace extends Base {
         double[] z = {3, 4, 5, 6};
         setMaterial(Material.YELLOW_PLASTIC);
         drawRotSymShape(x, z, true, 100, 0.05);
+        
+        gl.glPushMatrix();
+        setMaterial(Material.RED_PLASTIC);
+        gl.glTranslated(0, -10, 0);
+        glut.glutSolidCube(0.1f);
+        Clock.draw(gl, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
+        gl.glPopMatrix();
     }
 
     /**
