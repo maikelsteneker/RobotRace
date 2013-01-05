@@ -1,5 +1,6 @@
 
 import javax.media.opengl.GL2;
+import static javax.media.opengl.GL2.*;
 import static java.lang.Math.*;
 
 /**
@@ -14,9 +15,12 @@ public class Clock {
     public static void draw(GL2 gl, int... numbers) {
         gl.glPushMatrix();
         gl.glScalef(1, -1, 1);
-        for (int number : numbers) {
-            Number.draw(number, gl);
+        for (int i = 0; i < numbers.length; i++) {
+            Number.draw(numbers[i], gl);
             gl.glTranslatef(Number.width() + Number.LINE_WIDTH, 0, 0);
+            if (i == M - 1) {
+                drawColon(gl);
+            }
         }
         gl.glPopMatrix();
     }
@@ -39,7 +43,28 @@ public class Clock {
         draw(gl, numbers);
     }
 
-    public static void main(String[] args) {
-        draw(null, 5.1234234f);
+    private static void drawColon(GL2 gl) {
+        float w = Number.LINE_WIDTH;
+        float l = Number.LINE_LENGTH;
+        float d = (l - w) / 2;
+        drawTopDot(gl);
+        gl.glPushMatrix();
+        gl.glTranslatef(0, w + l, 0);
+        drawTopDot(gl);
+        gl.glPopMatrix();
+        gl.glTranslatef(3 * w, 0, 0);
+    }
+
+    private static void drawTopDot(GL2 gl) {
+        float w = Number.LINE_WIDTH;
+        float l = Number.LINE_LENGTH;
+        float d = (l - w) / 2;
+
+        gl.glBegin(GL_QUADS);
+        gl.glVertex3f(w, 2 * w + d, 0);
+        gl.glVertex3f(2 * w, 2 * w + d, 0);
+        gl.glVertex3f(2 * w, w + d, 0);
+        gl.glVertex3f(w, w + d, 0);
+        gl.glEnd();
     }
 }
