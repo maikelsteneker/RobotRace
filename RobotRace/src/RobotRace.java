@@ -1,18 +1,12 @@
 
 import java.awt.Color;
-import javax.media.opengl.GL;
-import static javax.media.opengl.GL2.*;
-import robotrace.Base;
-import robotrace.Vector;
 import static java.lang.Math.*;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
-import javax.media.opengl.GL2;
+import static javax.media.opengl.GL2.*;
+import robotrace.*;
 
 /**
  * Handles all of the RobotRace graphics functionality, which should be extended
@@ -300,7 +294,7 @@ public class RobotRace extends Base {
 
         // Draw Axis Frame.
         drawAxisFrame();
-        
+
         // Reset to default texture.
         track.disable(gl);
 
@@ -321,7 +315,7 @@ public class RobotRace extends Base {
         t = new Track(c, NUMROBOTS + 1, -1, 1);
 
         //t = new Track(new SimpleCurve(), NUMROBOTS + 1, -1, 1);
-        
+
         // Set the material of the track to plastic green.
         setMaterial(Material.GREEN_PLASTIC);
         t.draw(); // Draw track.
@@ -345,7 +339,7 @@ public class RobotRace extends Base {
         track.bind(gl);
         glut.glutSolidTeapot(1);
         track.disable(gl);
-        
+
         // Draw robots participating in the race.
         for (int i = 0; i < robots.length; i++) {
             Robot robot = robots[i];
@@ -385,7 +379,7 @@ public class RobotRace extends Base {
         double[] z = {3, 4, 5, 6};
         setMaterial(Material.YELLOW_PLASTIC);
         drawRotSymShape(x, z, true, 100, 0.05);
-        
+
         gl.glPushMatrix();
         setMaterial(Material.RED_PLASTIC);
         gl.glTranslated(0, -10, 0);
@@ -1623,7 +1617,7 @@ public class RobotRace extends Base {
                 gl.glTexCoord2f(0, 1);
                 gl.glVertex3d(point.x(), point.y(), minHeight);
             }
-            
+
             gl.glEnd();
             brick.disable(gl);
         }

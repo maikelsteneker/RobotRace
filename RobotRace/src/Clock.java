@@ -7,7 +7,7 @@ import static java.lang.Math.*;
  * @author maikel
  */
 public class Clock {
-    
+
     final static public int M = 2; // number of digits before comma
     final static public int N = 4; // number of digits in total
 
@@ -22,23 +22,23 @@ public class Clock {
     }
 
     public static void draw(GL2 gl, float time) {
-        int round = (int) round((time % pow(10, M)) * pow(10,N-M)); // TODO: generalize, depend on N
+        int round = (int) round((time % pow(10, M)) * pow(10, N - M));
         String f = Integer.toString(round);
         int[] numbers = new int[N];
         int i = 0;
-        while(f.length() < N) {
+        while (f.length() < N) {
             f = "0".concat(f);
         }
-        
+
         for (char c : f.toCharArray()) {
             if (Character.isDigit(c)) {
                 int n = Integer.parseInt(c + "");
                 numbers[i++] = n;
             }
         }
-        draw(gl,numbers);
+        draw(gl, numbers);
     }
-    
+
     public static void main(String[] args) {
         draw(null, 5.1234234f);
     }
