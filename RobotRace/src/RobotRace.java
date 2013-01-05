@@ -389,8 +389,7 @@ public class RobotRace extends Base {
         gl.glPushMatrix();
         setMaterial(Material.RED_PLASTIC);
         gl.glTranslated(0, -10, 0);
-        glut.glutSolidCube(0.1f);
-        Clock.draw(gl, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
+        Clock.draw(gl, gs.tAnim);
         gl.glPopMatrix();
     }
 
@@ -1516,7 +1515,7 @@ public class RobotRace extends Base {
         private float width; // width of the track
         private float minHeight; // height at which the track starts
         private float maxHeight; // height at which the track ends
-        final static private int N = 100; // number of polygons used to display
+        final static private int N = 10; // number of polygons used to display
 
         /**
          * Constructs a truck with the given parameters.
@@ -1567,6 +1566,8 @@ public class RobotRace extends Base {
             }
             gl.glEnd();
 
+            brick.enable(gl);
+            brick.bind(gl);
             gl.glBegin(GL_QUADS);
             // Draw the top of the track.
             for (int i = 0; i < N; i++) {
@@ -1576,16 +1577,18 @@ public class RobotRace extends Base {
                 Vector next_point = points.get(i + 1); // next point (inside)
 
                 gl.glNormal3d(0, 0, 1); // upwards pointing normal
+                gl.glTexCoord2f(0, 0);
                 gl.glVertex3d(point.x(), point.y(), point.z());
+                gl.glTexCoord2f(1, 0);
                 gl.glVertex3d(off.x(), off.y(), off.z());
+                gl.glTexCoord2f(1, 1);
                 gl.glVertex3d(next_off.x(), next_off.y(), next_off.z());
+                gl.glTexCoord2f(0, 1);
                 gl.glVertex3d(next_point.x(), next_point.y(), next_point.z());
             }
             gl.glEnd();
 
             // Draw the sides of the track.
-            brick.enable(gl);
-            brick.bind(gl);
             gl.glBegin(GL_QUADS);
             for (int i = 0; i < N; i++) {
                 // TODO: vertically split up quads
