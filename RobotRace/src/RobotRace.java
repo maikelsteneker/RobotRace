@@ -174,7 +174,7 @@ public class RobotRace extends Base {
         // Initialize robots array.
         robots = new Robot[NUMROBOTS];
         for (int i = 0; i < NUMROBOTS; i++) {
-            robots[i] = new Robot();
+            robots[i] = new Robot(i);
         }
     }
 
@@ -530,39 +530,76 @@ public class RobotRace extends Base {
         }
         gl.glEnd();
     }
-    
-    private void drawCube(float h, Texture texture) {
-        // TODO: move texture loading to Robot class.
-        
+
+    private void drawCube(float h, Texture texture, int part) {
         // Enable texture.
         texture.enable(gl);
         texture.bind(gl);
-        
+
         // Draw the front face of the cube.
-        drawFace(h);
-        
+        drawFace(h, part);
+
         // Disable texture.
         texture.disable(gl);
-        
+
         gl.glPushMatrix();
         for (int i = 0; i < 3; i++) {
             gl.glRotatef(90, 0, 0, 1);
-            drawFace(h);
+            drawFace(h, part);
         }
         gl.glPopMatrix();
     }
-    
-    private void drawFace(float h) {
+
+    private void drawFace(float h, int part) {
+        float lowx, highx, lowy, highy;
+        switch (part) {
+            case 0:
+                lowx = 0;
+                highx = 1;
+                lowy = 0;
+                highy = 1;
+                break;
+            case 1:
+                lowx = 0;
+                highx = 0.5f;
+                lowy = 0;
+                highy = 0.5f;
+                break;
+            case 2:
+                lowx = 0.5f;
+                highx = 1f;
+                lowy = 0f;
+                highy = 0.5f;
+                break;
+            case 3:
+                lowx = 0f;
+                highx = 0.5f;
+                lowy = 0.5f;
+                highy = 1f;
+                break;
+            case 4:
+                lowx = 0.5f;
+                highx = 1f;
+                lowy = 0.5f;
+                highy = 1f;
+                break;
+            default:
+                lowx = 0;
+                highx = 0;
+                lowy = 0;
+                highy = 0;
+        }
+
         gl.glBegin(GL_QUADS);
         gl.glNormal3f(0, 1, 0);
-        gl.glTexCoord2f(0, 1);
-        gl.glVertex3f(-h/2, h/2, -h/2);
-        gl.glTexCoord2f(1, 1);
-        gl.glVertex3f(h/2, h/2, -h/2);
-        gl.glTexCoord2f(1, 0);
-        gl.glVertex3f(h/2, h/2, h/2);
-        gl.glTexCoord2f(0, 0);
-        gl.glVertex3f(-h/2, h/2, h/2);
+        gl.glTexCoord2f(highx, highy);
+        gl.glVertex3f(-h / 2, h / 2, -h / 2);
+        gl.glTexCoord2f(lowx, highy);
+        gl.glVertex3f(h / 2, h / 2, -h / 2);
+        gl.glTexCoord2f(lowx, lowy);
+        gl.glVertex3f(h / 2, h / 2, h / 2);
+        gl.glTexCoord2f(highx, lowy);
+        gl.glVertex3f(-h / 2, h / 2, h / 2);
         gl.glEnd();
     }
 
@@ -866,6 +903,7 @@ public class RobotRace extends Base {
         Color color; // color of this robot
         float position = 0; // current position on the track
         float tAnim_old = 0; // value for tAnim when last updating position
+        int number; // number of the robot
 
         /**
          * Constructs a Robot with some default dimensions.
@@ -882,7 +920,30 @@ public class RobotRace extends Base {
                     0.1f, // armsThickness
                     0.5f, // legsLength
                     0.1f, // legsWidth
-                    0.1f // legsThickness
+                    0.1f, // legsThickness
+                    5 // number
+                    );
+        }
+
+        /**
+         * Constructs a Robot with some default dimensions.
+         *
+         * @param number number of the robot
+         */
+        public Robot(int number) {
+            this(
+                    0.5f, // hatSize
+                    0.5f, // headSize
+                    0.5f, // torsoHeight
+                    0.5f, // torsoWidth
+                    0.5f, // torsoThickness
+                    0.5f, // armsLength
+                    0.1f, // armsWidth
+                    0.1f, // armsThickness
+                    0.5f, // legsLength
+                    0.1f, // legsWidth
+                    0.1f, // legsThickness
+                    number // number
                     );
         }
 
@@ -900,38 +961,13 @@ public class RobotRace extends Base {
          * @param legsLength length of the legs
          * @param legsWidth width of the legs.
          * @param legsThickness thickness of the legs.
+         * @param number number of the robot
          */
         public Robot(float hatSize, float headSize, float torsoHeight,
                 float torsoWidth, float torsoThickness, float armsLength,
                 float armsWidth, float armsThickness, float legsLength,
-                float legsWidth, float legsThickness) {
-            this(hatSize, headSize, torsoHeight, torsoWidth, torsoThickness,
-                    armsLength, armsWidth, armsThickness, legsLength,
-                    legsWidth, legsThickness, new Color(191, 165, 32));
-        }
-
-        /**
-         * Constructs the robot with the desired parameters.
-         *
-         * @param hatSize size of the hat.
-         * @param headSize diameter of the circle representing the head.
-         * @param torsoHeight height of the torso.
-         * @param torsoWidth width of the torso.
-         * @param torsoThickness thickness of the torso.
-         * @param armsLength length of the arms.
-         * @param armsWidth width of the arms.
-         * @param armsThickness thickness of the arms.
-         * @param legsLength length of the legs
-         * @param legsWidth width of the legs.
-         * @param legsThickness thickness of the legs.
-         * @param color color of this robot
-         */
-        public Robot(float hatSize, float headSize, float torsoHeight,
-                float torsoWidth, float torsoThickness, float armsLength,
-                float armsWidth, float armsThickness, float legsLength,
-                float legsWidth, float legsThickness, Color color) {
+                float legsWidth, float legsThickness, int number) {
             parts = new HashSet<RobotPart>(); // initialize parts set
-            this.color = color;
 
             // Construct all parts with the given parameters.
             hatPart = new HatPart(hatSize);
@@ -939,6 +975,9 @@ public class RobotRace extends Base {
             torsoPart = new TorsoPart(torsoHeight, torsoWidth, torsoThickness);
             arms = new ArmsPart(armsLength, armsWidth, armsThickness);
             legs = new LegsPart(legsLength, legsWidth, legsThickness);
+
+            // Set the number of the robot.
+            this.number = number;
 
             // Add all parts that need to be displayed to the parts set.
             parts.add(hatPart);
@@ -1431,7 +1470,8 @@ public class RobotRace extends Base {
                     gl.glTranslated(0, 0, legs.getHeight() + (0.5f * height));
                     // Scale a cube according to the torso's dimensions.
                     gl.glScaled(width, thickness, height);
-                    glut.glutSolidCube(1f);
+                    gl.glRotatef(180, 0, 0, 1);
+                    drawCube(1, torso, number);
                     gl.glPopMatrix();
                 }
             }
@@ -1486,7 +1526,7 @@ public class RobotRace extends Base {
                     gl.glTranslated(0, 0, 0.5f * height + torsoPart.getHeight());
                     // Draw a sphere to represent the head with a radius of half
                     // of the head's height.
-                    drawCube(height, head);
+                    drawCube(height, head, 0);
                     gl.glPopMatrix();
                 }
             }
@@ -1657,7 +1697,7 @@ public class RobotRace extends Base {
             }
             gl.glEnd();
             track.disable(gl);
-            
+
             brick.enable(gl);
             brick.bind(gl);
             // Draw the sides of the track.
@@ -2014,7 +2054,7 @@ public class RobotRace extends Base {
             return ((r < 1) ? cos(cos(PI * r)) : 0);
         }
     }
-    
+
     /**
      * Main program execution body, delegates to an instance of the RobotRace
      * implementation.
