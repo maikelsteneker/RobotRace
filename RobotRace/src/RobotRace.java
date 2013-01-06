@@ -1,4 +1,5 @@
 
+import com.jogamp.opengl.util.texture.Texture;
 import java.awt.Color;
 import java.awt.Point;
 import static java.lang.Math.*;
@@ -420,9 +421,9 @@ public class RobotRace extends Base {
             bumps[i] = new Bump(center_x, center_y, height, radius);
         }
         Terrain terrain = new Terrain(bumps);
-                /*new Bump(1, 1, 1, 2),
-                //new Bump(-10, -10, 2, 10),
-                new Bump(-1,-1, 0.5, 3));*/
+        /*new Bump(1, 1, 1, 2),
+         //new Bump(-10, -10, 2, 10),
+         new Bump(-1,-1, 0.5, 3));*/
         //terrain.draw();
     }
 
@@ -527,6 +528,41 @@ public class RobotRace extends Base {
             // Define vertex by definition of the unit circle.
             gl.glVertex3d((cos(angle) * radius), 0, (sin(angle) * radius));
         }
+        gl.glEnd();
+    }
+    
+    private void drawCube(float h, Texture texture) {
+        // TODO: move texture loading to Robot class.
+        
+        // Enable texture.
+        texture.enable(gl);
+        texture.bind(gl);
+        
+        // Draw the front face of the cube.
+        drawFace(h);
+        
+        // Disable texture.
+        texture.disable(gl);
+        
+        gl.glPushMatrix();
+        for (int i = 0; i < 3; i++) {
+            gl.glRotatef(90, 0, 0, 1);
+            drawFace(h);
+        }
+        gl.glPopMatrix();
+    }
+    
+    private void drawFace(float h) {
+        gl.glBegin(GL_QUADS);
+        gl.glNormal3f(0, 1, 0);
+        gl.glTexCoord2f(0, 1);
+        gl.glVertex3f(-h/2, h/2, -h/2);
+        gl.glTexCoord2f(1, 1);
+        gl.glVertex3f(h/2, h/2, -h/2);
+        gl.glTexCoord2f(1, 0);
+        gl.glVertex3f(h/2, h/2, h/2);
+        gl.glTexCoord2f(0, 0);
+        gl.glVertex3f(-h/2, h/2, h/2);
         gl.glEnd();
     }
 
@@ -1450,7 +1486,7 @@ public class RobotRace extends Base {
                     gl.glTranslated(0, 0, 0.5f * height + torsoPart.getHeight());
                     // Draw a sphere to represent the head with a radius of half
                     // of the head's height.
-                    glut.glutSolidSphere(0.5f * height, 10, 10);
+                    drawCube(height, head);
                     gl.glPopMatrix();
                 }
             }
@@ -1548,7 +1584,7 @@ public class RobotRace extends Base {
         private float width; // width of the track
         private float minHeight; // height at which the track starts
         private float maxHeight; // height at which the track ends
-        final static private int N = 10; // number of polygons used to display
+        final static private int N = 100; // number of polygons used to display
 
         /**
          * Constructs a truck with the given parameters.
@@ -1599,8 +1635,8 @@ public class RobotRace extends Base {
             }
             gl.glEnd();
 
-            brick.enable(gl);
-            brick.bind(gl);
+            track.enable(gl);
+            track.bind(gl);
             gl.glBegin(GL_QUADS);
             // Draw the top of the track.
             for (int i = 0; i < N; i++) {
@@ -1620,7 +1656,10 @@ public class RobotRace extends Base {
                 gl.glVertex3d(next_point.x(), next_point.y(), next_point.z());
             }
             gl.glEnd();
-
+            track.disable(gl);
+            
+            brick.enable(gl);
+            brick.bind(gl);
             // Draw the sides of the track.
             gl.glBegin(GL_QUADS);
             for (int i = 0; i < N; i++) {
@@ -1864,7 +1903,7 @@ public class RobotRace extends Base {
             }
             return sum;
         }
-        
+
         private void precalculate() {
             float l = MAX - MIN;
             float w = l / (float) M;
@@ -1893,15 +1932,15 @@ public class RobotRace extends Base {
                     Vector br = points[i + 1][j];
                     Vector ur = points[i + 1][j + 1];
                     Vector ul = points[i][j + 1];
-                    
+
                     Vector diag = br.subtract(ul);
                     Vector down = bl.subtract(ul);
                     Vector right = ur.subtract(ul);
-                    
+
                     Vector normal1 = down.cross(diag);
                     Vector normal2 = diag.cross(right);
                     gl.glEnd();
-                    texture(avg(bl.z(),br.z(),ur.z(),ul.z()));
+                    texture(avg(bl.z(), br.z(), ur.z(), ul.z()));
                     gl.glBegin(GL_TRIANGLES);
                     gl.glNormal3d(normal1.x(), normal1.y(), normal1.z());
                     glVertex(bl);
@@ -1916,7 +1955,7 @@ public class RobotRace extends Base {
             }
             gl.glEnd();
             gl.glPopMatrix();
-            
+
             drawWater();
         }
 
@@ -1938,7 +1977,7 @@ public class RobotRace extends Base {
             for (double n : numbers) {
                 sum += n;
             }
-            return sum/(double)numbers.length;
+            return sum / (double) numbers.length;
         }
 
         private void drawWater() {
@@ -1975,7 +2014,7 @@ public class RobotRace extends Base {
             return ((r < 1) ? cos(cos(PI * r)) : 0);
         }
     }
-
+    
     /**
      * Main program execution body, delegates to an instance of the RobotRace
      * implementation.
