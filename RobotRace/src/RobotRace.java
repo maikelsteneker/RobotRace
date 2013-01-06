@@ -393,8 +393,9 @@ public class RobotRace extends Base {
 
         // Draw terrain.
         setMaterial(Material.WOOD);
-        Bump bump = new Bump(10, 10, 10, 10);
-        Terrain terrain = new Terrain(bump);
+        Terrain terrain = new Terrain(new Bump(1, 1, 1, 2),
+                //new Bump(-10, -10, 2, 10),
+                new Bump(-1,-1, 0.5, 3));
         terrain.draw();
     }
 
@@ -1819,10 +1820,11 @@ public class RobotRace extends Base {
     public class Terrain {
 
         private Set<Bump> bumps;
+        private Vector[][] points = new Vector[M][N];
         final static private float MIN = -20;
         final static private float MAX = 20;
-        final static private int M = 20; // number of lines in x direction
-        final static private int N = 20; // number of lines in y direction
+        final static private int M = 100; // number of lines in x direction
+        final static private int N = 100; // number of lines in y direction
 
         public Terrain(Bump... bumps) {
             this.bumps = new HashSet(Arrays.asList(bumps));
@@ -1835,25 +1837,28 @@ public class RobotRace extends Base {
             }
             return sum;
         }
-
-        public void draw() {
+        
+        private void precalculate() {
             float l = MAX - MIN;
             float w = l / (float) M;
             float h = l / (float) N;
 
-            Vector[][] points = new Vector[M][N];
-
             for (int i = 0; i < M; i++) {
                 for (int j = 0; j < N; j++) {
-                    double x = i * w;
-                    double y = j * h;
+                    double x = MIN + i * w;
+                    double y = MIN + j * h;
                     double z = z(x, y);
                     points[i][j] = new Vector(x, y, z);
                 }
             }
+        }
+
+        public void draw() {
+            if (points[0][0] == null) {
+                precalculate();
+            }
 
             gl.glPushMatrix();
-            gl.glTranslatef(MIN, MIN, 0);
             gl.glBegin(GL_TRIANGLES);
             for (int i = 0; i < M - 1; i++) {
                 for (int j = 0; j < N - 1; j++) {
