@@ -390,9 +390,11 @@ public class RobotRace extends Base {
         gl.glTranslated(0, -10, 0);
         Clock.draw(gl, gs.tAnim);
         gl.glPopMatrix();
-        
+
         // Draw terrain.
-        Terrain terrain = new Terrain();
+        setMaterial(Material.WOOD);
+        Bump bump = new Bump(10, 10, 10, 10);
+        Terrain terrain = new Terrain(bump);
         terrain.draw();
     }
 
@@ -1838,35 +1840,44 @@ public class RobotRace extends Base {
             float l = MAX - MIN;
             float w = l / (float) M;
             float h = l / (float) N;
-            
+
             Vector[][] points = new Vector[M][N];
-            
+
             for (int i = 0; i < M; i++) {
                 for (int j = 0; j < N; j++) {
-                    double x = i*w;
-                    double y = j*h;
+                    double x = i * w;
+                    double y = j * h;
                     double z = z(x, y);
                     points[i][j] = new Vector(x, y, z);
                 }
             }
-            
+
             gl.glPushMatrix();
             gl.glTranslatef(MIN, MIN, 0);
             gl.glBegin(GL_TRIANGLES);
             for (int i = 0; i < M - 1; i++) {
                 for (int j = 0; j < N - 1; j++) {
                     Vector bl = points[i][j];
-                    Vector br = points[i+1][j];
-                    Vector ur = points[i+1][j+1];
-                    Vector ul = points[i][j+1];
+                    Vector br = points[i + 1][j];
+                    Vector ur = points[i + 1][j + 1];
+                    Vector ul = points[i][j + 1];
                     
+                    Vector diag = br.subtract(ul);
+                    Vector down = bl.subtract(ul);
+                    Vector right = ur.subtract(ul);
+                    
+                    Vector normal1 = down.cross(diag);
+                    Vector normal2 = diag.cross(right);
+
+                    gl.glNormal3d(normal1.x(), normal1.y(), normal1.z());
                     glVertex(bl);
                     glVertex(br);
                     glVertex(ul);
-                    
+
+                    gl.glNormal3d(normal2.x(), normal2.y(), normal2.z());
                     glVertex(br);
-                    glVertex(ul);
                     glVertex(ur);
+                    glVertex(ul);
                 }
             }
             gl.glEnd();
@@ -1887,7 +1898,6 @@ public class RobotRace extends Base {
             this.height = height;
             this.radius = radius;
         }
-
 
         double summand(double x, double y) {
             double r = (sqrt((x - center_x) * (x - center_x) + (y - center_y) * (y - center_y)) / radius);
