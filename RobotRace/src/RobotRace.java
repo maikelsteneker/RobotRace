@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 import static javax.media.opengl.GL.*;
 import static javax.media.opengl.GL2.*;
@@ -122,6 +123,20 @@ public class RobotRace extends Base {
             0.0f, 0.0f, 0.0f, 1.0f, //ambient
             0.36f, 0.2f, 0.01f, 1.0f, //diffuse
             0.36f, 0.2f, 0.01f, 1.0f, //specular
+            0f //shininess
+        };
+        // Array containing parameters for a water surface-like material.
+        public static float[] WATER_SURFACE = {
+            0.0f, 0.0f, 0.0f, 1.0f, //ambient
+            0.5f, 0.5f, 0.5f, 0.5f, //diffuse
+            0.5f, 0.5f, 0.5f, 0.5f, //specular
+            0f //shininess
+        };
+        // Array containing parameters for a white material (for textures).
+        public static float[] WHITE = {
+            0.0f, 0.0f, 0.0f, 1.0f, //ambient
+            1f, 1f, 1f, 1.0f, //diffuse
+            1f, 1f, 1f, 1.0f, //specular
             0f //shininess
         };
     }
@@ -315,12 +330,13 @@ public class RobotRace extends Base {
         gl.glVertex3f(10, 0, 0);
         gl.glEnd();
         Curve c = new BezierCurve(P0, P1, P2, P3);
-        t = new Track(c, NUMROBOTS + 1, -1, 1);
+        //t = new Track(c, NUMROBOTS + 1, -1, 1);
 
-        //t = new Track(new SimpleCurve(), NUMROBOTS + 1, -1, 1);
+        t = new Track(new SimpleCurve(), NUMROBOTS + 1, -1, 1);
 
         // Set the material of the track to plastic green.
-        setMaterial(Material.GREEN_PLASTIC);
+        //setMaterial(Material.GREEN_PLASTIC); // TOOD comment
+        setMaterial(Material.WHITE);
         t.draw(); // Draw track.
 
         // Draw robots to showcase materials.
@@ -393,10 +409,21 @@ public class RobotRace extends Base {
 
         // Draw terrain.
         setMaterial(Material.WOOD);
-        Terrain terrain = new Terrain(new Bump(1, 1, 1, 2),
+        int nbumps = 100;
+        Bump[] bumps = new Bump[nbumps];
+        Random generator = new Random(25);
+        for (int i = 0; i < nbumps; i++) {
+            double center_x = (generator.nextDouble() * 40) - 20;
+            double center_y = (generator.nextDouble() * 40) - 20;
+            double height = (generator.nextDouble() * 2) - 1;
+            double radius = generator.nextDouble() * 3;
+            bumps[i] = new Bump(center_x, center_y, height, radius);
+        }
+        Terrain terrain = new Terrain(bumps);
+                /*new Bump(1, 1, 1, 2),
                 //new Bump(-10, -10, 2, 10),
-                new Bump(-1,-1, 0.5, 3));
-        terrain.draw();
+                new Bump(-1,-1, 0.5, 3));*/
+        //terrain.draw();
     }
 
     /**
@@ -1823,8 +1850,8 @@ public class RobotRace extends Base {
         private Vector[][] points = new Vector[M][N];
         final static private float MIN = -20;
         final static private float MAX = 20;
-        final static private int M = 100; // number of lines in x direction
-        final static private int N = 100; // number of lines in y direction
+        final static private int M = 200; // number of lines in x direction
+        final static private int N = 200; // number of lines in y direction
 
         public Terrain(Bump... bumps) {
             this.bumps = new HashSet(Arrays.asList(bumps));
@@ -1873,7 +1900,9 @@ public class RobotRace extends Base {
                     
                     Vector normal1 = down.cross(diag);
                     Vector normal2 = diag.cross(right);
-
+                    gl.glEnd();
+                    texture(avg(bl.z(),br.z(),ur.z(),ul.z()));
+                    gl.glBegin(GL_TRIANGLES);
                     gl.glNormal3d(normal1.x(), normal1.y(), normal1.z());
                     glVertex(bl);
                     glVertex(br);
@@ -1887,6 +1916,39 @@ public class RobotRace extends Base {
             }
             gl.glEnd();
             gl.glPopMatrix();
+            
+            drawWater();
+        }
+
+        private void texture(double z) {
+            if (z < 0) {
+                //water
+                setMaterial(Material.BLUE_PLASTIC);
+            } else if (z <= 0.5) {
+                //sand
+                setMaterial(Material.YELLOW_PLASTIC);
+            } else {
+                //grass
+                setMaterial(Material.GREEN_PLASTIC);
+            }
+        }
+
+        private double avg(double... numbers) {
+            double sum = 0;
+            for (double n : numbers) {
+                sum += n;
+            }
+            return sum/(double)numbers.length;
+        }
+
+        private void drawWater() {
+            setMaterial(Material.WATER_SURFACE);
+            gl.glBegin(GL_QUADS);
+            gl.glVertex3d(-20, -20, -0.01);
+            gl.glVertex3d(-20, 20, -0.01);
+            gl.glVertex3d(20, 20, -0.01);
+            gl.glVertex3d(20, -20, -0.01);
+            gl.glEnd();
         }
     }
 
