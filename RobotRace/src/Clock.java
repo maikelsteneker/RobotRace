@@ -9,8 +9,8 @@ import static java.lang.Math.*;
  */
 public class Clock {
 
-    final static public int M = 2; // number of digits before comma
-    final static public int N = 4; // number of digits in total
+    final static public int M = 3; // number of digits before comma
+    final static public int N = 5; // number of digits in total
 
     public static void draw(GL2 gl, int... numbers) {
         gl.glPushMatrix();

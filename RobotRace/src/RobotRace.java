@@ -1,10 +1,13 @@
 
 import java.awt.Color;
+import java.awt.Point;
 import static java.lang.Math.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import static javax.media.opengl.GL.*;
 import static javax.media.opengl.GL2.*;
 import robotrace.*;
 
@@ -380,11 +383,17 @@ public class RobotRace extends Base {
         setMaterial(Material.YELLOW_PLASTIC);
         drawRotSymShape(x, z, true, 100, 0.05);
 
+        // Draw clock (because we don't know where to put it).
+        // TODO: move
         gl.glPushMatrix();
         setMaterial(Material.RED_PLASTIC);
         gl.glTranslated(0, -10, 0);
         Clock.draw(gl, gs.tAnim);
         gl.glPopMatrix();
+        
+        // Draw terrain.
+        Terrain terrain = new Terrain();
+        terrain.draw();
     }
 
     /**
@@ -1803,6 +1812,91 @@ public class RobotRace extends Base {
             {sin(theta), 0, cos(theta)}
         };
         return new Matrix(worldToEyeMatrix);
+    }
+
+    public class Terrain {
+
+        private Set<Bump> bumps;
+        final static private float MIN = -20;
+        final static private float MAX = 20;
+        final static private int M = 20; // number of lines in x direction
+        final static private int N = 20; // number of lines in y direction
+
+        public Terrain(Bump... bumps) {
+            this.bumps = new HashSet(Arrays.asList(bumps));
+        }
+
+        public double z(double x, double y) {
+            float sum = 0;
+            for (Bump b : bumps) {
+                sum += b.summand(x, y);
+            }
+            return sum;
+        }
+
+        public void draw() {
+            float l = MAX - MIN;
+            float w = l / (float) M;
+            float h = l / (float) N;
+            
+            Vector[][] points = new Vector[M][N];
+            
+            for (int i = 0; i < M; i++) {
+                for (int j = 0; j < N; j++) {
+                    double x = i*w;
+                    double y = j*h;
+                    double z = z(x, y);
+                    points[i][j] = new Vector(x, y, z);
+                }
+            }
+            
+            gl.glPushMatrix();
+            gl.glTranslatef(MIN, MIN, 0);
+            gl.glBegin(GL_TRIANGLES);
+            for (int i = 0; i < M - 1; i++) {
+                for (int j = 0; j < N - 1; j++) {
+                    Vector bl = points[i][j];
+                    Vector br = points[i+1][j];
+                    Vector ur = points[i+1][j+1];
+                    Vector ul = points[i][j+1];
+                    
+                    glVertex(bl);
+                    glVertex(br);
+                    glVertex(ul);
+                    
+                    glVertex(br);
+                    glVertex(ul);
+                    glVertex(ur);
+                }
+            }
+            gl.glEnd();
+            gl.glPopMatrix();
+        }
+    }
+
+    public static class Bump {
+
+        private double center_x;
+        private double center_y;
+        private double height;
+        private double radius;
+
+        public Bump(double center_x, double center_y, double height, double radius) {
+            this.center_x = center_x;
+            this.center_y = center_y;
+            this.height = height;
+            this.radius = radius;
+        }
+
+
+        double summand(double x, double y) {
+            double r = (sqrt((x - center_x) * (x - center_x) + (y - center_y) * (y - center_y)) / radius);
+            return height * bump(r);
+        }
+
+        double bump(double r) {
+            return ((r < 1) ? cos(cos(PI * r)) : 0);
+        }
     }
 
     /**
