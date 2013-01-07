@@ -61,6 +61,7 @@ public class RobotRace extends Base {
     Track t; // the track the robots are moving on
     float phi_old, theta_old; // holds old values for phi and theta
     Texture landscape; // 1D texture for landscape
+    Terrain terrain; // terrain that's being shown
 
     /**
      * Class containing static variables representing different materials.
@@ -184,7 +185,7 @@ public class RobotRace extends Base {
             robots[i] = new Robot(i);
         }
 
-        // Load a 1D texture for the terrain.
+        // Load a 1D texture for the landscape.
         try {
             landscape = TextureIO.newTexture(new File("src/landscape.jpg"), false);
         } catch (IOException ex) {
@@ -192,6 +193,19 @@ public class RobotRace extends Base {
         } catch (GLException ex) {
             Logger.getLogger(RobotRace.class.getName()).log(Level.SEVERE, null, ex);
         }
+
+        // Randomly generate terrain.
+        int nbumps = 10000;
+        Bump[] bumps = new Bump[nbumps];
+        Random generator = new Random(0);
+        for (int i = 0; i < nbumps; i++) {
+            double center_x = (generator.nextDouble() * 40) - 20;
+            double center_y = (generator.nextDouble() * 40) - 20;
+            double height = (generator.nextDouble() * 2) - 1;
+            double radius = generator.nextDouble() * 3;
+            bumps[i] = new Bump(center_x, center_y, height, radius);
+        }
+        terrain = new Terrain(bumps);
     }
 
     /**
@@ -336,16 +350,10 @@ public class RobotRace extends Base {
         // Make a track in the shape of a simple curve, with the wdith of the
         // number of robots plus 1. Let the height of the track be between -1
         // and 1. TODO: change comment
-        Vector P0 = new Vector(0, 0, 1);
-        Vector P1 = new Vector(0, 10, 1);
+        Vector P0 = new Vector(-10, 0, 1);
+        Vector P1 = new Vector(-10, 10, 1);
         Vector P2 = new Vector(10, 10, 1);
         Vector P3 = new Vector(10, 0, 1);
-        gl.glBegin(GL_LINE_STRIP);
-        gl.glVertex3f(0, 0, 1);
-        gl.glVertex3f(0, 10, 1);
-        gl.glVertex3f(10, 10, 1);
-        gl.glVertex3f(10, 0, 1);
-        gl.glEnd();
         Curve c = new BezierCurve(P0, P1, P2, P3);
         t = new Track(c, NUMROBOTS + 1, -1, 1);
 
@@ -370,11 +378,6 @@ public class RobotRace extends Base {
             gl.glTranslatef(2, 0, 0);
         }
         gl.glPopMatrix();
-
-        track.enable(gl);
-        track.bind(gl);
-        glut.glutSolidTeapot(1);
-        track.disable(gl);
 
         // Draw robots participating in the race.
         for (int i = 0; i < robots.length; i++) {
@@ -425,20 +428,6 @@ public class RobotRace extends Base {
         gl.glPopMatrix();
 
         // Draw terrain.
-        int nbumps = 100;
-        Bump[] bumps = new Bump[nbumps];
-        Random generator = new Random(0);
-        for (int i = 0; i < nbumps; i++) {
-            double center_x = (generator.nextDouble() * 40) - 20;
-            double center_y = (generator.nextDouble() * 40) - 20;
-            double height = (generator.nextDouble() * 2) - 1;
-            double radius = generator.nextDouble() * 3;
-            bumps[i] = new Bump(center_x, center_y, height, radius);
-        }
-        Terrain terrain = new Terrain(bumps);
-        /*new Bump(1, 1, 1, 2),
-         //new Bump(-10, -10, 2, 10),
-         new Bump(-1,-1, 0.5, 3));*/
         terrain.draw();
     }
 
@@ -547,6 +536,8 @@ public class RobotRace extends Base {
     }
 
     private void drawCube(float h, Texture texture, int part) {
+        //TODO: draw top and bottom
+
         // Enable texture.
         texture.enable(gl);
         texture.bind(gl);
