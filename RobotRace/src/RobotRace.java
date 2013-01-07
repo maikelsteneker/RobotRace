@@ -1,7 +1,10 @@
 
 import com.jogamp.opengl.util.texture.Texture;
+import com.jogamp.opengl.util.texture.TextureIO;
 import java.awt.Color;
 import java.awt.Point;
+import java.io.File;
+import java.io.IOException;
 import static java.lang.Math.*;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -9,8 +12,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import static javax.media.opengl.GL.*;
 import static javax.media.opengl.GL2.*;
+import javax.media.opengl.GLException;
 import robotrace.*;
 
 /**
@@ -54,6 +60,7 @@ public class RobotRace extends Base {
     Matrix m_0 = null; // matrix to transfer from world to camera coordinates
     Track t; // the track the robots are moving on
     float phi_old, theta_old; // holds old values for phi and theta
+    Texture landscape; // 1D texture for landscape
 
     /**
      * Class containing static variables representing different materials.
@@ -175,6 +182,15 @@ public class RobotRace extends Base {
         robots = new Robot[NUMROBOTS];
         for (int i = 0; i < NUMROBOTS; i++) {
             robots[i] = new Robot(i);
+        }
+
+        // Load a 1D texture for the terrain.
+        try {
+            landscape = TextureIO.newTexture(new File("src/landscape.jpg"), false);
+        } catch (IOException ex) {
+            Logger.getLogger(RobotRace.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (GLException ex) {
+            Logger.getLogger(RobotRace.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -320,20 +336,20 @@ public class RobotRace extends Base {
         // Make a track in the shape of a simple curve, with the wdith of the
         // number of robots plus 1. Let the height of the track be between -1
         // and 1. TODO: change comment
-        Vector P0 = new Vector(0, 0, 0);
-        Vector P1 = new Vector(0, 10, 0);
-        Vector P2 = new Vector(10, 10, 0);
-        Vector P3 = new Vector(10, 0, 0);
+        Vector P0 = new Vector(0, 0, 1);
+        Vector P1 = new Vector(0, 10, 1);
+        Vector P2 = new Vector(10, 10, 1);
+        Vector P3 = new Vector(10, 0, 1);
         gl.glBegin(GL_LINE_STRIP);
-        gl.glVertex3f(0, 0, 0);
-        gl.glVertex3f(0, 10, 0);
-        gl.glVertex3f(10, 10, 0);
-        gl.glVertex3f(10, 0, 0);
+        gl.glVertex3f(0, 0, 1);
+        gl.glVertex3f(0, 10, 1);
+        gl.glVertex3f(10, 10, 1);
+        gl.glVertex3f(10, 0, 1);
         gl.glEnd();
         Curve c = new BezierCurve(P0, P1, P2, P3);
-        //t = new Track(c, NUMROBOTS + 1, -1, 1);
+        t = new Track(c, NUMROBOTS + 1, -1, 1);
 
-        t = new Track(new SimpleCurve(), NUMROBOTS + 1, -1, 1);
+        //t = new Track(new SimpleCurve(), NUMROBOTS + 1, -1, 1);
 
         // Set the material of the track to plastic green.
         //setMaterial(Material.GREEN_PLASTIC); // TOOD comment
@@ -409,10 +425,9 @@ public class RobotRace extends Base {
         gl.glPopMatrix();
 
         // Draw terrain.
-        setMaterial(Material.WOOD);
         int nbumps = 100;
         Bump[] bumps = new Bump[nbumps];
-        Random generator = new Random(25);
+        Random generator = new Random(0);
         for (int i = 0; i < nbumps; i++) {
             double center_x = (generator.nextDouble() * 40) - 20;
             double center_y = (generator.nextDouble() * 40) - 20;
@@ -424,7 +439,7 @@ public class RobotRace extends Base {
         /*new Bump(1, 1, 1, 2),
          //new Bump(-10, -10, 2, 10),
          new Bump(-1,-1, 0.5, 3));*/
-        //terrain.draw();
+        terrain.draw();
     }
 
     /**
@@ -1964,6 +1979,10 @@ public class RobotRace extends Base {
                 precalculate();
             }
 
+            setMaterial(Material.WHITE);
+            landscape.enable(gl);
+            landscape.bind(gl);
+
             gl.glPushMatrix();
             gl.glBegin(GL_TRIANGLES);
             for (int i = 0; i < M - 1; i++) {
@@ -1979,45 +1998,31 @@ public class RobotRace extends Base {
 
                     Vector normal1 = down.cross(diag);
                     Vector normal2 = diag.cross(right);
-                    gl.glEnd();
-                    texture(avg(bl.z(), br.z(), ur.z(), ul.z()));
-                    gl.glBegin(GL_TRIANGLES);
+
+
                     gl.glNormal3d(normal1.x(), normal1.y(), normal1.z());
+                    gl.glTexCoord1d(textureCoord(bl.z()));
                     glVertex(bl);
+                    gl.glTexCoord1d(textureCoord(br.z()));
                     glVertex(br);
+                    gl.glTexCoord1d(textureCoord(ul.z()));
                     glVertex(ul);
 
                     gl.glNormal3d(normal2.x(), normal2.y(), normal2.z());
+                    gl.glTexCoord1d(textureCoord(br.z()));
                     glVertex(br);
+                    gl.glTexCoord1d(textureCoord(ur.z()));
                     glVertex(ur);
+                    gl.glTexCoord1d(textureCoord(ul.z()));
                     glVertex(ul);
                 }
             }
             gl.glEnd();
             gl.glPopMatrix();
 
+            landscape.disable(gl);
+
             drawWater();
-        }
-
-        private void texture(double z) {
-            if (z < 0) {
-                //water
-                setMaterial(Material.BLUE_PLASTIC);
-            } else if (z <= 0.5) {
-                //sand
-                setMaterial(Material.YELLOW_PLASTIC);
-            } else {
-                //grass
-                setMaterial(Material.GREEN_PLASTIC);
-            }
-        }
-
-        private double avg(double... numbers) {
-            double sum = 0;
-            for (double n : numbers) {
-                sum += n;
-            }
-            return sum / (double) numbers.length;
         }
 
         private void drawWater() {
@@ -2028,6 +2033,10 @@ public class RobotRace extends Base {
             gl.glVertex3d(20, 20, -0.01);
             gl.glVertex3d(20, -20, -0.01);
             gl.glEnd();
+        }
+
+        private double textureCoord(double z) {
+            return (z + 1) / 2;
         }
     }
 
@@ -2051,7 +2060,7 @@ public class RobotRace extends Base {
         }
 
         double bump(double r) {
-            return ((r < 1) ? cos(cos(PI * r)) : 0);
+            return ((r < 1) ? pow(cos(0.5 * PI * r), 2) : 0);
         }
     }
 
