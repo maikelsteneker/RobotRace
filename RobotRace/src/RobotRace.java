@@ -55,6 +55,7 @@ public class RobotRace extends Base {
     double fovy = -1; // vertical field of view angle
     Robot[] robots; // array to store drawable robots
     final private static int NUMROBOTS = 4; // size of robots array
+    final private static int NUMBUMPS = 10000; // number of bumps in terrain
     Vector eye; // current location of the camera
     Vector light = new Vector(0, 10, 10); // current location of the light source
     Matrix m_0 = null; // matrix to transfer from world to camera coordinates
@@ -195,10 +196,9 @@ public class RobotRace extends Base {
         }
 
         // Randomly generate terrain.
-        int nbumps = 10000;
-        Bump[] bumps = new Bump[nbumps];
+        Bump[] bumps = new Bump[NUMBUMPS];
         Random generator = new Random(0);
-        for (int i = 0; i < nbumps; i++) {
+        for (int i = 0; i < NUMBUMPS; i++) {
             double center_x = (generator.nextDouble() * 40) - 20;
             double center_y = (generator.nextDouble() * 40) - 20;
             double height = (generator.nextDouble() * 2) - 1;
