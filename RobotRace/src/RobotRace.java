@@ -183,15 +183,13 @@ public class RobotRace extends Base {
         // Initialize robots array.
         robots = new Robot[NUMROBOTS];
         for (int i = 0; i < NUMROBOTS; i++) {
-            robots[i] = new Robot(i+1);
+            robots[i] = new Robot(i + 1);
         }
 
         // Load a 1D texture for the landscape.
         try {
             landscape = TextureIO.newTexture(new File("src/landscape.jpg"), false);
-        } catch (IOException ex) {
-            Logger.getLogger(RobotRace.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (GLException ex) {
+        } catch (Exception ex) {
             Logger.getLogger(RobotRace.class.getName()).log(Level.SEVERE, null, ex);
         }
 
@@ -355,7 +353,8 @@ public class RobotRace extends Base {
         switch (gs.trackNr) {
             case 0:
                 //letter O
-                c = new BezierCurve2(new Vector(-10, 0, 1),
+                c = new BezierCurve2(
+                        new Vector(-10, 0, 1),
                         new Vector(-10, 10, 1),
                         new Vector(10, 10, 1),
                         new Vector(10, 0, 1),
@@ -373,23 +372,52 @@ public class RobotRace extends Base {
                         new Vector(0, 12, 1),
                         new Vector(2, 15, 1),
                         new Vector(10, 11, 1),
-                        new Vector(16,7,1),
-                        new Vector(16,-13,1),
-                        new Vector(10,-14,1),
-                        new Vector(2,-15,1),
-                        new Vector(0,-12,1),
-                        new Vector(0,-10,1)
-                        );
+                        new Vector(16, 7, 1),
+                        new Vector(16, -13, 1),
+                        new Vector(10, -14, 1),
+                        new Vector(2, -15, 1),
+                        new Vector(0, -12, 1),
+                        new Vector(0, -10, 1));
                 BezierCurve2 temp = (BezierCurve2) c;
                 temp.drawPoints();
                 break;
             case 2:
                 //letter L
-                c = null;
+                c = new BezierCurve2(
+                        new Vector(1, -12, 1),
+                        new Vector(5, -12, 1),
+                        new Vector(9, -12, 1),
+                        new Vector(13, -12, 1),
+                        new Vector(14, -12, 1),
+                        new Vector(14, -13, 1),
+                        new Vector(13, -13, 1),
+                        new Vector(9, -13, 1),
+                        new Vector(5, -13, 1),
+                        new Vector(1, -13, 1),
+                        new Vector(0, -13, 1),
+                        new Vector(0, -13, 1),
+                        new Vector(0, -12, 1),
+                        new Vector(0, -8, 1),
+                        new Vector(0, -4, 1),
+                        new Vector(0, 0, 1),
+                        new Vector(0, 1, 1),
+                        new Vector(1, 1, 1),
+                        new Vector(1, 0, 1),
+                        new Vector(1, -4, 1),
+                        new Vector(1, -8, 1),
+                        new Vector(1, -12, 1));
+                BezierCurve2 temp2 = (BezierCurve2) c;
+                temp2.drawPoints();
                 break;
             case 3:
                 //custom track
-                c = null;
+                c = new BezierCurve2(
+                        new Vector(0, -1, 1),
+                        new Vector(1, -1, 1),
+                        new Vector(1, -2, 1),
+                        new Vector(0, -2, 1));
+                BezierCurve2 temp3 = (BezierCurve2) c;
+                temp3.drawPoints();
                 break;
             default:
                 c = null;
@@ -1939,7 +1967,7 @@ public class RobotRace extends Base {
             // TODO: check if minus sign is in the correct place
             return new Vector(-tangent.y(), tangent.x(), 0);
         }
-        
+
         public void drawPoints() {
             for (Vector point : P) {
                 gl.glPushMatrix();
