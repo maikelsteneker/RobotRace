@@ -365,7 +365,20 @@ public class RobotRace extends Base {
                 break;
             case 1:
                 //letter D
-                c = null;
+                c = new BezierCurve2(
+                        new Vector(0, 0, 1),
+                        new Vector(-2, 12, 1),
+                        new Vector(2, 15, 1),
+                        new Vector(15, 11, 1),
+                        new Vector(18,8,1),
+                        new Vector(18,-8,1),
+                        new Vector(15,-11,1),
+                        new Vector(2,-15,1),
+                        new Vector(-2,-12,1),
+                        new Vector(0,0,1)
+                        );
+                BezierCurve2 t = (BezierCurve2) c;
+                t.drawPoints();
                 break;
             case 2:
                 //letter L
@@ -1890,7 +1903,7 @@ public class RobotRace extends Base {
     /**
      * Implementation of Curve that models a Bezier curve.
      */
-    public static class BezierCurve2 implements Curve {
+    public class BezierCurve2 implements Curve { // TODO: make static again :)
 
         final private Vector[] P;
         double nsegments;
@@ -1922,6 +1935,15 @@ public class RobotRace extends Base {
             // Rotate 90 degrees in negative direction (outward) in XOY plane.
             // TODO: check if minus sign is in the correct place
             return new Vector(-tangent.y(), tangent.x(), 0);
+        }
+        
+        public void drawPoints() {
+            for (Vector point : P) {
+                gl.glPushMatrix();
+                gl.glTranslated(point.x(), point.y(), point.z());
+                glut.glutSolidCube(1);
+                gl.glPopMatrix();
+            }
         }
     }
 
