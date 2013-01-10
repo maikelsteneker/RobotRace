@@ -351,13 +351,33 @@ public class RobotRace extends Base {
         // number of robots plus 1. Let the height of the track be between -1
         // and 1. TODO: change comment
 
-        Curve c = new BezierCurve2(new Vector(-10, 0, 1),
-                new Vector(-10, 10, 1),
-                new Vector(10, 10, 1),
-                new Vector(10, 0, 1),
-                new Vector(10, -10, 1),
-                new Vector(-10, -10, 1),
-                new Vector(-10, 0, 1));
+        Curve c;
+        switch (gs.trackNr) {
+            case 0:
+                //letter O
+                c = new BezierCurve2(new Vector(-10, 0, 1),
+                        new Vector(-10, 10, 1),
+                        new Vector(10, 10, 1),
+                        new Vector(10, 0, 1),
+                        new Vector(10, -10, 1),
+                        new Vector(-10, -10, 1),
+                        new Vector(-10, 0, 1));
+                break;
+            case 1:
+                //letter D
+                c = null;
+                break;
+            case 2:
+                //letter L
+                c = null;
+                break;
+            case 3:
+                //custom track
+                c = null;
+                break;
+            default:
+                c = null;
+        }
         t = new Track(c, NUMROBOTS + 1, -1, 1);
 
         //t = new Track(new SimpleCurve(), NUMROBOTS + 1, -1, 1);
@@ -1851,11 +1871,11 @@ public class RobotRace extends Base {
                     P2.subtract(P1).scale(2 * t * (1 - t))).add(
                     P3.subtract(P2).scale(pow(t, 2))).scale(3);
             /*
-            Vector s1 = P0.scale((t-1)*(t-1));
-            Vector s2 = P1.scale(-3 * t * t + 4 * t - 1);
-            Vector s3 = P2.scale(3 * t).subtract(P2.scale(-2)).subtract(P3.scale(t)).scale(t);
-            Vector s = s1.add(s2).add(s3);
-            return s.scale(-3);*/
+             Vector s1 = P0.scale((t-1)*(t-1));
+             Vector s2 = P1.scale(-3 * t * t + 4 * t - 1);
+             Vector s3 = P2.scale(3 * t).subtract(P2.scale(-2)).subtract(P3.scale(t)).scale(t);
+             Vector s = s1.add(s2).add(s3);
+             return s.scale(-3);*/
         }
 
         @Override
@@ -1883,7 +1903,7 @@ public class RobotRace extends Base {
         @Override
         public Vector getPoint(double t) {
             t = t % 1;
-            double s = (t * nsegments)%1;
+            double s = (t * nsegments) % 1;
             int i = 3 * (int) (t / (double) (1 / nsegments));
             return BezierCurve.getCubicBezierPnt(s, P[i], P[i + 1], P[i + 2], P[i + 3]);
         }
@@ -1891,7 +1911,7 @@ public class RobotRace extends Base {
         @Override
         public Vector getTangent(double t) {
             t = t % 1;
-            double s = (t * nsegments)%1;
+            double s = (t * nsegments) % 1;
             int i = 3 * (int) (t / (1 / (double) nsegments));
             return BezierCurve.getCubicBezierTng(s, P[i], P[i + 1], P[i + 2], P[i + 3]);
         }
