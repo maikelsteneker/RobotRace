@@ -366,19 +366,22 @@ public class RobotRace extends Base {
             case 1:
                 //letter D
                 c = new BezierCurve2(
-                        new Vector(0, 0, 1),
-                        new Vector(-2, 12, 1),
+                        new Vector(0, -10, 1),
+                        new Vector(0, -5, 1),
+                        new Vector(0, 5, 1),
+                        new Vector(0, 10, 1),
+                        new Vector(0, 12, 1),
                         new Vector(2, 15, 1),
-                        new Vector(15, 11, 1),
-                        new Vector(18,8,1),
-                        new Vector(18,-8,1),
-                        new Vector(15,-11,1),
+                        new Vector(10, 11, 1),
+                        new Vector(14,9,1),
+                        new Vector(14,-9,1),
+                        new Vector(10,-11,1),
                         new Vector(2,-15,1),
-                        new Vector(-2,-12,1),
-                        new Vector(0,0,1)
+                        new Vector(0,-12,1),
+                        new Vector(0,-10,1)
                         );
-                BezierCurve2 t = (BezierCurve2) c;
-                t.drawPoints();
+                BezierCurve2 temp = (BezierCurve2) c;
+                temp.drawPoints();
                 break;
             case 2:
                 //letter L
