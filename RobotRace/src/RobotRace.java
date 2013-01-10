@@ -183,7 +183,7 @@ public class RobotRace extends Base {
         // Initialize robots array.
         robots = new Robot[NUMROBOTS];
         for (int i = 0; i < NUMROBOTS; i++) {
-            robots[i] = new Robot(i);
+            robots[i] = new Robot(i+1);
         }
 
         // Load a 1D texture for the landscape.
@@ -373,9 +373,9 @@ public class RobotRace extends Base {
                         new Vector(0, 12, 1),
                         new Vector(2, 15, 1),
                         new Vector(10, 11, 1),
-                        new Vector(14,9,1),
-                        new Vector(14,-9,1),
-                        new Vector(10,-11,1),
+                        new Vector(16,7,1),
+                        new Vector(16,-13,1),
+                        new Vector(10,-14,1),
                         new Vector(2,-15,1),
                         new Vector(0,-12,1),
                         new Vector(0,-10,1)
@@ -634,7 +634,7 @@ public class RobotRace extends Base {
                 lowy = 0;
                 highy = 0;
         }
-//TODO: fix for fourth robot
+
         gl.glBegin(GL_QUADS);
         gl.glNormal3f(0, 1, 0);
         gl.glTexCoord2f(highx, highy);
