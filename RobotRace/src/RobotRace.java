@@ -55,7 +55,7 @@ public class RobotRace extends Base {
     double fovy = -1; // vertical field of view angle
     Robot[] robots; // array to store drawable robots
     final private static int NUMROBOTS = 4; // size of robots array
-    final private static int NUMBUMPS = 10000; // number of bumps in terrain
+    final private static int NUMBUMPS = 500; // number of bumps in terrain
     Vector eye; // current location of the camera
     Vector light = new Vector(0, 10, 10); // current location of the light source
     Matrix m_0 = null; // matrix to transfer from world to camera coordinates
@@ -350,11 +350,14 @@ public class RobotRace extends Base {
         // Make a track in the shape of a simple curve, with the wdith of the
         // number of robots plus 1. Let the height of the track be between -1
         // and 1. TODO: change comment
-        Vector P0 = new Vector(-10, 0, 1);
-        Vector P1 = new Vector(-10, 10, 1);
-        Vector P2 = new Vector(10, 10, 1);
-        Vector P3 = new Vector(10, 0, 1);
-        Curve c = new BezierCurve(P0, P1, P2, P3);
+
+        Curve c = new BezierCurve2(new Vector(-10, 0, 1),
+                new Vector(-10, 10, 1),
+                new Vector(10, 10, 1),
+                new Vector(10, 0, 1),
+                new Vector(10, -10, 1),
+                new Vector(-10, -10, 1),
+                new Vector(-10, 0, 1));
         t = new Track(c, NUMROBOTS + 1, -1, 1);
 
         //t = new Track(new SimpleCurve(), NUMROBOTS + 1, -1, 1);
@@ -595,7 +598,7 @@ public class RobotRace extends Base {
                 lowy = 0;
                 highy = 0;
         }
-
+//TODO: fix for fourth robot
         gl.glBegin(GL_QUADS);
         gl.glNormal3f(0, 1, 0);
         gl.glTexCoord2f(highx, highy);
@@ -1847,6 +1850,50 @@ public class RobotRace extends Base {
             return P1.subtract(P0).scale(pow(1 - t, 2)).add(
                     P2.subtract(P1).scale(2 * t * (1 - t))).add(
                     P3.subtract(P2).scale(pow(t, 2))).scale(3);
+            /*
+            Vector s1 = P0.scale((t-1)*(t-1));
+            Vector s2 = P1.scale(-3 * t * t + 4 * t - 1);
+            Vector s3 = P2.scale(3 * t).subtract(P2.scale(-2)).subtract(P3.scale(t)).scale(t);
+            Vector s = s1.add(s2).add(s3);
+            return s.scale(-3);*/
+        }
+
+        @Override
+        public Vector getNormalVector(double t) {
+            Vector tangent = this.getTangent(t);
+            // Rotate 90 degrees in negative direction (outward) in XOY plane.
+            // TODO: check if minus sign is in the correct place
+            return new Vector(-tangent.y(), tangent.x(), 0);
+        }
+    }
+
+    /**
+     * Implementation of Curve that models a Bezier curve.
+     */
+    public static class BezierCurve2 implements Curve {
+
+        final private Vector[] P;
+        double nsegments;
+
+        public BezierCurve2(Vector... points) {
+            this.P = points;
+            nsegments = (points.length - 1) / 3;
+        }
+
+        @Override
+        public Vector getPoint(double t) {
+            t = t % 1;
+            double s = (t * nsegments)%1;
+            int i = 3 * (int) (t / (double) (1 / nsegments));
+            return BezierCurve.getCubicBezierPnt(s, P[i], P[i + 1], P[i + 2], P[i + 3]);
+        }
+
+        @Override
+        public Vector getTangent(double t) {
+            t = t % 1;
+            double s = (t * nsegments)%1;
+            int i = 3 * (int) (t / (1 / (double) nsegments));
+            return BezierCurve.getCubicBezierTng(s, P[i], P[i + 1], P[i + 2], P[i + 3]);
         }
 
         @Override
