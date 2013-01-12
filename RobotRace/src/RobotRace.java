@@ -2576,6 +2576,9 @@ public class RobotRace extends Base {
             gl.glOrtho(left, right, bottom, top, near_val, far_val);
         }
 
+        // Clear depth buffer.
+        gl.glClear(GL_DEPTH_BUFFER_BIT);
+        
         // Render the scene from helicopter mode.
         gl.glMatrixMode(GL_MODELVIEW);
         gl.glPushMatrix();
