@@ -428,11 +428,11 @@ public class RobotRace extends Base {
             double dot = tangent.dot(Vector.Y);
             // Get the cos angle between the tangent and the Y axis.
             double cosangle = dot / (tangent.length() * Vector.Y.length());
-            // If the robot is on the 2nd half of the track flip the sign of the
-            // angle. We do this because the acos method always returns a value
-            // between 0 and PI. TODO: change comment
-            boolean h = (robot.position % 1 >= 0.5f); // reverse after half the track
-            boolean ypos = (t.curve.getTangent(robot.position).x() >= 0); // reverse if tangent points in negative Y direction
+            // Because the acos method always returns a value between 0 and PI,
+            // the sign of the angle needs to be flipped if the tangent vector
+            // of the curve points in the negative Y direction.
+            // Variable ypos is true if this is the case.
+            boolean ypos = (t.curve.getTangent(robot.position).x() >= 0);
             double angle = ypos ? -acos(cosangle) : acos(cosangle);
             gl.glRotated(toDegrees(angle), 0, 0, 1);
             setMaterial(Material.SILVER); // Set the material to silver.
@@ -572,8 +572,6 @@ public class RobotRace extends Base {
      * @param part determines which texture coordinates are used
      */
     private void drawCube(float h, Texture texture, int part) {
-        //TODO: draw top and bottom
-
         // Enable texture.
         texture.enable(gl);
         texture.bind(gl);
@@ -585,11 +583,18 @@ public class RobotRace extends Base {
         texture.disable(gl);
 
         gl.glPushMatrix();
-        // Draw the three other faces of the cube.
+        // Draw the three side faces of the cube.
         for (int i = 0; i < 3; i++) {
             gl.glRotatef(90, 0, 0, 1);
             drawFace(h, part);
         }
+        // Draw the top of the cube.
+        gl.glRotatef(90, 1, 0, 0);
+        drawFace(h, part);
+        // Draw the bottom of the cube.
+        gl.glRotatef(180, 1, 0, 0);
+        drawFace(h, part);
+        
         gl.glPopMatrix();
     }
 
@@ -2441,12 +2446,12 @@ public class RobotRace extends Base {
             }
 
             /**
-             * Draws a single line of a digit. The line drawn downwards from
-             * the origin.
+             * Draws a single line of a digit. The line drawn downwards from the
+             * origin.
              */
             private void drawLine() {
                 final float w = LINE_WIDTH, l = LINE_LENGTH;
-                
+
                 // Draw the line itself.
                 gl.glBegin(GL_QUADS);
                 gl.glNormal3f(0, 0, 1);
@@ -2470,7 +2475,7 @@ public class RobotRace extends Base {
 
             /**
              * Calculates the width of a number.
-             * 
+             *
              * @return the width
              */
             public float width() {
@@ -2479,7 +2484,7 @@ public class RobotRace extends Base {
 
             /**
              * Calculates the height of a number.
-             * 
+             *
              * @return the height
              */
             public float height() {
@@ -2490,7 +2495,7 @@ public class RobotRace extends Base {
 
     /**
      * Displays a lock in the top left corner of the screen.
-     * 
+     *
      * @param w width of the clock in pixels
      */
     private void displayClock(int w) {
@@ -2501,13 +2506,13 @@ public class RobotRace extends Base {
                 = clock.height() / clock.width();
         int h = (int) (w * AR); // height of the clock in pixels
         gl.glViewport(0, gs.h - h, w, h); // define a viewport for the clock
-        
+
         // Set projection matrix to display the clock with the correct size.
         gl.glMatrixMode(GL_PROJECTION);
         gl.glPushMatrix();
         gl.glLoadIdentity();
         gl.glOrtho(0.0f, clock.width(), clock.height(), 0.0f, 0.0f, 0.01f);
-        
+
         // Draw the clock.
         gl.glMatrixMode(GL_MODELVIEW);
         gl.glPushMatrix();
@@ -2523,13 +2528,13 @@ public class RobotRace extends Base {
         } else {
             clock.draw(gs.tAnim);
         }
-        
+
         // Restore the original projection and modelview matrices.
         gl.glMatrixMode(GL_PROJECTION);
         gl.glPopMatrix();
         gl.glMatrixMode(GL_MODELVIEW);
         gl.glPopMatrix();
-        
+
         gl.glViewport(0, 0, gs.w, gs.h); // restore viewport
         gl.glEnable(GL_LIGHTING); // re-enable lighting
     }
