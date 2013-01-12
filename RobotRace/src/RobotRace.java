@@ -200,12 +200,17 @@ public class RobotRace extends Base {
         Bump[] bumps = new Bump[NUMBUMPS];
         Random generator = new Random(0);
         for (int i = 0; i < NUMBUMPS; i++) {
+            // Generate a center coordinate for the bump.
             double center_x = (generator.nextDouble() * 40) - 20;
             double center_y = (generator.nextDouble() * 40) - 20;
+            // Generate a (extreme) height for the bump.
             double height = (generator.nextDouble() * 2) - 1;
+            // Generate a radius for the bump.
             double radius = generator.nextDouble() * 3;
+            // Define this bump.
             bumps[i] = new Bump(center_x, center_y, height, radius);
         }
+        // Define the terrain as a surface with these bumps.
         terrain = new Terrain(bumps);
     }
 
@@ -348,10 +353,9 @@ public class RobotRace extends Base {
         // Reset to default texture.
         track.disable(gl);
 
-        // Make a track in the shape of a simple curve, with the wdith of the
-        // number of robots plus 1. Let the height of the track be between -1
-        // and 1. TODO: change comment
-
+        // Make a track in the shape of a specified Bezier curve, with the wdith
+        // of the number of robots plus 1. Let the height of the track be
+        // between -1 and 1.
         Curve c;
         switch (gs.trackNr) {
             case 0:
@@ -381,15 +385,14 @@ public class RobotRace extends Base {
         }
         t = new Track(c, NUMROBOTS + 1, -1, 1);
 
-        //t = new Track(new SimpleCurve(), NUMROBOTS + 1, -1, 1);
-
-        // Set the material of the track to plastic green.
-        //setMaterial(Material.GREEN_PLASTIC); // TODO comment
+        // Set the material of the track to white.
+        // The track has textures, and we do not want to interfere with that.
         setMaterial(Material.WHITE);
         t.draw(); // Draw track.
 
         // Draw robots to showcase materials.
-        float[][] robot_materials = {Material.GOLD, Material.SILVER, Material.WOOD, Material.ORANGE_PLASTIC};
+        float[][] robot_materials = {Material.GOLD, Material.SILVER,
+            Material.WOOD, Material.ORANGE_PLASTIC};
         gl.glPushMatrix();
         // Translate such that the robots will be in the middle of the field.
         gl.glTranslatef(-3, 0, 0);
@@ -398,7 +401,7 @@ public class RobotRace extends Base {
             robot.speed = 0; // Make the robots stand still.
             setMaterial(material); // Set the material
             robot.draw(); // Draw the robot.
-            //Translate two units to the right to make space for the new robot.
+            //Translate two units to the right to make space for the next robot.
             gl.glTranslatef(2, 0, 0);
         }
         gl.glPopMatrix();
@@ -554,6 +557,22 @@ public class RobotRace extends Base {
         gl.glEnd();
     }
 
+    /**
+     * Draws a cube of height {@code h} and the specified texture. The
+     * {@code part} can be used to only display a part of the texture.
+     * 
+     * Values of {@code part} cause the following behaviour:
+     * 0: display the whole texture
+     * 1: displays the top-left corner of the texture
+     * 2: displays the top-right corner of the texture
+     * 3: displays the bottom-left corner of the texture
+     * 4: displays the bottom-right corner of the texture
+     * any other value: disable the texture
+     * 
+     * @param h height of the cube
+     * @param texture the texture to apply to front of the cube
+     * @param part 
+     */
     private void drawCube(float h, Texture texture, int part) {
         //TODO: draw top and bottom
 
@@ -1880,10 +1899,13 @@ public class RobotRace extends Base {
                 new Vector(1, -8, 1),
                 new Vector(1, -12, 1));
         final static public BezierCurve custom = new BezierCurve(
-                new Vector(0, -1, 1),
-                new Vector(1, -1, 1),
-                new Vector(1, -2, 1),
-                new Vector(0, -2, 1));
+                new Vector(-10, 0, 1),
+                new Vector(-10, 10, 5),
+                new Vector(10, 10, 1),
+                new Vector(10, 0, 5),
+                new Vector(10, -10, 1),
+                new Vector(-10, -10, 5),
+                new Vector(-10, 0, 1));
 
         public BezierCurve(Vector... points) {
             this.P = points;
