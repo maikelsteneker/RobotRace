@@ -561,12 +561,6 @@ public class RobotRace extends Base {
      * Draws a cube of height {@code h} and the specified texture. The
      * {@code part} can be used to only display a part of the texture.
      *
-     * Values of {@code part} cause the following behaviour: 0: display the
-     * whole texture 1: displays the top-left corner of the texture 2: displays
-     * the top-right corner of the texture 3: displays the bottom-left corner of
-     * the texture 4: displays the bottom-right corner of the texture any other
-     * value: disable the texture
-     *
      * @param h height of the cube
      * @param texture the texture to apply to front of the cube
      * @param part determines which texture coordinates are used
@@ -594,7 +588,7 @@ public class RobotRace extends Base {
         // Draw the bottom of the cube.
         gl.glRotatef(180, 1, 0, 0);
         drawFace(h, part);
-        
+
         gl.glPopMatrix();
     }
 
@@ -605,44 +599,50 @@ public class RobotRace extends Base {
      * @param part determines which texture coordinates to use
      */
     private void drawFace(float h, int part) {
-        // TODO: try to improve on this by not using a switch
-        float lowx, highx, lowy, highy;
-        switch (part) {
-            case 0:
-                lowx = 0;
-                highx = 1;
-                lowy = 0;
-                highy = 1;
-                break;
-            case 1:
+        // We keep a low (minimum) and high (maximum) value for x and y.
+        // These are set depending on the part parameter.
+        float lowx = 0, highx = 0, lowy = 0, highy = 0;
+
+        // Different values of {@code part} cause the following behaviour:
+        // * 0: display the whole texture
+        // * 1: displays the top-left corner of the texture
+        // * 2: displays the top-right corner of the texture
+        // * 3: displays the bottom-left corner of the texture
+        // * 4: displays the bottom-right corner of the texture
+        // * any other value: disable the texture
+        // In the last case, disabling is done by not changing the values from
+        // their default value of 0.
+
+        if (part == 0) {
+            // The whole texture needs to be shown.
+            lowx = 0;
+            highx = 1;
+            lowy = 0;
+            highy = 1;
+        } else if (part < 5) {
+            // Part of the texture needs to be shown.
+            if (part % 2 == 1) {
+                // part is either 2 or 4.
+                // We need to show only the left half of the image.
                 lowx = 0;
                 highx = 0.5f;
-                lowy = 0;
-                highy = 0.5f;
-                break;
-            case 2:
+            } else {
+                // part is either 2 or 4.
+                // We need to show only the right half of the image.
                 lowx = 0.5f;
                 highx = 1f;
+            }
+            if (part <= 2) {
+                // part is either 1 or 2.
+                // We need to show only the upper half of the image.
                 lowy = 0f;
                 highy = 0.5f;
-                break;
-            case 3:
-                lowx = 0f;
-                highx = 0.5f;
+            } else {
+                // part is either 3 or 4.
+                // We need to show only the lower half of the image.
                 lowy = 0.5f;
                 highy = 1f;
-                break;
-            case 4:
-                lowx = 0.5f;
-                highx = 1f;
-                lowy = 0.5f;
-                highy = 1f;
-                break;
-            default:
-                lowx = 0;
-                highx = 0;
-                lowy = 0;
-                highy = 0;
+            }
         }
 
         gl.glBegin(GL_QUADS);
