@@ -344,6 +344,22 @@ public class RobotRace extends Base {
         // Clear depth buffer.
         gl.glClear(GL_DEPTH_BUFFER_BIT);
 
+        // Draw the objects in the scene.
+        drawObjects();
+
+        // Display a clock in the top left corner of the screen.
+        displayClock(200);
+
+        // Display another view in the top right corner of the screen.
+        if (gs.camMode != 1) {
+            displayPictureInPicture(200);
+        }
+    }
+
+    /**
+     * Draws the objects of the scene.
+     */
+    private void drawObjects() {
         // Set color to black.
         gl.glColor3f(0f, 0f, 0f);
 
@@ -448,9 +464,6 @@ public class RobotRace extends Base {
 
         // Draw terrain.
         terrain.draw();
-
-        // Display a clock in the top left corner of the screen.
-        displayClock(200);
     }
 
     /**
@@ -2494,7 +2507,7 @@ public class RobotRace extends Base {
     }
 
     /**
-     * Displays a lock in the top left corner of the screen.
+     * Displays a clock in the top left corner of the screen.
      *
      * @param w width of the clock in pixels
      */
@@ -2502,9 +2515,8 @@ public class RobotRace extends Base {
         Clock clock = new Clock();
         gl.glDisable(GL_LIGHTING); // disable lighting
         gl.glColor3f(1, 0, 0); // set color to red
-        final double AR // aspect ratio
-                = clock.height() / clock.width();
-        int h = (int) (w * AR); // height of the clock in pixels
+        final double AR = clock.width() / clock.height();  // aspect ratio
+        int h = (int) (w / AR); // height of the clock in pixels
         gl.glViewport(0, gs.h - h, w, h); // define a viewport for the clock
 
         // Set projection matrix to display the clock with the correct size.
@@ -2537,6 +2549,47 @@ public class RobotRace extends Base {
 
         gl.glViewport(0, 0, gs.w, gs.h); // restore viewport
         gl.glEnable(GL_LIGHTING); // re-enable lighting
+    }
+
+    /**
+     * Displays a picture-in-picture frame in the top-right corner.
+     *
+     * @param w width of the picture in pixels
+     */
+    private void displayPictureInPicture(int w) {
+        final double AR = gs.w / gs.h;  // aspect ratio
+        int h = (int) (w / AR); // height of the picture in pixels
+        gl.glViewport(gs.w - w, gs.h - h, w, h); // define a viewport for the picture
+
+        gl.glMatrixMode(GL_PROJECTION);
+        gl.glPushMatrix();
+        if (!gs.persp) { // if isometric projection is enabled
+            // Use a static projection, independent of gs.vWidth.
+            gl.glLoadIdentity();
+            double vHeight = 10 / AR;
+            double left = -0.5 * 10; // left clipping plane
+            double right = 0.5 * 10; // right clipping plane
+            double bottom = -0.5 * vHeight; // bottom clipping plane
+            double top = 0.5 * vHeight; // top clipping plane
+            double near_val = 0.1; // near value
+            double far_val = 1000; // far value
+            gl.glOrtho(left, right, bottom, top, near_val, far_val);
+        }
+
+        // Render the scene from helicopter mode.
+        gl.glMatrixMode(GL_MODELVIEW);
+        gl.glPushMatrix();
+        gl.glLoadIdentity();
+        setHelicopterCamMode();
+        drawObjects();
+
+        // Restore the original matrices.
+        gl.glMatrixMode(GL_PROJECTION);
+        gl.glPopMatrix();
+        gl.glMatrixMode(GL_MODELVIEW);
+        gl.glPopMatrix();
+        
+        gl.glViewport(0, 0, gs.w, gs.h); // restore viewport
     }
 
     /**
