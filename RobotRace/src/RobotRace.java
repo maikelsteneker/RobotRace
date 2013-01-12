@@ -147,7 +147,7 @@ public class RobotRace extends Base {
         };
         // Array containing parameters for a white material (for textures).
         public static float[] WHITE = {
-            1f, 1f, 1f, 1.0f, //ambient
+            0.5f, 0.5f, 0.5f, 1.0f, //ambient
             1f, 1f, 1f, 1.0f, //diffuse
             1f, 1f, 1f, 1.0f, //specular
             0f //shininess
