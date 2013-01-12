@@ -2339,10 +2339,10 @@ public class RobotRace extends Base {
             float d = (l - w) / 2;
 
             gl.glBegin(GL_QUADS);
-            gl.glVertex3f(w, 2 * w + d, 0);
-            gl.glVertex3f(2 * w, 2 * w + d, 0);
-            gl.glVertex3f(2 * w, w + d, 0);
-            gl.glVertex3f(w, w + d, 0);
+            gl.glVertex2f(w, 2 * w + d);
+            gl.glVertex2f(2 * w, 2 * w + d);
+            gl.glVertex2f(2 * w, w + d);
+            gl.glVertex2f(w, w + d);
             gl.glEnd();
         }
 
@@ -2468,21 +2468,21 @@ public class RobotRace extends Base {
                 // Draw the line itself.
                 gl.glBegin(GL_QUADS);
                 gl.glNormal3f(0, 0, 1);
-                gl.glVertex3f(0, l, 0);
-                gl.glVertex3f(w, l, 0);
-                gl.glVertex3f(w, 0, 0);
-                gl.glVertex3f(0, 0, 0);
+                gl.glVertex2f(0, l);
+                gl.glVertex2f(w, l);
+                gl.glVertex2f(w, 0);
+                gl.glVertex2f(0, 0);
                 gl.glEnd();
 
                 // Draw triangles at the top and bottom.
                 gl.glBegin(GL_TRIANGLES);
-                gl.glVertex3f(0, 0, 0);
-                gl.glVertex3f(w, 0, 0);
-                gl.glVertex3f(w / 2, -w / 2, 0);
+                gl.glVertex2f(0, 0);
+                gl.glVertex2f(w, 0);
+                gl.glVertex2f(w / 2, -w / 2);
 
-                gl.glVertex3f(w, l, 0);
-                gl.glVertex3f(0, l, 0);
-                gl.glVertex3f(w / 2, l + w / 2, 0);
+                gl.glVertex2f(w, l);
+                gl.glVertex2f(0, l);
+                gl.glVertex2f(w / 2, l + w / 2);
                 gl.glEnd();
             }
 
