@@ -98,42 +98,42 @@ public class RobotRace extends Base {
         };
         // Array containing parameters for a green plastic material. 
         public final static float[] GREEN_PLASTIC = {
-            0.0f, 0.0f, 0.0f, 1.0f, //ambient
+            0.1f, 0.1f, 0.1f, 1.0f, //ambient
             0.1f, 0.35f, 0.1f, 1.0f, //diffuse
             0.45f, 0.55f, 0.45f, 1.0f, //specular
             32f //shininess
         };
         //Array containing parameteres for a yellow plastic materail.
         public final static float[] YELLOW_PLASTIC = {
-            0.0f, 0.0f, 0.0f, 1.0f, //ambient
+            0.1f, 0.1f, 0.1f, 1.0f, //ambient
             0.5f, 0.5f, 0.0f, 1.0f, //diffuse
             0.60f, 0.60f, 0.50f, 1.0f, //specular
             32f //shininess
         };
         // Array containing parameteres for a red plastic material.
         public final static float[] RED_PLASTIC = {
-            0.0f, 0.0f, 0.0f, 1.0f, //ambient
+            0.1f, 0.1f, 0.1f, 1.0f, //ambient
             1.0f, 0f, 0.0f, 1.0f, //diffuse
             0.60f, 0.60f, 0.50f, 1.0f, //specular
             32f //shininess
         };
         // Array containing parameters for a blue plastci material.
         public final static float[] BLUE_PLASTIC = {
-            0.0f, 0.0f, 0.0f, 1.0f, //ambient
+            0.1f, 0.1f, 0.1f, 1.0f, //ambient
             0f, 0.5f, 1.0f, 1.0f, //diffuse
             0.60f, 0.60f, 0.50f, 1.0f, //specular
             32f //shininess
         };
         // Array containing parameters for an orange plastic material.
         public final static float[] ORANGE_PLASTIC = {
-            0.0f, 0.0f, 0.0f, 1.0f, //ambient
+            0.1f, 0.1f, 0.1f, 1.0f, //ambient
             1f, 0.65f, 0.0f, 1.0f, //diffuse
             0.5f, 0.5f, 0.5f, 1.0f, //specular
             90f //shininess
         };
         // Array containing parameters  for a wood-like material.
         public final static float[] WOOD = {
-            0.0f, 0.0f, 0.0f, 1.0f, //ambient
+            0.1f, 0.1f, 0.1f, 1.0f, //ambient
             0.36f, 0.2f, 0.01f, 1.0f, //diffuse
             0.36f, 0.2f, 0.01f, 1.0f, //specular
             0f //shininess
@@ -147,7 +147,7 @@ public class RobotRace extends Base {
         };
         // Array containing parameters for a white material (for textures).
         public static float[] WHITE = {
-            0.0f, 0.0f, 0.0f, 1.0f, //ambient
+            1f, 1f, 1f, 1.0f, //ambient
             1f, 1f, 1f, 1.0f, //diffuse
             1f, 1f, 1f, 1.0f, //specular
             0f //shininess
@@ -182,6 +182,8 @@ public class RobotRace extends Base {
         gl.glEnable(GL_LIGHTING);
         gl.glEnable(GL_LIGHT0);
         gl.glEnable(GL_NORMALIZE);
+        float[] ambient = {1f,1f,1f,1f};	
+        gl.glLightfv(GL_LIGHT0, GL_AMBIENT, ambient,0);
 
         // Initialize robots array.
         robots = new Robot[NUMROBOTS];
