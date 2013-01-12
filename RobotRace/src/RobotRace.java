@@ -356,71 +356,25 @@ public class RobotRace extends Base {
         switch (gs.trackNr) {
             case 0:
                 //letter O
-                c = new BezierCurve(
-                        new Vector(-10, 0, 1),
-                        new Vector(-10, 10, 1),
-                        new Vector(10, 10, 1),
-                        new Vector(10, 0, 1),
-                        new Vector(10, -10, 1),
-                        new Vector(-10, -10, 1),
-                        new Vector(-10, 0, 1));
+                c = BezierCurve.O;
                 break;
             case 1:
                 //letter D
-                c = new BezierCurve(
-                        new Vector(0, -10, 1),
-                        new Vector(0, -5, 1),
-                        new Vector(0, 5, 1),
-                        new Vector(0, 10, 1),
-                        new Vector(0, 12, 1),
-                        new Vector(2, 15, 1),
-                        new Vector(10, 11, 1),
-                        new Vector(16, 7, 1),
-                        new Vector(16, -13, 1),
-                        new Vector(10, -14, 1),
-                        new Vector(2, -15, 1),
-                        new Vector(0, -12, 1),
-                        new Vector(0, -10, 1));
+                c = BezierCurve.D;
                 BezierCurve temp = (BezierCurve) c;
-                temp.drawPoints(gl, glut);
+                temp.drawPoints(gl, glut); // TODO: remove
                 break;
             case 2:
                 //letter L
-                c = new BezierCurve(
-                        new Vector(1, -12, 1),
-                        new Vector(5, -12, 1),
-                        new Vector(9, -12, 1),
-                        new Vector(13, -12, 1),
-                        new Vector(14, -12, 1),
-                        new Vector(14, -13, 1),
-                        new Vector(13, -13, 1),
-                        new Vector(9, -13, 1),
-                        new Vector(5, -13, 1),
-                        new Vector(1, -13, 1),
-                        new Vector(0, -13, 1),
-                        new Vector(0, -13, 1),
-                        new Vector(0, -12, 1),
-                        new Vector(0, -8, 1),
-                        new Vector(0, -4, 1),
-                        new Vector(0, 0, 1),
-                        new Vector(0, 1, 1),
-                        new Vector(1, 1, 1),
-                        new Vector(1, 0, 1),
-                        new Vector(1, -4, 1),
-                        new Vector(1, -8, 1),
-                        new Vector(1, -12, 1));
+                c = BezierCurve.L;
                 BezierCurve temp2 = (BezierCurve) c;
-                temp2.drawPoints(gl, glut);
+                temp2.drawPoints(gl, glut); // TODO: remove
                 break;
             case 3:
                 //custom track
-                c = new BezierCurve(
-                        new Vector(0, -1, 1),
-                        new Vector(1, -1, 1),
-                        new Vector(1, -2, 1),
-                        new Vector(0, -2, 1));
+                c = BezierCurve.custom;
                 BezierCurve temp3 = (BezierCurve) c;
-                temp3.drawPoints(gl, glut);
+                temp3.drawPoints(gl, glut); // TODO: remove
                 break;
             default:
                 c = null;
@@ -491,7 +445,7 @@ public class RobotRace extends Base {
 
         // Draw terrain.
         terrain.draw();
-        
+
         // Display a clock in the top left corner of the screen.
         displayClock();
     }
@@ -1774,7 +1728,6 @@ public class RobotRace extends Base {
             // Draw the sides of the track.
             gl.glBegin(GL_QUADS);
             for (int i = 0; i < N; i++) {
-                // TODO: vertically split up quads
                 // Draw inside of the track.
                 Vector normal = normals.get(i).scale(-1); // use reverse normal
                 gl.glNormal3d(normal.x(), normal.y(), normal.z());
@@ -1881,6 +1834,56 @@ public class RobotRace extends Base {
 
         final private Vector[] P;
         int nsegments;
+        final static public BezierCurve O = new BezierCurve(
+                new Vector(-10, 0, 1),
+                new Vector(-10, 10, 1),
+                new Vector(10, 10, 1),
+                new Vector(10, 0, 1),
+                new Vector(10, -10, 1),
+                new Vector(-10, -10, 1),
+                new Vector(-10, 0, 1));
+        final static public BezierCurve D = new BezierCurve(
+                new Vector(0, -10, 1),
+                new Vector(0, -5, 1),
+                new Vector(0, 5, 1),
+                new Vector(0, 10, 1),
+                new Vector(0, 12, 1),
+                new Vector(2, 15, 1),
+                new Vector(10, 11, 1),
+                new Vector(16, 7, 1),
+                new Vector(16, -13, 1),
+                new Vector(10, -14, 1),
+                new Vector(2, -15, 1),
+                new Vector(0, -12, 1),
+                new Vector(0, -10, 1));
+        final static public BezierCurve L = new BezierCurve(
+                new Vector(1, -12, 1),
+                new Vector(5, -12, 1),
+                new Vector(9, -12, 1),
+                new Vector(13, -12, 1),
+                new Vector(14, -12, 1),
+                new Vector(14, -13, 1),
+                new Vector(13, -13, 1),
+                new Vector(9, -13, 1),
+                new Vector(5, -13, 1),
+                new Vector(1, -13, 1),
+                new Vector(0, -13, 1),
+                new Vector(0, -13, 1),
+                new Vector(0, -12, 1),
+                new Vector(0, -8, 1),
+                new Vector(0, -4, 1),
+                new Vector(0, 0, 1),
+                new Vector(0, 1, 1),
+                new Vector(1, 1, 1),
+                new Vector(1, 0, 1),
+                new Vector(1, -4, 1),
+                new Vector(1, -8, 1),
+                new Vector(1, -12, 1));
+        final static public BezierCurve custom = new BezierCurve(
+                new Vector(0, -1, 1),
+                new Vector(1, -1, 1),
+                new Vector(1, -2, 1),
+                new Vector(0, -2, 1));
 
         public BezierCurve(Vector... points) {
             this.P = points;
@@ -2344,7 +2347,7 @@ public class RobotRace extends Base {
             }
         }
     }
-    
+
     private void displayClock() {
         gl.glPushMatrix();
         gl.glDisable(GL_LIGHTING);
@@ -2369,7 +2372,7 @@ public class RobotRace extends Base {
             Calendar calendar = Calendar.getInstance();
             int hour = calendar.get(Calendar.HOUR_OF_DAY);
             int minute = calendar.get(Calendar.MINUTE);
-            float time = (float)hour + (float)minute / 100;
+            float time = (float) hour + (float) minute / 100;
             new Clock().draw(time);
         }
         gl.glMatrixMode(GL_PROJECTION);
