@@ -9,6 +9,7 @@ import java.io.IOException;
 import static java.lang.Math.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
@@ -488,16 +489,11 @@ public class RobotRace extends Base {
         setMaterial(Material.YELLOW_PLASTIC);
         drawRotSymShape(x, z, true, 100, 0.05);
 
-        // Draw clock (because we don't know where to put it).
-        // TODO: move
-        gl.glPushMatrix();
-        setMaterial(Material.RED_PLASTIC);
-        gl.glTranslated(0, -10, 10);
-        new Clock().draw(gs.tAnim);
-        gl.glPopMatrix();
-
         // Draw terrain.
         terrain.draw();
+        
+        // Display a clock in the top left corner of the screen.
+        displayClock();
     }
 
     /**
@@ -2139,15 +2135,24 @@ public class RobotRace extends Base {
 
     public class Clock {
 
-        final static public int M = 3; // number of digits before comma
-        final static public int N = 5; // number of digits in total
+        final static public int M = 2; // number of digits before comma
+        final static public int N = 4; // number of digits in total
 
-        public void draw(int... numbers) {
+        public float width() {
+            return N * new Number().width() + (N - 1) * Number.LINE_WIDTH
+                    + 4 * Number.LINE_WIDTH + Number.LINE_LENGTH;
+        }
+
+        private double height() {
+            return new Number().height();
+        }
+
+        public void draw(int... digits) {
             Number n = new Number();
             gl.glPushMatrix();
-            gl.glScalef(1, -1, 1);
-            for (int i = 0; i < numbers.length; i++) {
-                n.draw(numbers[i]);
+            //gl.glScalef(1, -1, 1);
+            for (int i = 0; i < digits.length; i++) {
+                n.draw(digits[i]);
                 gl.glTranslatef(n.width() + Number.LINE_WIDTH, 0, 0);
                 if (i == M - 1) {
                     drawColon();
@@ -2338,6 +2343,42 @@ public class RobotRace extends Base {
                 return 3 * LINE_WIDTH + 2 * LINE_LENGTH;
             }
         }
+    }
+    
+    private void displayClock() {
+        gl.glPushMatrix();
+        gl.glDisable(GL_LIGHTING);
+        gl.glColor3f(1, 0, 0);
+        //gl.glTranslated(0, -10, 10);
+        final double AR = new Clock().height() / new Clock().width();
+        int w = 200, h = (int) (w * AR);
+        gl.glViewport(0, gs.h - h, w, h);
+        // Set projection matrix.
+        gl.glMatrixMode(GL_PROJECTION);
+        gl.glPushMatrix();
+        gl.glLoadIdentity();
+        gl.glOrtho(0.0f, new Clock().width(), new Clock().height(), 0.0f, 0.0f, 0.01f);
+        gl.glMatrixMode(GL_MODELVIEW);
+        gl.glPushMatrix();
+        gl.glLoadIdentity();
+        gl.glClearColor(0f, 0f, 1f, 1f);
+        //gl.glScaled(0.1, 0.1, 1);
+        if (false) {
+            new Clock().draw(gs.tAnim);
+        } else {
+            Calendar calendar = Calendar.getInstance();
+            int hour = calendar.get(Calendar.HOUR_OF_DAY);
+            int minute = calendar.get(Calendar.MINUTE);
+            float time = (float)hour + (float)minute / 100;
+            new Clock().draw(time);
+        }
+        gl.glMatrixMode(GL_PROJECTION);
+        gl.glPopMatrix();
+        gl.glMatrixMode(GL_MODELVIEW);
+        gl.glPopMatrix();
+        gl.glPopMatrix();
+        gl.glViewport(0, 0, gs.w, gs.h);
+        gl.glEnable(GL_LIGHTING);
     }
 
     /**
