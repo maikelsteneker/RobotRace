@@ -450,7 +450,7 @@ public class RobotRace extends Base {
         terrain.draw();
 
         // Display a clock in the top left corner of the screen.
-        displayClock();
+        displayClock(200);
     }
 
     /**
@@ -560,18 +560,16 @@ public class RobotRace extends Base {
     /**
      * Draws a cube of height {@code h} and the specified texture. The
      * {@code part} can be used to only display a part of the texture.
-     * 
-     * Values of {@code part} cause the following behaviour:
-     * 0: display the whole texture
-     * 1: displays the top-left corner of the texture
-     * 2: displays the top-right corner of the texture
-     * 3: displays the bottom-left corner of the texture
-     * 4: displays the bottom-right corner of the texture
-     * any other value: disable the texture
-     * 
+     *
+     * Values of {@code part} cause the following behaviour: 0: display the
+     * whole texture 1: displays the top-left corner of the texture 2: displays
+     * the top-right corner of the texture 3: displays the bottom-left corner of
+     * the texture 4: displays the bottom-right corner of the texture any other
+     * value: disable the texture
+     *
      * @param h height of the cube
      * @param texture the texture to apply to front of the cube
-     * @param part 
+     * @param part determines which texture coordinates are used
      */
     private void drawCube(float h, Texture texture, int part) {
         //TODO: draw top and bottom
@@ -587,6 +585,7 @@ public class RobotRace extends Base {
         texture.disable(gl);
 
         gl.glPushMatrix();
+        // Draw the three other faces of the cube.
         for (int i = 0; i < 3; i++) {
             gl.glRotatef(90, 0, 0, 1);
             drawFace(h, part);
@@ -594,7 +593,14 @@ public class RobotRace extends Base {
         gl.glPopMatrix();
     }
 
+    /**
+     * Draws the face of a cube.
+     *
+     * @param h height of the cube
+     * @param part determines which texture coordinates to use
+     */
     private void drawFace(float h, int part) {
+        // TODO: try to improve on this by not using a switch
         float lowx, highx, lowy, highy;
         switch (part) {
             case 0:
@@ -1719,6 +1725,7 @@ public class RobotRace extends Base {
             }
             gl.glEnd();
 
+            // Start using track texture.
             track.enable(gl);
             track.bind(gl);
             gl.glBegin(GL_QUADS);
@@ -1740,8 +1747,10 @@ public class RobotRace extends Base {
                 gl.glVertex3d(next_point.x(), next_point.y(), next_point.z());
             }
             gl.glEnd();
+            // Stop using track texture.
             track.disable(gl);
 
+            // Start using brick texture.
             brick.enable(gl);
             brick.bind(gl);
             // Draw the sides of the track.
@@ -1780,6 +1789,7 @@ public class RobotRace extends Base {
             }
 
             gl.glEnd();
+            // Stop using brick texture.
             brick.disable(gl);
         }
     }
@@ -1848,11 +1858,25 @@ public class RobotRace extends Base {
 
     /**
      * Implementation of Curve that models a Bezier curve.
+     *
+     * This class will use N control points to model Bezier segments. Each
+     * segment is described by P[i], P[i+1], P[i+2], P[i+3] where i is a
+     * multiple of 3. This means that segments are linked together. The last
+     * control point does not need to be the same as the first control point.
+     *
+     * The available range [0,1] is split up equally between each segment. This
+     * means that each sequence, independent of size, will be drawn with the
+     * same precision. It also means that speed of the curve can vary.
+     *
+     * Points that do not form a full segment will be ignored. For example, if 5
+     * points are specified, the first four will be used to form a segment and
+     * the last will be ignored.
      */
     public static class BezierCurve implements Curve {
 
-        final private Vector[] P;
-        int nsegments;
+        final private Vector[] P; // control points defining Bezier segments
+        int N; // the number of segments
+        // Bezier curve resembling the letter O.
         final static public BezierCurve O = new BezierCurve(
                 new Vector(-10, 0, 1),
                 new Vector(-10, 10, 1),
@@ -1861,6 +1885,7 @@ public class RobotRace extends Base {
                 new Vector(10, -10, 1),
                 new Vector(-10, -10, 1),
                 new Vector(-10, 0, 1));
+        // Bezier curve resembling the letter D.
         final static public BezierCurve D = new BezierCurve(
                 new Vector(0, -10, 1),
                 new Vector(0, -5, 1),
@@ -1875,6 +1900,7 @@ public class RobotRace extends Base {
                 new Vector(2, -15, 1),
                 new Vector(0, -12, 1),
                 new Vector(0, -10, 1));
+        // Bezier curve resembling the letter L.
         final static public BezierCurve L = new BezierCurve(
                 new Vector(1, -12, 1),
                 new Vector(5, -12, 1),
@@ -1898,6 +1924,7 @@ public class RobotRace extends Base {
                 new Vector(1, -4, 1),
                 new Vector(1, -8, 1),
                 new Vector(1, -12, 1));
+        // Customly defined Bezier curve.
         final static public BezierCurve custom = new BezierCurve(
                 new Vector(-10, 0, 1),
                 new Vector(-10, 10, 5),
@@ -1907,24 +1934,39 @@ public class RobotRace extends Base {
                 new Vector(-10, -10, 5),
                 new Vector(-10, 0, 1));
 
+        /**
+         * Construcs a Bezier curve from the specified control points.
+         *
+         * @param points control points
+         */
         public BezierCurve(Vector... points) {
             this.P = points;
-            nsegments = (points.length - 1) / 3;
+            N = (points.length - 1) / 3;
         }
 
         @Override
         public Vector getPoint(double t) {
-            t = t % 1;
-            double s = (t * nsegments) % 1;
-            int i = 3 * (int) (t / (1 / (double) nsegments));
+            t = t % 1; // normalize t to range [0,1]
+            /*
+             * For each segment, we need to find a value to fill into
+             * the function. For this, we simply multiply by the number of
+             * segments, and then normalize. This is a way to cover all segments.
+             */
+            double s = (t * N) % 1; // value to fill into the Bezier function
+            /*
+             * From t, we can derive in which segment the point should lie.
+             * For this, we simply multiply by the number of segments and then
+             * round half down.
+             */
+            int i = 3 * (int) (t * N); // the first point of the segment
             return getCubicBezierPnt(s, P[i], P[i + 1], P[i + 2], P[i + 3]);
         }
 
         @Override
         public Vector getTangent(double t) {
-            t = t % 1;
-            double s = (t * nsegments) % 1;
-            int i = 3 * (int) (t / (1 / (double) nsegments));
+            t = t % 1; // normalize t to range [0,1]
+            double s = (t * N) % 1; // value to fill into the Bezier function
+            int i = 3 * (int) (t * N); // the first point of the segment
             return getCubicBezierTng(s, P[i], P[i + 1], P[i + 2], P[i + 3]);
         }
 
@@ -1935,6 +1977,16 @@ public class RobotRace extends Base {
             return new Vector(-tangent.y(), tangent.x(), 0);
         }
 
+        /**
+         * Calculates a point on a Bezier segment defined by P0, P1, P2, P3.
+         *
+         * @param t the parameter of the function (in range [0,1])
+         * @param P0 first control point
+         * @param P1 second control point
+         * @param P2 third control point
+         * @param P3 fourth control point
+         * @return point on the curve for parameter t
+         */
         public static Vector getCubicBezierPnt(double t, Vector P0, Vector P1,
                 Vector P2, Vector P3) {
             return P0.scale(pow(1 - t, 3)).add(
@@ -1944,6 +1996,16 @@ public class RobotRace extends Base {
 
         }
 
+        /**
+         * Calculates a tangent on a Bezier segment defined by P0, P1, P2, P3.
+         *
+         * @param t the parameter of the function (in range [0,1])
+         * @param P0 first control point
+         * @param P1 second control point
+         * @param P2 third control point
+         * @param P3 fourth control point
+         * @return tangent of the curve on point for parameter t
+         */
         public static Vector getCubicBezierTng(double t, Vector P0, Vector P1,
                 Vector P2, Vector P3) {
             return P1.subtract(P0).scale(pow(1 - t, 2)).add(
@@ -1952,6 +2014,7 @@ public class RobotRace extends Base {
         }
 
         public void drawPoints(GL2 gl, GLUT glut) {
+            // TODO: remove
             for (Vector point : P) {
                 gl.glPushMatrix();
                 gl.glTranslated(point.x(), point.y(), point.z());
@@ -2032,7 +2095,7 @@ public class RobotRace extends Base {
         return new Matrix(worldToEyeMatrix);
     }
 
-    public class Terrain {
+    public class Terrain { // TODO: comment
 
         private Set<Bump> bumps;
         private Vector[][] points = new Vector[M][N];
@@ -2134,7 +2197,7 @@ public class RobotRace extends Base {
         }
     }
 
-    public static class Bump {
+    public static class Bump { // TODO: comment
 
         private double center_x;
         private double center_y;
@@ -2158,45 +2221,74 @@ public class RobotRace extends Base {
         }
     }
 
+    /**
+     * Represents the clock that is shown on the screen.
+     */
     public class Clock {
 
         final static public int M = 2; // number of digits before comma
         final static public int N = 4; // number of digits in total
+        final public Number number = new Number(); // instance of Number class
 
+        /**
+         * Calculates the width of the clock.
+         *
+         * @return the width
+         */
         public float width() {
-            return N * new Number().width() + (N - 1) * Number.LINE_WIDTH
+            return N * number.width() + (N - 1) * Number.LINE_WIDTH
                     + 4 * Number.LINE_WIDTH + Number.LINE_LENGTH;
         }
 
+        /**
+         * Calculates the height of the clock.
+         *
+         * @return the height
+         */
         private double height() {
-            return new Number().height();
+            return number.height();
         }
 
+        /**
+         * Draws the specified digits and a colon. The colon will be displayed
+         * after the first M digits.
+         *
+         * @param digits the digits
+         */
         public void draw(int... digits) {
-            Number n = new Number();
+            assert digits.length == N;
             gl.glPushMatrix();
-            //gl.glScalef(1, -1, 1);
             for (int i = 0; i < digits.length; i++) {
-                n.draw(digits[i]);
-                gl.glTranslatef(n.width() + Number.LINE_WIDTH, 0, 0);
-                if (i == M - 1) {
-                    drawColon();
+                number.draw(digits[i]); // draw the digit
+                // Move to next to the digit.
+                gl.glTranslatef(number.width() + Number.LINE_WIDTH, 0, 0);
+                if (i == M - 1) { // after drawing M digits
+                    drawColon(); // draw a colon
                 }
             }
             gl.glPopMatrix();
         }
 
+        /**
+         * Draws the specified time. This method will first draw the last M
+         * digits before the comma, then a colon and finally the first N digits
+         * after the comma.
+         *
+         * @param time the time
+         */
         public void draw(float time) {
+            // Round off the time to get the necessary digits.
             int round = (int) round((time % pow(10, M)) * pow(10, N - M));
             String f = Integer.toString(round);
-            int[] numbers = new int[N];
+            int[] numbers = new int[N]; // the numbers to display
             int i = 0;
             while (f.length() < N) {
-                f = "0".concat(f);
+                // There are not enough numbers.
+                f = "0".concat(f); // prefix a 0
             }
 
             for (char c : f.toCharArray()) {
-                if (Character.isDigit(c)) {
+                if (Character.isDigit(c)) { // ignore the dot
                     int n = Integer.parseInt(c + "");
                     numbers[i++] = n;
                 }
@@ -2204,21 +2296,28 @@ public class RobotRace extends Base {
             draw(numbers);
         }
 
+        /**
+         * Draws a colon.
+         */
         private void drawColon() {
             float w = Number.LINE_WIDTH;
             float l = Number.LINE_LENGTH;
-            float d = (l - w) / 2;
-            drawTopDot();
+            drawTopDot(); // draw top dot
             gl.glPushMatrix();
-            gl.glTranslatef(0, w + l, 0);
+            gl.glTranslatef(0, w + l, 0); // move down
             drawTopDot();
             gl.glPopMatrix();
-            gl.glTranslatef(3 * w, 0, 0);
+            gl.glTranslatef(3 * w, 0, 0); // move to next to the drawn dots
         }
 
+        /**
+         * Draws the top dot of a colon.
+         */
         private void drawTopDot() {
             float w = Number.LINE_WIDTH;
             float l = Number.LINE_LENGTH;
+            // Define d as the distance from the top of a line segment to the
+            // top of a square with width w that's drawn in the middle of it.
             float d = (l - w) / 2;
 
             gl.glBegin(GL_QUADS);
@@ -2229,8 +2328,17 @@ public class RobotRace extends Base {
             gl.glEnd();
         }
 
+        /**
+         * Class that represents a number of a digital clock.
+         */
         public class Number {
 
+            /*
+             * These values define the numbers 0 through 9 as 6 booleans. In
+             * each array a, boolean a[i] determines if line i is enabled. The
+             * lines of a digital number are numbered from top to bottom and
+             * from left to right.
+             */
             public final boolean[] ZERO = {true, true, true, false, true, true, true};
             public final boolean[] ONE = {false, false, true, false, false, true, false};
             public final boolean[] TWO = {true, false, true, true, true, false, true};
@@ -2241,58 +2349,37 @@ public class RobotRace extends Base {
             public final boolean[] SEVEN = {true, false, true, false, false, true, false};
             public final boolean[] EIGHT = {true, true, true, true, true, true, true};
             public final boolean[] NINE = {true, true, true, true, false, true, true};
-            public final static float LINE_LENGTH = 1f;
-            public final static float LINE_WIDTH = 0.3f;
+            public final boolean[][] DIGITS = {ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE};
+            public final static float LINE_LENGTH = 1f; // length of a line
+            public final static float LINE_WIDTH = 0.3f; // width of a line
 
-            public boolean[] booleanArray(int number) {
-                boolean[] result;
-
-                switch (number) {
-                    case 0:
-                        result = ZERO;
-                        break;
-                    case 1:
-                        result = ONE;
-                        break;
-                    case 2:
-                        result = TWO;
-                        break;
-                    case 3:
-                        result = THREE;
-                        break;
-                    case 4:
-                        result = FOUR;
-                        break;
-                    case 5:
-                        result = FIVE;
-                        break;
-                    case 6:
-                        result = SIX;
-                        break;
-                    case 7:
-                        result = SEVEN;
-                        break;
-                    case 8:
-                        result = EIGHT;
-                        break;
-                    case 9:
-                        result = NINE;
-                        break;
-                    default:
-                        // IMPOSSIBRU!
-                        return null;
-                }
-
-                return result;
+            /**
+             * Finds the representation of {@code digit} as a boolean array.
+             *
+             * @param digit the digit
+             * @return the representation
+             */
+            public boolean[] booleanArray(int digit) {
+                return (0 <= digit && digit < 10) ? DIGITS[digit] : null;
             }
 
-            public void draw(int number) {
-                draw(booleanArray(number));
+            /**
+             * Draws the specified digit.
+             *
+             * @param digit the digit
+             */
+            public void draw(int digit) {
+                draw(booleanArray(digit));
             }
 
-            public void draw(boolean[] number) {
-                for (int i = 0; i < number.length; i++) {
-                    if (number[i]) {
+            /**
+             * Draws the specfiied lines.
+             *
+             * @param lines the lines to draw
+             */
+            public void draw(boolean[] lines) {
+                for (int i = 0; i < lines.length; i++) {
+                    if (lines[i]) {
                         gl.glPushMatrix();
                         drawLine(i);
                         gl.glPopMatrix();
@@ -2300,47 +2387,67 @@ public class RobotRace extends Base {
                 }
             }
 
+            /**
+             * Draws the line specified by {@code line},
+             *
+             * @param line number of the line to draw
+             */
             private void drawLine(int line) {
                 final float w = LINE_WIDTH, l = LINE_LENGTH;
                 switch (line) {
                     case 0:
+                        // Top line.
                         gl.glTranslatef(w, w, 0);
                         gl.glRotatef(-90, 0, 0, 1);
                         drawLine();
                         break;
                     case 1:
+                        // Top left line.
                         gl.glTranslatef(0, w, 0);
                         drawLine();
                         break;
                     case 2:
+                        // Top right line.
                         gl.glTranslatef(l + w, w, 0);
                         drawLine();
                         break;
                     case 3:
+                        // Middle line.
                         gl.glTranslatef(w, 2 * w + l, 0);
                         gl.glRotatef(-90, 0, 0, 1);
                         drawLine();
                         break;
                     case 4:
+                        // Bottom left line.
                         gl.glTranslatef(0, 2 * w + l, 0);
                         drawLine();
                         break;
                     case 5:
+                        // Bottom right line.
                         gl.glTranslatef(l + w, 2 * w + l, 0);
                         drawLine();
                         break;
                     case 6:
+                        // Bottom line.
                         gl.glTranslatef(w, 3 * w + 2 * l, 0);
                         gl.glRotatef(-90, 0, 0, 1);
                         drawLine();
                         break;
                     default:
-                    // IMPOSSIBRU!
+                        // Undefined line.
+                        throw new IllegalArgumentException(
+                                "Only lines 0 through 6 are defined.");
                 }
             }
 
+            /**
+             * Draws a single line of a digit. The line drawn downwards from
+             * the origin.
+             */
             private void drawLine() {
                 final float w = LINE_WIDTH, l = LINE_LENGTH;
+                
+                // Draw the line itself.
                 gl.glBegin(GL_QUADS);
                 gl.glNormal3f(0, 0, 1);
                 gl.glVertex3f(0, l, 0);
@@ -2349,6 +2456,7 @@ public class RobotRace extends Base {
                 gl.glVertex3f(0, 0, 0);
                 gl.glEnd();
 
+                // Draw triangles at the top and bottom.
                 gl.glBegin(GL_TRIANGLES);
                 gl.glVertex3f(0, 0, 0);
                 gl.glVertex3f(w, 0, 0);
@@ -2360,50 +2468,70 @@ public class RobotRace extends Base {
                 gl.glEnd();
             }
 
+            /**
+             * Calculates the width of a number.
+             * 
+             * @return the width
+             */
             public float width() {
                 return 2 * LINE_WIDTH + LINE_LENGTH;
             }
 
+            /**
+             * Calculates the height of a number.
+             * 
+             * @return the height
+             */
             public float height() {
                 return 3 * LINE_WIDTH + 2 * LINE_LENGTH;
             }
         }
     }
 
-    private void displayClock() {
-        gl.glPushMatrix();
-        gl.glDisable(GL_LIGHTING);
-        gl.glColor3f(1, 0, 0);
-        //gl.glTranslated(0, -10, 10);
-        final double AR = new Clock().height() / new Clock().width();
-        int w = 200, h = (int) (w * AR);
-        gl.glViewport(0, gs.h - h, w, h);
-        // Set projection matrix.
+    /**
+     * Displays a lock in the top left corner of the screen.
+     * 
+     * @param w width of the clock in pixels
+     */
+    private void displayClock(int w) {
+        Clock clock = new Clock();
+        gl.glDisable(GL_LIGHTING); // disable lighting
+        gl.glColor3f(1, 0, 0); // set color to red
+        final double AR // aspect ratio
+                = clock.height() / clock.width();
+        int h = (int) (w * AR); // height of the clock in pixels
+        gl.glViewport(0, gs.h - h, w, h); // define a viewport for the clock
+        
+        // Set projection matrix to display the clock with the correct size.
         gl.glMatrixMode(GL_PROJECTION);
         gl.glPushMatrix();
         gl.glLoadIdentity();
-        gl.glOrtho(0.0f, new Clock().width(), new Clock().height(), 0.0f, 0.0f, 0.01f);
+        gl.glOrtho(0.0f, clock.width(), clock.height(), 0.0f, 0.0f, 0.01f);
+        
+        // Draw the clock.
         gl.glMatrixMode(GL_MODELVIEW);
         gl.glPushMatrix();
         gl.glLoadIdentity();
-        gl.glClearColor(0f, 0f, 1f, 1f);
-        //gl.glScaled(0.1, 0.1, 1);
-        if (false) {
-            new Clock().draw(gs.tAnim);
-        } else {
+        // Either the actual time or the time specified by tAnim can be shown.
+        boolean actualTime = true;
+        if (actualTime) {
             Calendar calendar = Calendar.getInstance();
             int hour = calendar.get(Calendar.HOUR_OF_DAY);
             int minute = calendar.get(Calendar.MINUTE);
             float time = (float) hour + (float) minute / 100;
-            new Clock().draw(time);
+            clock.draw(time);
+        } else {
+            clock.draw(gs.tAnim);
         }
+        
+        // Restore the original projection and modelview matrices.
         gl.glMatrixMode(GL_PROJECTION);
         gl.glPopMatrix();
         gl.glMatrixMode(GL_MODELVIEW);
         gl.glPopMatrix();
-        gl.glPopMatrix();
-        gl.glViewport(0, 0, gs.w, gs.h);
-        gl.glEnable(GL_LIGHTING);
+        
+        gl.glViewport(0, 0, gs.w, gs.h); // restore viewport
+        gl.glEnable(GL_LIGHTING); // re-enable lighting
     }
 
     /**
