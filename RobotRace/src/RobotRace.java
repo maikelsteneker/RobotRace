@@ -1,4 +1,5 @@
 
+import com.jogamp.opengl.util.gl2.GLUT;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureIO;
 import java.awt.Color;
@@ -15,6 +16,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import static javax.media.opengl.GL.*;
+import javax.media.opengl.GL2;
 import static javax.media.opengl.GL2.*;
 import javax.media.opengl.GLException;
 import robotrace.*;
@@ -353,7 +355,7 @@ public class RobotRace extends Base {
         switch (gs.trackNr) {
             case 0:
                 //letter O
-                c = new BezierCurve2(
+                c = new BezierCurve(
                         new Vector(-10, 0, 1),
                         new Vector(-10, 10, 1),
                         new Vector(10, 10, 1),
@@ -364,7 +366,7 @@ public class RobotRace extends Base {
                 break;
             case 1:
                 //letter D
-                c = new BezierCurve2(
+                c = new BezierCurve(
                         new Vector(0, -10, 1),
                         new Vector(0, -5, 1),
                         new Vector(0, 5, 1),
@@ -378,12 +380,12 @@ public class RobotRace extends Base {
                         new Vector(2, -15, 1),
                         new Vector(0, -12, 1),
                         new Vector(0, -10, 1));
-                BezierCurve2 temp = (BezierCurve2) c;
-                temp.drawPoints();
+                BezierCurve temp = (BezierCurve) c;
+                temp.drawPoints(gl,glut);
                 break;
             case 2:
                 //letter L
-                c = new BezierCurve2(
+                c = new BezierCurve(
                         new Vector(1, -12, 1),
                         new Vector(5, -12, 1),
                         new Vector(9, -12, 1),
@@ -406,18 +408,18 @@ public class RobotRace extends Base {
                         new Vector(1, -4, 1),
                         new Vector(1, -8, 1),
                         new Vector(1, -12, 1));
-                BezierCurve2 temp2 = (BezierCurve2) c;
-                temp2.drawPoints();
+                BezierCurve temp2 = (BezierCurve) c;
+                temp2.drawPoints(gl,glut);
                 break;
             case 3:
                 //custom track
-                c = new BezierCurve2(
+                c = new BezierCurve(
                         new Vector(0, -1, 1),
                         new Vector(1, -1, 1),
                         new Vector(1, -2, 1),
                         new Vector(0, -2, 1));
-                BezierCurve2 temp3 = (BezierCurve2) c;
-                temp3.drawPoints();
+                BezierCurve temp3 = (BezierCurve) c;
+                temp3.drawPoints(gl,glut);
                 break;
             default:
                 c = null;
@@ -1881,25 +1883,37 @@ public class RobotRace extends Base {
      */
     public static class BezierCurve implements Curve {
 
-        final private Vector P0, P1, P2, P3;
+        final private Vector[] P;
+        int nsegments;
 
-        public BezierCurve(Vector P0, Vector P1, Vector P2, Vector P3) {
-            this.P0 = P0;
-            this.P1 = P1;
-            this.P2 = P2;
-            this.P3 = P3;
+        public BezierCurve(Vector... points) {
+            this.P = points;
+            nsegments = (points.length - 1) / 3;
         }
 
         @Override
         public Vector getPoint(double t) {
-            return getCubicBezierPnt(t, P0, P1, P2, P3);
+            t = t % 1;
+            double s = (t * nsegments) % 1;
+            int i = 3 * (int) (t / (1 / (double)nsegments));
+            return getCubicBezierPnt(s, P[i], P[i + 1], P[i + 2], P[i + 3]);
         }
 
         @Override
         public Vector getTangent(double t) {
-            return getCubicBezierTng(t, P0, P1, P2, P3);
+            t = t % 1;
+            double s = (t * nsegments) % 1;
+            int i = 3 * (int) (t / (1 / (double)nsegments));
+            return getCubicBezierTng(s, P[i], P[i + 1], P[i + 2], P[i + 3]);
         }
 
+        @Override
+        public Vector getNormalVector(double t) {
+            Vector tangent = this.getTangent(t);
+            // Rotate 90 degrees in negative direction (outward) in XOY plane.
+            return new Vector(-tangent.y(), tangent.x(), 0);
+        }
+        
         public static Vector getCubicBezierPnt(double t, Vector P0, Vector P1,
                 Vector P2, Vector P3) {
             return P0.scale(pow(1 - t, 3)).add(
@@ -1914,61 +1928,9 @@ public class RobotRace extends Base {
             return P1.subtract(P0).scale(pow(1 - t, 2)).add(
                     P2.subtract(P1).scale(2 * t * (1 - t))).add(
                     P3.subtract(P2).scale(pow(t, 2))).scale(3);
-            /*
-             Vector s1 = P0.scale((t-1)*(t-1));
-             Vector s2 = P1.scale(-3 * t * t + 4 * t - 1);
-             Vector s3 = P2.scale(3 * t).subtract(P2.scale(-2)).subtract(P3.scale(t)).scale(t);
-             Vector s = s1.add(s2).add(s3);
-             return s.scale(-3);*/
         }
 
-        @Override
-        public Vector getNormalVector(double t) {
-            Vector tangent = this.getTangent(t);
-            // Rotate 90 degrees in negative direction (outward) in XOY plane.
-            // TODO: check if minus sign is in the correct place
-            return new Vector(-tangent.y(), tangent.x(), 0);
-        }
-    }
-
-    /**
-     * Implementation of Curve that models a Bezier curve.
-     */
-    public class BezierCurve2 implements Curve { // TODO: make static again :)
-
-        final private Vector[] P;
-        double nsegments;
-
-        public BezierCurve2(Vector... points) {
-            this.P = points;
-            nsegments = (points.length - 1) / 3;
-        }
-
-        @Override
-        public Vector getPoint(double t) {
-            t = t % 1;
-            double s = (t * nsegments) % 1;
-            int i = 3 * (int) (t / (double) (1 / nsegments));
-            return BezierCurve.getCubicBezierPnt(s, P[i], P[i + 1], P[i + 2], P[i + 3]);
-        }
-
-        @Override
-        public Vector getTangent(double t) {
-            t = t % 1;
-            double s = (t * nsegments) % 1;
-            int i = 3 * (int) (t / (1 / (double) nsegments));
-            return BezierCurve.getCubicBezierTng(s, P[i], P[i + 1], P[i + 2], P[i + 3]);
-        }
-
-        @Override
-        public Vector getNormalVector(double t) {
-            Vector tangent = this.getTangent(t);
-            // Rotate 90 degrees in negative direction (outward) in XOY plane.
-            // TODO: check if minus sign is in the correct place
-            return new Vector(-tangent.y(), tangent.x(), 0);
-        }
-
-        public void drawPoints() {
+        public void drawPoints(GL2 gl, GLUT glut) {
             for (Vector point : P) {
                 gl.glPushMatrix();
                 gl.glTranslated(point.x(), point.y(), point.z());
