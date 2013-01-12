@@ -381,7 +381,7 @@ public class RobotRace extends Base {
                         new Vector(0, -12, 1),
                         new Vector(0, -10, 1));
                 BezierCurve temp = (BezierCurve) c;
-                temp.drawPoints(gl,glut);
+                temp.drawPoints(gl, glut);
                 break;
             case 2:
                 //letter L
@@ -409,7 +409,7 @@ public class RobotRace extends Base {
                         new Vector(1, -8, 1),
                         new Vector(1, -12, 1));
                 BezierCurve temp2 = (BezierCurve) c;
-                temp2.drawPoints(gl,glut);
+                temp2.drawPoints(gl, glut);
                 break;
             case 3:
                 //custom track
@@ -419,7 +419,7 @@ public class RobotRace extends Base {
                         new Vector(1, -2, 1),
                         new Vector(0, -2, 1));
                 BezierCurve temp3 = (BezierCurve) c;
-                temp3.drawPoints(gl,glut);
+                temp3.drawPoints(gl, glut);
                 break;
             default:
                 c = null;
@@ -429,7 +429,7 @@ public class RobotRace extends Base {
         //t = new Track(new SimpleCurve(), NUMROBOTS + 1, -1, 1);
 
         // Set the material of the track to plastic green.
-        //setMaterial(Material.GREEN_PLASTIC); // TOOD comment
+        //setMaterial(Material.GREEN_PLASTIC); // TODO comment
         setMaterial(Material.WHITE);
         t.draw(); // Draw track.
 
@@ -492,8 +492,8 @@ public class RobotRace extends Base {
         // TODO: move
         gl.glPushMatrix();
         setMaterial(Material.RED_PLASTIC);
-        gl.glTranslated(0, -10, 0);
-        Clock.draw(gl, gs.tAnim);
+        gl.glTranslated(0, -10, 10);
+        new Clock().draw(gs.tAnim);
         gl.glPopMatrix();
 
         // Draw terrain.
@@ -1895,7 +1895,7 @@ public class RobotRace extends Base {
         public Vector getPoint(double t) {
             t = t % 1;
             double s = (t * nsegments) % 1;
-            int i = 3 * (int) (t / (1 / (double)nsegments));
+            int i = 3 * (int) (t / (1 / (double) nsegments));
             return getCubicBezierPnt(s, P[i], P[i + 1], P[i + 2], P[i + 3]);
         }
 
@@ -1903,7 +1903,7 @@ public class RobotRace extends Base {
         public Vector getTangent(double t) {
             t = t % 1;
             double s = (t * nsegments) % 1;
-            int i = 3 * (int) (t / (1 / (double)nsegments));
+            int i = 3 * (int) (t / (1 / (double) nsegments));
             return getCubicBezierTng(s, P[i], P[i + 1], P[i + 2], P[i + 3]);
         }
 
@@ -1913,7 +1913,7 @@ public class RobotRace extends Base {
             // Rotate 90 degrees in negative direction (outward) in XOY plane.
             return new Vector(-tangent.y(), tangent.x(), 0);
         }
-        
+
         public static Vector getCubicBezierPnt(double t, Vector P0, Vector P1,
                 Vector P2, Vector P3) {
             return P0.scale(pow(1 - t, 3)).add(
@@ -2134,6 +2134,209 @@ public class RobotRace extends Base {
 
         double bump(double r) {
             return ((r < 1) ? pow(cos(0.5 * PI * r), 2) : 0);
+        }
+    }
+
+    public class Clock {
+
+        final static public int M = 3; // number of digits before comma
+        final static public int N = 5; // number of digits in total
+
+        public void draw(int... numbers) {
+            Number n = new Number();
+            gl.glPushMatrix();
+            gl.glScalef(1, -1, 1);
+            for (int i = 0; i < numbers.length; i++) {
+                n.draw(numbers[i]);
+                gl.glTranslatef(n.width() + Number.LINE_WIDTH, 0, 0);
+                if (i == M - 1) {
+                    drawColon();
+                }
+            }
+            gl.glPopMatrix();
+        }
+
+        public void draw(float time) {
+            int round = (int) round((time % pow(10, M)) * pow(10, N - M));
+            String f = Integer.toString(round);
+            int[] numbers = new int[N];
+            int i = 0;
+            while (f.length() < N) {
+                f = "0".concat(f);
+            }
+
+            for (char c : f.toCharArray()) {
+                if (Character.isDigit(c)) {
+                    int n = Integer.parseInt(c + "");
+                    numbers[i++] = n;
+                }
+            }
+            draw(numbers);
+        }
+
+        private void drawColon() {
+            float w = Number.LINE_WIDTH;
+            float l = Number.LINE_LENGTH;
+            float d = (l - w) / 2;
+            drawTopDot();
+            gl.glPushMatrix();
+            gl.glTranslatef(0, w + l, 0);
+            drawTopDot();
+            gl.glPopMatrix();
+            gl.glTranslatef(3 * w, 0, 0);
+        }
+
+        private void drawTopDot() {
+            float w = Number.LINE_WIDTH;
+            float l = Number.LINE_LENGTH;
+            float d = (l - w) / 2;
+
+            gl.glBegin(GL_QUADS);
+            gl.glVertex3f(w, 2 * w + d, 0);
+            gl.glVertex3f(2 * w, 2 * w + d, 0);
+            gl.glVertex3f(2 * w, w + d, 0);
+            gl.glVertex3f(w, w + d, 0);
+            gl.glEnd();
+        }
+
+        public class Number {
+
+            public final boolean[] ZERO = {true, true, true, false, true, true, true};
+            public final boolean[] ONE = {false, false, true, false, false, true, false};
+            public final boolean[] TWO = {true, false, true, true, true, false, true};
+            public final boolean[] THREE = {true, false, true, true, false, true, true};
+            public final boolean[] FOUR = {false, true, true, true, false, true, false};
+            public final boolean[] FIVE = {true, true, false, true, false, true, true};
+            public final boolean[] SIX = {true, true, false, true, true, true, true};
+            public final boolean[] SEVEN = {true, false, true, false, false, true, false};
+            public final boolean[] EIGHT = {true, true, true, true, true, true, true};
+            public final boolean[] NINE = {true, true, true, true, false, true, true};
+            public final static float LINE_LENGTH = 1f;
+            public final static float LINE_WIDTH = 0.3f;
+
+            public boolean[] booleanArray(int number) {
+                boolean[] result;
+
+                switch (number) {
+                    case 0:
+                        result = ZERO;
+                        break;
+                    case 1:
+                        result = ONE;
+                        break;
+                    case 2:
+                        result = TWO;
+                        break;
+                    case 3:
+                        result = THREE;
+                        break;
+                    case 4:
+                        result = FOUR;
+                        break;
+                    case 5:
+                        result = FIVE;
+                        break;
+                    case 6:
+                        result = SIX;
+                        break;
+                    case 7:
+                        result = SEVEN;
+                        break;
+                    case 8:
+                        result = EIGHT;
+                        break;
+                    case 9:
+                        result = NINE;
+                        break;
+                    default:
+                        // IMPOSSIBRU!
+                        return null;
+                }
+
+                return result;
+            }
+
+            public void draw(int number) {
+                draw(booleanArray(number));
+            }
+
+            public void draw(boolean[] number) {
+                for (int i = 0; i < number.length; i++) {
+                    if (number[i]) {
+                        gl.glPushMatrix();
+                        drawLine(i);
+                        gl.glPopMatrix();
+                    }
+                }
+            }
+
+            private void drawLine(int line) {
+                final float w = LINE_WIDTH, l = LINE_LENGTH;
+                switch (line) {
+                    case 0:
+                        gl.glTranslatef(w, w, 0);
+                        gl.glRotatef(-90, 0, 0, 1);
+                        drawLine();
+                        break;
+                    case 1:
+                        gl.glTranslatef(0, w, 0);
+                        drawLine();
+                        break;
+                    case 2:
+                        gl.glTranslatef(l + w, w, 0);
+                        drawLine();
+                        break;
+                    case 3:
+                        gl.glTranslatef(w, 2 * w + l, 0);
+                        gl.glRotatef(-90, 0, 0, 1);
+                        drawLine();
+                        break;
+                    case 4:
+                        gl.glTranslatef(0, 2 * w + l, 0);
+                        drawLine();
+                        break;
+                    case 5:
+                        gl.glTranslatef(l + w, 2 * w + l, 0);
+                        drawLine();
+                        break;
+                    case 6:
+                        gl.glTranslatef(w, 3 * w + 2 * l, 0);
+                        gl.glRotatef(-90, 0, 0, 1);
+                        drawLine();
+                        break;
+                    default:
+                    // IMPOSSIBRU!
+                }
+            }
+
+            private void drawLine() {
+                final float w = LINE_WIDTH, l = LINE_LENGTH;
+                gl.glBegin(GL_QUADS);
+                gl.glNormal3f(0, 0, 1);
+                gl.glVertex3f(0, l, 0);
+                gl.glVertex3f(w, l, 0);
+                gl.glVertex3f(w, 0, 0);
+                gl.glVertex3f(0, 0, 0);
+                gl.glEnd();
+
+                gl.glBegin(GL_TRIANGLES);
+                gl.glVertex3f(0, 0, 0);
+                gl.glVertex3f(w, 0, 0);
+                gl.glVertex3f(w / 2, -w / 2, 0);
+
+                gl.glVertex3f(w, l, 0);
+                gl.glVertex3f(0, l, 0);
+                gl.glVertex3f(w / 2, l + w / 2, 0);
+                gl.glEnd();
+            }
+
+            public float width() {
+                return 2 * LINE_WIDTH + LINE_LENGTH;
+            }
+
+            public float height() {
+                return 3 * LINE_WIDTH + 2 * LINE_LENGTH;
+            }
         }
     }
 
