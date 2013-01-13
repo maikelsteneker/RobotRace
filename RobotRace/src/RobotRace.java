@@ -2112,20 +2112,35 @@ public class RobotRace extends Base {
         return new Matrix(worldToEyeMatrix);
     }
 
-    public class Terrain { // TODO: comment
+    /**
+     * Represents the terrain.
+     */
+    public class Terrain {
 
-        private Set<Bump> bumps;
+        private Set<Bump> bumps; // The bumps which influence the height.
         private Vector[][] points = new Vector[M][N];
         Vector[][] normals = new Vector[M][N]; // normal for each vertex
-        final static private float MIN = -20;
-        final static private float MAX = 20;
+        final static private float MIN = -20; // minimum value for the x and y coordinates.
+        final static private float MAX = 20; // maximum value for the x and y coordinates.
         final static private int M = 200; // number of lines in x direction
         final static private int N = 200; // number of lines in y direction
 
+        /**
+         * Constructs a terrain with the given parameters.
+         * 
+         * @param bumps The bumps which are contained in the terrain. 
+         */
         public Terrain(Bump... bumps) {
             this.bumps = new HashSet(Arrays.asList(bumps));
         }
 
+        /**
+         * Calculates the z coordinate for a point in the XOY plane.
+         * 
+         * @param x The x coordinate of the point.
+         * @param y The y coordinate of the point.
+         * @return The z coordinate of the point.
+         */
         public double z(double x, double y) {
             float sum = 0;
             for (Bump b : bumps) {
@@ -2134,11 +2149,16 @@ public class RobotRace extends Base {
             return sum;
         }
 
+        /**
+         * Precalculates the vertices of the terrain and places them in a display
+         * list.
+         */
         private void precalculate() {
-            float l = MAX - MIN;
-            float w = l / (float) M;
-            float h = l / (float) N;
+            float l = MAX - MIN; // the length of the terrain
+            float w = l / (float) M; // the width of a quad
+            float h = l / (float) N; // the height of a quad
 
+            // Computes the vertices.
             for (int i = 0; i < M; i++) {
                 for (int j = 0; j < N; j++) {
                     double x = MIN + i * w;
@@ -2148,28 +2168,35 @@ public class RobotRace extends Base {
                 }
             }
 
-            normalize();
-
+            normalize(); // map all z coordinates to interval [-1,1]
+            
+            // Intitalize all normals to be 0.
             for (int i = 0; i < M; i++) {
                 for (int j = 0; j < N; j++) {
                     normals[i][j] = Vector.O;
                 }
             }
 
+            // Computes the normal for each vertex.
             for (int i = 0; i < M - 1; i++) {
                 for (int j = 0; j < N - 1; j++) {
-                    Vector bl = points[i][j];
-                    Vector br = points[i + 1][j];
-                    Vector ur = points[i + 1][j + 1];
-                    Vector ul = points[i][j + 1];
+                    // For each square:
+                    Vector bl = points[i][j]; // bottom left vertex
+                    Vector br = points[i + 1][j]; // bottom right vertex
+                    Vector ur = points[i + 1][j + 1]; // upper right vertex
+                    Vector ul = points[i][j + 1]; // upper left vertex
 
-                    Vector diag = br.subtract(ul);
+                    Vector diag = br.subtract(ul);  
                     Vector down = bl.subtract(ul);
                     Vector right = ur.subtract(ul);
 
-                    Vector normal1 = down.cross(diag);
-                    Vector normal2 = diag.cross(right);
+                    Vector normal1 = down.cross(diag); // normal for bottom left triangle
+                    Vector normal2 = diag.cross(right); // normal for upper right triangle
 
+                    // Add the normals to the vertices that are part of the
+                    // triangle. For the bottom left and upper right vertices,
+                    // this is the first and second normal respectively. For the
+                    // other vertices, it is both.
                     normals[i][j] = normals[i][j].add(normal1);
                     normals[i][(j + 1)] = normals[i][(j + 1)].add(normal1).add(normal2);
                     normals[(i + 1)][j] = normals[(i + 1)][j].add(normal1).add(normal2);
@@ -2177,26 +2204,30 @@ public class RobotRace extends Base {
                 }
             }
 
-            gl.glNewList(1, GL_COMPILE);
+            // Draw the triangles using a disply list.
+            gl.glNewList(1, GL_COMPILE); 
             setMaterial(Material.WHITE);
-            landscape.enable(gl);
+            // Set the texture.
+            landscape.enable(gl); 
             landscape.bind(gl);
 
-            Vector bl_normal, br_normal, ur_normal, ul_normal;
+            Vector bl_normal, br_normal, ur_normal, ul_normal; // normals
             gl.glPushMatrix();
+            gl.glBegin(GL_TRIANGLES);
             for (int i = 0; i < M - 1; i++) {
                 for (int j = 0; j < N - 1; j++) {
-                    Vector bl = points[i][j];
-                    Vector br = points[i + 1][j];
-                    Vector ur = points[i + 1][j + 1];
-                    Vector ul = points[i][j + 1];
+                     // For each square:
+                    Vector bl = points[i][j]; // bottom left vertex
+                    Vector br = points[i + 1][j]; // bottom right vertex
+                    Vector ur = points[i + 1][j + 1]; // upper right vertex
+                    Vector ul = points[i][j + 1]; // upper left vertex
 
                     bl_normal = normals[i][j];
                     br_normal = normals[i + 1][j];
                     ur_normal = normals[i + 1][j + 1];
                     ul_normal = normals[i][j + 1];
 
-                    gl.glBegin(GL_TRIANGLES);
+                    // Calls for bottom left triangle.
                     gl.glNormal3d(bl_normal.x(), bl_normal.y(), bl_normal.z());
                     gl.glTexCoord1d(textureCoord(bl.z()));
                     glVertex(bl);
@@ -2207,6 +2238,7 @@ public class RobotRace extends Base {
                     gl.glTexCoord1d(textureCoord(ul.z()));
                     glVertex(ul);
 
+                    // Calls for upper right triangle.
                     gl.glNormal3d(br_normal.x(), br_normal.y(), br_normal.z());
                     gl.glTexCoord1d(textureCoord(br.z()));
                     glVertex(br);
@@ -2216,21 +2248,27 @@ public class RobotRace extends Base {
                     gl.glNormal3d(ul_normal.x(), ul_normal.y(), ul_normal.z());
                     gl.glTexCoord1d(textureCoord(ul.z()));
                     glVertex(ul);
-                    gl.glEnd();
                 }
             }
+            gl.glEnd();
             gl.glPopMatrix();
 
             landscape.disable(gl);
 
-            drawWater();
+            drawWater(); // draw transparent water layer
             gl.glEndList();
         }
 
+        /**
+         * Draws the triangles from the display list.
+         */
         public void draw() {
             gl.glCallList(1);
         }
 
+        /**
+         * Draws a gray transparent polygon to simulate a water surface.
+         */
         private void drawWater() {
             setMaterial(Material.WATER_SURFACE);
             gl.glBegin(GL_QUADS);
@@ -2241,6 +2279,10 @@ public class RobotRace extends Base {
             gl.glEnd();
         }
 
+        /**
+         * Maps the texture coordinate for the z coordinate the interval [-1, 1]
+         * to the interval [0, 1]. 
+         */
         private double textureCoord(double z) {
             return (z + 1) / 2;
         }
@@ -2249,7 +2291,9 @@ public class RobotRace extends Base {
          * Enforces all z coordinates of the points to lie in [-1,1].
          */
         private void normalize() {
-            double zmin = Double.MAX_VALUE, zmax = Double.MIN_VALUE;
+            double zmin = Double.MAX_VALUE, // lowest z coordinate in points
+                    zmax = Double.MIN_VALUE; // highest z coordinate in points
+            // Determine zmin, zmax.
             for (Vector[] line : points) {
                 for (Vector point : line) {
                     if (point.z() < zmin) {
@@ -2276,13 +2320,24 @@ public class RobotRace extends Base {
         }
     }
 
-    public static class Bump { // TODO: comment
+    /**
+     * A class representing a bump.
+     */
+    public static class Bump {
 
         private double center_x;
         private double center_y;
         private double height;
         private double radius;
 
+        /**
+         * Constructs a bump with the desired parameters.
+         *
+         * @param center_x The x coordinate for the center of the bump.
+         * @param center_y The y coordinate for the center of the bump.
+         * @param height The height of the bump.
+         * @param radius The radius of the bump.
+         */
         public Bump(double center_x, double center_y, double height, double radius) {
             this.center_x = center_x;
             this.center_y = center_y;
@@ -2290,12 +2345,23 @@ public class RobotRace extends Base {
             this.radius = radius;
         }
 
-        double summand(double x, double y) {
+        /**
+         * Returns the contribution to the height for a given coordinate on the
+         * plane from this bump.
+         *
+         * @param x The x coordinate.
+         * @param y The y coordinate.
+         * @return Contribution to the height for this bump.
+         */
+        public double summand(double x, double y) {
             double r = (sqrt((x - center_x) * (x - center_x) + (y - center_y) * (y - center_y)) / radius);
-            return height * bump(r);
+            return height * B(r);
         }
-
-        double bump(double r) {
+        
+        /**
+         * Defines the shape of a bump, as described in the assignment.
+         */
+        private double B(double r) {
             return ((r < 1) ? pow(cos(0.5 * PI * r), 2) : 0);
         }
     }
