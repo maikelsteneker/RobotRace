@@ -2151,6 +2151,8 @@ public class RobotRace extends Base {
                     points[i][j] = new Vector(x, y, z);
                 }
             }
+            
+            normalize();
 
             for (int i = 0; i < M; i++) {
                 for (int j = 0; j < N; j++) {
@@ -2245,6 +2247,36 @@ public class RobotRace extends Base {
 
         private double textureCoord(double z) {
             return (z + 1) / 2;
+        }
+
+        /**
+         * Enforces all z coordinates of the points to lie in [-1,1].
+         */
+        private void normalize() {
+            double zmin = Double.MAX_VALUE, zmax = Double.MIN_VALUE;
+            for (Vector[] line : points) {
+                for(Vector point : line) {
+                    if (point.z() < zmin) {
+                        zmin = point.z();
+                    }
+                    if (point.z() > zmax) {
+                        zmax = point.z();
+                    }
+                }
+            }
+            
+            for (int i = 0; i < M; i++) {
+                for (int j = 0; j < N; j++) {
+                    double x,y,z;
+                    Vector point = points[i][j];
+                    x = point.x();
+                    y = point.y();
+                    z = point.z();
+                    z = (z - zmin) / (zmax - zmin); // normalize to [0,1]
+                    z = 2*z-1; // map to [-1,1]
+                    points[i][j] = new Vector(x, y, z);
+                }
+            }
         }
     }
 
