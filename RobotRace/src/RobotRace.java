@@ -191,6 +191,11 @@ public class RobotRace extends Base {
             robots[i] = new Robot(i + 1);
         }
 
+        // Make a track in the shape of a specified Bezier curve, with the wdith
+        // of the number of robots plus 1. Let the height of the track be
+        // between -1 and 1.
+        t = new Track(NUMROBOTS + 1, -1, 1);
+
         // Load a 1D texture for the landscape.
         try {
             landscape = TextureIO.newTexture(new File("src/landscape.jpg"), false);
@@ -372,37 +377,29 @@ public class RobotRace extends Base {
         // Reset to default texture.
         track.disable(gl);
 
-        // Make a track in the shape of a specified Bezier curve, with the wdith
-        // of the number of robots plus 1. Let the height of the track be
-        // between -1 and 1.
-        Curve c;
+        // Use the curve the user selected.
         switch (gs.trackNr) {
             case 0:
                 //letter O
-                c = BezierCurve.O;
+                t.curve = BezierCurve.O;
                 break;
             case 1:
                 //letter D
-                c = BezierCurve.D;
-                BezierCurve temp = (BezierCurve) c;
-                temp.drawPoints(gl, glut); // TODO: remove
+                t.curve = BezierCurve.D;
                 break;
             case 2:
                 //letter L
-                c = BezierCurve.L;
-                BezierCurve temp2 = (BezierCurve) c;
-                temp2.drawPoints(gl, glut); // TODO: remove
+                t.curve = BezierCurve.L;
                 break;
             case 3:
                 //custom track
-                c = BezierCurve.custom;
-                BezierCurve temp3 = (BezierCurve) c;
-                temp3.drawPoints(gl, glut); // TODO: remove
+                t.curve = BezierCurve.custom;
                 break;
             default:
-                c = null;
+                t.curve = null;
         }
-        t = new Track(c, NUMROBOTS + 1, -1, 1);
+
+        ((BezierCurve) t.curve).drawPoints(gl, glut); // TODO: remove
 
         // Set the material of the track to white.
         // The track has textures, and we do not want to interfere with that.
@@ -1691,7 +1688,7 @@ public class RobotRace extends Base {
      */
     public class Track {
 
-        private Curve curve; // determines the shape of the track
+        public Curve curve = BezierCurve.O; // determines the shape of the track
         private float width; // width of the track
         private float minHeight; // height at which the track starts
         private float maxHeight; // height at which the track ends
@@ -1705,8 +1702,7 @@ public class RobotRace extends Base {
          * @param minHeight height at which the track starts
          * @param maxHeight height at which the track ends
          */
-        public Track(Curve curve, float width, float minHeight, float maxHeight) {
-            this.curve = curve;
+        public Track(float width, float minHeight, float maxHeight) {
             this.width = width;
             this.minHeight = minHeight;
             this.maxHeight = maxHeight;
@@ -2151,7 +2147,7 @@ public class RobotRace extends Base {
                     points[i][j] = new Vector(x, y, z);
                 }
             }
-            
+
             normalize();
 
             for (int i = 0; i < M; i++) {
@@ -2255,7 +2251,7 @@ public class RobotRace extends Base {
         private void normalize() {
             double zmin = Double.MAX_VALUE, zmax = Double.MIN_VALUE;
             for (Vector[] line : points) {
-                for(Vector point : line) {
+                for (Vector point : line) {
                     if (point.z() < zmin) {
                         zmin = point.z();
                     }
@@ -2264,16 +2260,16 @@ public class RobotRace extends Base {
                     }
                 }
             }
-            
+
             for (int i = 0; i < M; i++) {
                 for (int j = 0; j < N; j++) {
-                    double x,y,z;
+                    double x, y, z;
                     Vector point = points[i][j];
                     x = point.x();
                     y = point.y();
                     z = point.z();
                     z = (z - zmin) / (zmax - zmin); // normalize to [0,1]
-                    z = 2*z-1; // map to [-1,1]
+                    z = 2 * z - 1; // map to [-1,1]
                     points[i][j] = new Vector(x, y, z);
                 }
             }
