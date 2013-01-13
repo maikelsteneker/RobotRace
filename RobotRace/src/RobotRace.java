@@ -214,6 +214,7 @@ public class RobotRace extends Base {
         }
         // Define the terrain as a surface with these bumps.
         terrain = new Terrain(bumps);
+        terrain.precalculate(); // precalculate all surfaces
     }
 
     /**
@@ -2119,6 +2120,7 @@ public class RobotRace extends Base {
 
         private Set<Bump> bumps;
         private Vector[][] points = new Vector[M][N];
+        Vector[][] normals = new Vector[M][N]; // normal for each vertex
         final static private float MIN = -20;
         final static private float MAX = 20;
         final static private int M = 200; // number of lines in x direction
@@ -2149,18 +2151,7 @@ public class RobotRace extends Base {
                     points[i][j] = new Vector(x, y, z);
                 }
             }
-        }
 
-        public void draw() {
-            if (points[0][0] == null) {
-                precalculate();
-            }
-
-            setMaterial(Material.WHITE);
-            landscape.enable(gl);
-            landscape.bind(gl);
-
-            Vector[][] normals = new Vector[M][N]; // normal for each vertex
             for (int i = 0; i < M; i++) {
                 for (int j = 0; j < N; j++) {
                     normals[i][j] = Vector.O;
@@ -2173,7 +2164,7 @@ public class RobotRace extends Base {
                     Vector br = points[i + 1][j];
                     Vector ur = points[i + 1][j + 1];
                     Vector ul = points[i][j + 1];
- 
+
                     Vector diag = br.subtract(ul);
                     Vector down = bl.subtract(ul);
                     Vector right = ur.subtract(ul);
@@ -2188,6 +2179,11 @@ public class RobotRace extends Base {
                 }
             }
 
+            gl.glNewList(1, GL_COMPILE);
+            setMaterial(Material.WHITE);
+            landscape.enable(gl);
+            landscape.bind(gl);
+
             Vector bl_normal, br_normal, ur_normal, ul_normal;
             gl.glPushMatrix();
             for (int i = 0; i < M - 1; i++) {
@@ -2197,21 +2193,12 @@ public class RobotRace extends Base {
                     Vector ur = points[i + 1][j + 1];
                     Vector ul = points[i][j + 1];
 
-                    Vector diag = br.subtract(ul);
-                    Vector down = bl.subtract(ul);
-                    Vector right = ur.subtract(ul);
-
-                    Vector normal1 = down.cross(diag);
-                    Vector normal2 = diag.cross(right);
-
                     bl_normal = normals[i][j];
-                    br_normal = normals[i+1][j];
-                    ur_normal = normals[i+1][j+1];
-                    ul_normal = normals[i][j+1];
+                    br_normal = normals[i + 1][j];
+                    ur_normal = normals[i + 1][j + 1];
+                    ul_normal = normals[i][j + 1];
 
-            gl.glBegin(GL_TRIANGLES);
-
-                    //gl.glNormal3d(normal1.x(), normal1.y(), normal1.z());
+                    gl.glBegin(GL_TRIANGLES);
                     gl.glNormal3d(bl_normal.x(), bl_normal.y(), bl_normal.z());
                     gl.glTexCoord1d(textureCoord(bl.z()));
                     glVertex(bl);
@@ -2222,7 +2209,6 @@ public class RobotRace extends Base {
                     gl.glTexCoord1d(textureCoord(ul.z()));
                     glVertex(ul);
 
-                    //gl.glNormal3d(normal2.x(), normal2.y(), normal2.z());
                     gl.glNormal3d(br_normal.x(), br_normal.y(), br_normal.z());
                     gl.glTexCoord1d(textureCoord(br.z()));
                     glVertex(br);
@@ -2232,28 +2218,7 @@ public class RobotRace extends Base {
                     gl.glNormal3d(ul_normal.x(), ul_normal.y(), ul_normal.z());
                     gl.glTexCoord1d(textureCoord(ul.z()));
                     glVertex(ul);
-                                gl.glEnd();
-/*
-                    Vector to;
-                    gl.glBegin(GL_LINES);
-                    if (!(bl_normal.x() == 0 && bl_normal.y() == 0)) {
-                    to = bl.add(bl_normal.normalized());
-                                        glVertex(bl);
-                    glVertex(to);}
                     gl.glEnd();
-                    
-                                        gl.glBegin(GL_LINE_LOOP);
-                    glVertex(bl);
-                    glVertex(br);
-                    glVertex(ul);
-
-                                        gl.glEnd();
-                    
-                    gl.glBegin(GL_LINE_LOOP);
-                                        glVertex(br);
-                    glVertex(ur);
-                    glVertex(ul);
-                    gl.glEnd();*/
                 }
             }
             gl.glPopMatrix();
@@ -2261,6 +2226,11 @@ public class RobotRace extends Base {
             landscape.disable(gl);
 
             drawWater();
+            gl.glEndList();
+        }
+
+        public void draw() {
+            gl.glCallList(1);
         }
 
         private void drawWater() {
