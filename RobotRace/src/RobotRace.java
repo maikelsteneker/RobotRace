@@ -182,8 +182,8 @@ public class RobotRace extends Base {
         gl.glEnable(GL_LIGHTING);
         gl.glEnable(GL_LIGHT0);
         gl.glEnable(GL_NORMALIZE);
-        float[] ambient = {1f,1f,1f,1f};	
-        gl.glLightfv(GL_LIGHT0, GL_AMBIENT, ambient,0);
+        float[] ambient = {1f, 1f, 1f, 1f};
+        gl.glLightfv(GL_LIGHT0, GL_AMBIENT, ambient, 0);
 
         // Initialize robots array.
         robots = new Robot[NUMROBOTS];
@@ -1784,9 +1784,9 @@ public class RobotRace extends Base {
                 Vector point = points.get(i); // point on inside of the track
                 Vector next_point = points.get(i + 1);
                 gl.glTexCoord2f(0, 0);
-                gl.glVertex3d(point.x(), point.y(), maxHeight);
+                gl.glVertex3d(point.x(), point.y(), point.z());
                 gl.glTexCoord2f(1, 0);
-                gl.glVertex3d(next_point.x(), next_point.y(), maxHeight);
+                gl.glVertex3d(next_point.x(), next_point.y(), next_point.z());
                 gl.glTexCoord2f(1, 1);
                 gl.glVertex3d(next_point.x(), next_point.y(), minHeight);
                 gl.glTexCoord2f(0, 1);
@@ -1799,9 +1799,9 @@ public class RobotRace extends Base {
                 point = offset_points.get(i); // point on outside of the track
                 next_point = offset_points.get(i + 1);
                 gl.glTexCoord2f(0, 0);
-                gl.glVertex3d(point.x(), point.y(), maxHeight);
+                gl.glVertex3d(point.x(), point.y(), point.z());
                 gl.glTexCoord2f(1, 0);
-                gl.glVertex3d(next_point.x(), next_point.y(), maxHeight);
+                gl.glVertex3d(next_point.x(), next_point.y(), next_point.z());
                 gl.glTexCoord2f(1, 1);
                 gl.glVertex3d(next_point.x(), next_point.y(), minHeight);
                 gl.glTexCoord2f(0, 1);
@@ -1950,8 +1950,8 @@ public class RobotRace extends Base {
                 new Vector(-10, 10, 5),
                 new Vector(10, 10, 1),
                 new Vector(10, 0, 5),
-                new Vector(10, -10, 1),
-                new Vector(-10, -10, 5),
+                new Vector(10, -10, 9),
+                new Vector(-10, -10, -3),
                 new Vector(-10, 0, 1));
 
         /**
@@ -2160,8 +2160,36 @@ public class RobotRace extends Base {
             landscape.enable(gl);
             landscape.bind(gl);
 
+            Vector[][] normals = new Vector[M][N]; // normal for each vertex
+            for (int i = 0; i < M; i++) {
+                for (int j = 0; j < N; j++) {
+                    normals[i][j] = Vector.O;
+                }
+            }
+
+            for (int i = 0; i < M - 1; i++) {
+                for (int j = 0; j < N - 1; j++) {
+                    Vector bl = points[i][j];
+                    Vector br = points[i + 1][j];
+                    Vector ur = points[i + 1][j + 1];
+                    Vector ul = points[i][j + 1];
+ 
+                    Vector diag = br.subtract(ul);
+                    Vector down = bl.subtract(ul);
+                    Vector right = ur.subtract(ul);
+
+                    Vector normal1 = down.cross(diag);
+                    Vector normal2 = diag.cross(right);
+
+                    normals[i][j] = normals[i][j].add(normal1);
+                    normals[i][(j + 1)] = normals[i][(j + 1)].add(normal1).add(normal2);
+                    normals[(i + 1)][j] = normals[(i + 1)][j].add(normal1).add(normal2);
+                    normals[(i + 1)][(j + 1)] = normals[(i + 1)][(j + 1)].add(normal2);
+                }
+            }
+
+            Vector bl_normal, br_normal, ur_normal, ul_normal;
             gl.glPushMatrix();
-            gl.glBegin(GL_TRIANGLES);
             for (int i = 0; i < M - 1; i++) {
                 for (int j = 0; j < N - 1; j++) {
                     Vector bl = points[i][j];
@@ -2176,25 +2204,58 @@ public class RobotRace extends Base {
                     Vector normal1 = down.cross(diag);
                     Vector normal2 = diag.cross(right);
 
+                    bl_normal = normals[i][j];
+                    br_normal = normals[i+1][j];
+                    ur_normal = normals[i+1][j+1];
+                    ul_normal = normals[i][j+1];
 
-                    gl.glNormal3d(normal1.x(), normal1.y(), normal1.z());
+            gl.glBegin(GL_TRIANGLES);
+
+                    //gl.glNormal3d(normal1.x(), normal1.y(), normal1.z());
+                    gl.glNormal3d(bl_normal.x(), bl_normal.y(), bl_normal.z());
                     gl.glTexCoord1d(textureCoord(bl.z()));
                     glVertex(bl);
+                    gl.glNormal3d(br_normal.x(), br_normal.y(), br_normal.z());
                     gl.glTexCoord1d(textureCoord(br.z()));
                     glVertex(br);
+                    gl.glNormal3d(ul_normal.x(), ul_normal.y(), ul_normal.z());
                     gl.glTexCoord1d(textureCoord(ul.z()));
                     glVertex(ul);
 
-                    gl.glNormal3d(normal2.x(), normal2.y(), normal2.z());
+                    //gl.glNormal3d(normal2.x(), normal2.y(), normal2.z());
+                    gl.glNormal3d(br_normal.x(), br_normal.y(), br_normal.z());
                     gl.glTexCoord1d(textureCoord(br.z()));
                     glVertex(br);
+                    gl.glNormal3d(ur_normal.x(), ur_normal.y(), ur_normal.z());
                     gl.glTexCoord1d(textureCoord(ur.z()));
                     glVertex(ur);
+                    gl.glNormal3d(ul_normal.x(), ul_normal.y(), ul_normal.z());
                     gl.glTexCoord1d(textureCoord(ul.z()));
                     glVertex(ul);
+                                gl.glEnd();
+/*
+                    Vector to;
+                    gl.glBegin(GL_LINES);
+                    if (!(bl_normal.x() == 0 && bl_normal.y() == 0)) {
+                    to = bl.add(bl_normal.normalized());
+                                        glVertex(bl);
+                    glVertex(to);}
+                    gl.glEnd();
+                    
+                                        gl.glBegin(GL_LINE_LOOP);
+                    glVertex(bl);
+                    glVertex(br);
+                    glVertex(ul);
+
+                                        gl.glEnd();
+                    
+                    gl.glBegin(GL_LINE_LOOP);
+                                        glVertex(br);
+                    glVertex(ur);
+                    glVertex(ul);
+                    gl.glEnd();*/
                 }
             }
-            gl.glEnd();
             gl.glPopMatrix();
 
             landscape.disable(gl);
@@ -2469,7 +2530,6 @@ public class RobotRace extends Base {
 
                 // Draw the line itself.
                 gl.glBegin(GL_QUADS);
-                gl.glNormal3f(0, 0, 1);
                 gl.glVertex2f(0, l);
                 gl.glVertex2f(w, l);
                 gl.glVertex2f(w, 0);
@@ -2580,7 +2640,7 @@ public class RobotRace extends Base {
 
         // Clear depth buffer.
         gl.glClear(GL_DEPTH_BUFFER_BIT);
-        
+
         // Render the scene from helicopter mode.
         gl.glMatrixMode(GL_MODELVIEW);
         gl.glPushMatrix();
@@ -2593,7 +2653,7 @@ public class RobotRace extends Base {
         gl.glPopMatrix();
         gl.glMatrixMode(GL_MODELVIEW);
         gl.glPopMatrix();
-        
+
         gl.glViewport(0, 0, gs.w, gs.h); // restore viewport
     }
 
