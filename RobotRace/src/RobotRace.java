@@ -2704,17 +2704,22 @@ public class RobotRace extends Base {
 
         // Clear depth buffer.
         gl.glClear(GL_DEPTH_BUFFER_BIT);
-
-        // Render the scene from helicopter mode.
+        
+        // Set the camera to helicopter cam.
         gl.glMatrixMode(GL_MODELVIEW);
         gl.glPushMatrix();
         gl.glLoadIdentity();
         setHelicopterCamMode();
+                float[] location = {(float) light.x(), (float) light.y(), (float) light.z(), 0};
+        gl.glLightfv(GL_LIGHT0, GL_POSITION, location, 0); //set location of ls0
+
+        // Render the scene.
         drawObjects();
 
         // Restore the original matrices.
         gl.glMatrixMode(GL_PROJECTION);
-        gl.glPopMatrix();
+        gl.glPopMatrix();        
+
         gl.glMatrixMode(GL_MODELVIEW);
         gl.glPopMatrix();
 
