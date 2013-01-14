@@ -1918,29 +1918,46 @@ public class RobotRace extends Base {
                 new Vector(0, -12, 1),
                 new Vector(0, -10, 1));
         // Bezier curve resembling the letter L.
+        final static float s = 4;
+        final static float n = 12;
+        final static float t = 13;
         final static public BezierCurve L = new BezierCurve(
-                new Vector(1, -12, 1),
-                new Vector(5, -12, 1),
-                new Vector(9, -12, 1),
-                new Vector(13, -12, 1),
-                new Vector(14, -12, 1),
-                new Vector(14, -13, 1),
-                new Vector(13, -13, 1),
-                new Vector(9, -13, 1),
-                new Vector(5, -13, 1),
-                new Vector(1, -13, 1),
-                new Vector(0, -13, 1),
-                new Vector(0, -13, 1),
-                new Vector(0, -12, 1),
-                new Vector(0, -8, 1),
-                new Vector(0, -4, 1),
-                new Vector(0, 0, 1),
-                new Vector(0, 1, 1),
-                new Vector(1, 1, 1),
-                new Vector(1, 0, 1),
-                new Vector(1, -4, 1),
-                new Vector(1, -8, 1),
-                new Vector(1, -12, 1));
+                new Vector(4, -11, 1),
+                new Vector((5 + (8 / 3))+n -t, -12- n+t, 1),
+                new Vector((5 + (16 / 3))+n-t , -12- n+t, 1),
+                new Vector(13+n-t , -12- n+t, 1),
+                new Vector(14 +n-t, -12- n+t, 1),
+                new Vector(14+n -t, -13- n+t, 1),
+                new Vector(13 +n-t, -13- n+t, 1),
+                new Vector(9 +n-t, -13- n+t, 1),
+                new Vector(5+n -t, -13- n+t, 1),
+                new Vector(4-t, -13- n+t, 1),
+                new Vector(0-t, -13- n+t, 1),
+                new Vector(0-t, -13- n+t, 1),
+                new Vector(0-t, -12+t, 1),
+                new Vector(0-t, -8+t, 1),
+                new Vector(0-t, -4+t, 1),
+                new Vector(0-t, 0+t, 1),
+                new Vector(0-t, 1+t, 1),
+                new Vector(1-t, 1+t, 1),
+                new Vector(1-t, 0+t, 1),
+                new Vector(1-t, (-8 / 3)+t, 1),
+                new Vector(1-t, (-16 / 3)+t, 1),
+                new Vector(1-t, -8+t, 1),
+                new Vector(1-t, -12- n+t, 1),
+                new Vector(1-t, -12- n+t, 1),
+                new Vector(5 +n-t, -12- n+t, 1));
+        /*new Vector(0, 40, 1),
+         new Vecto``r(0, 30, 1),
+         new Vector(0, 20, 1),
+         new Vector(0, 10, 1),
+         // new Vector(0, 10, 1),
+         new Vector(0, 0, 1),
+         new Vector(0, 0, 1),
+         new Vector(10, 0, 1),
+         new Vector(20, 0, 1),
+         new Vector(25, 0, 1),
+         new Vector(30, 0, 1));*/
         // Customly defined Bezier curve.
         final static public BezierCurve custom = new BezierCurve(
                 new Vector(-10, 0, 1),
@@ -2127,8 +2144,8 @@ public class RobotRace extends Base {
 
         /**
          * Constructs a terrain with the given parameters.
-         * 
-         * @param bumps The bumps which are contained in the terrain. 
+         *
+         * @param bumps The bumps which are contained in the terrain.
          */
         public Terrain(Bump... bumps) {
             this.bumps = new HashSet(Arrays.asList(bumps));
@@ -2136,7 +2153,7 @@ public class RobotRace extends Base {
 
         /**
          * Calculates the z coordinate for a point in the XOY plane.
-         * 
+         *
          * @param x The x coordinate of the point.
          * @param y The y coordinate of the point.
          * @return The z coordinate of the point.
@@ -2150,8 +2167,8 @@ public class RobotRace extends Base {
         }
 
         /**
-         * Precalculates the vertices of the terrain and places them in a display
-         * list.
+         * Precalculates the vertices of the terrain and places them in a
+         * display list.
          */
         private void precalculate() {
             float l = MAX - MIN; // the length of the terrain
@@ -2169,7 +2186,7 @@ public class RobotRace extends Base {
             }
 
             normalize(); // map all z coordinates to interval [-1,1]
-            
+
             // Intitalize all normals to be 0.
             for (int i = 0; i < M; i++) {
                 for (int j = 0; j < N; j++) {
@@ -2186,7 +2203,7 @@ public class RobotRace extends Base {
                     Vector ur = points[i + 1][j + 1]; // upper right vertex
                     Vector ul = points[i][j + 1]; // upper left vertex
 
-                    Vector diag = br.subtract(ul);  
+                    Vector diag = br.subtract(ul);
                     Vector down = bl.subtract(ul);
                     Vector right = ur.subtract(ul);
 
@@ -2205,10 +2222,10 @@ public class RobotRace extends Base {
             }
 
             // Draw the triangles using a disply list.
-            gl.glNewList(1, GL_COMPILE); 
+            gl.glNewList(1, GL_COMPILE);
             setMaterial(Material.WHITE);
             // Set the texture.
-            landscape.enable(gl); 
+            landscape.enable(gl);
             landscape.bind(gl);
 
             Vector bl_normal, br_normal, ur_normal, ul_normal; // normals
@@ -2216,7 +2233,7 @@ public class RobotRace extends Base {
             gl.glBegin(GL_TRIANGLES);
             for (int i = 0; i < M - 1; i++) {
                 for (int j = 0; j < N - 1; j++) {
-                     // For each square:
+                    // For each square:
                     Vector bl = points[i][j]; // bottom left vertex
                     Vector br = points[i + 1][j]; // bottom right vertex
                     Vector ur = points[i + 1][j + 1]; // upper right vertex
@@ -2281,7 +2298,7 @@ public class RobotRace extends Base {
 
         /**
          * Maps the texture coordinate for the z coordinate the interval [-1, 1]
-         * to the interval [0, 1]. 
+         * to the interval [0, 1].
          */
         private double textureCoord(double z) {
             return (z + 1) / 2;
@@ -2357,7 +2374,7 @@ public class RobotRace extends Base {
             double r = (sqrt((x - center_x) * (x - center_x) + (y - center_y) * (y - center_y)) / radius);
             return height * B(r);
         }
-        
+
         /**
          * Defines the shape of a bump, as described in the assignment.
          */
@@ -2704,13 +2721,13 @@ public class RobotRace extends Base {
 
         // Clear depth buffer.
         gl.glClear(GL_DEPTH_BUFFER_BIT);
-        
+
         // Set the camera to helicopter cam.
         gl.glMatrixMode(GL_MODELVIEW);
         gl.glPushMatrix();
         gl.glLoadIdentity();
         setHelicopterCamMode();
-                float[] location = {(float) light.x(), (float) light.y(), (float) light.z(), 0};
+        float[] location = {(float) light.x(), (float) light.y(), (float) light.z(), 0};
         gl.glLightfv(GL_LIGHT0, GL_POSITION, location, 0); //set location of ls0
 
         // Render the scene.
@@ -2718,7 +2735,7 @@ public class RobotRace extends Base {
 
         // Restore the original matrices.
         gl.glMatrixMode(GL_PROJECTION);
-        gl.glPopMatrix();        
+        gl.glPopMatrix();
 
         gl.glMatrixMode(GL_MODELVIEW);
         gl.glPopMatrix();
