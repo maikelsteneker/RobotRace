@@ -399,8 +399,6 @@ public class RobotRace extends Base {
                 t.curve = null;
         }
 
-        ((BezierCurve) t.curve).drawPoints(gl, glut); // TODO: remove
-
         // Set the material of the track to white.
         // The track has textures, and we do not want to interfere with that.
         setMaterial(Material.WHITE);
@@ -1904,60 +1902,46 @@ public class RobotRace extends Base {
                 new Vector(-10, 0, 1));
         // Bezier curve resembling the letter D.
         final static public BezierCurve D = new BezierCurve(
-                new Vector(0, -10, 1),
-                new Vector(0, -5, 1),
-                new Vector(0, 5, 1),
-                new Vector(0, 10, 1),
-                new Vector(0, 12, 1),
-                new Vector(2, 15, 1),
-                new Vector(10, 11, 1),
-                new Vector(16, 7, 1),
-                new Vector(16, -13, 1),
-                new Vector(10, -14, 1),
-                new Vector(2, -15, 1),
-                new Vector(0, -12, 1),
-                new Vector(0, -10, 1));
+                new Vector(-7, -10, 1),
+                new Vector(-7, -5, 1),
+                new Vector(-7, 5, 1),
+                new Vector(-7, 10, 1),
+                new Vector(-7, 12, 1),
+                new Vector(-5, 15, 1),
+                new Vector(3, 11, 1),
+                new Vector(9, 7, 1),
+                new Vector(9, -13, 1),
+                new Vector(3, -14, 1),
+                new Vector(-5, -15, 1),
+                new Vector(-7, -12, 1),
+                new Vector(-7, -10, 1));
         // Bezier curve resembling the letter L.
-        final static float s = 4;
-        final static float n = 12;
-        final static float t = 13;
         final static public BezierCurve L = new BezierCurve(
                 new Vector(4, -11, 1),
-                new Vector((5 + (8 / 3))+n -t, -12- n+t, 1),
-                new Vector((5 + (16 / 3))+n-t , -12- n+t, 1),
-                new Vector(13+n-t , -12- n+t, 1),
-                new Vector(14 +n-t, -12- n+t, 1),
-                new Vector(14+n -t, -13- n+t, 1),
-                new Vector(13 +n-t, -13- n+t, 1),
-                new Vector(9 +n-t, -13- n+t, 1),
-                new Vector(5+n -t, -13- n+t, 1),
-                new Vector(4-t, -13- n+t, 1),
-                new Vector(0-t, -13- n+t, 1),
-                new Vector(0-t, -13- n+t, 1),
-                new Vector(0-t, -12+t, 1),
-                new Vector(0-t, -8+t, 1),
-                new Vector(0-t, -4+t, 1),
-                new Vector(0-t, 0+t, 1),
-                new Vector(0-t, 1+t, 1),
-                new Vector(1-t, 1+t, 1),
-                new Vector(1-t, 0+t, 1),
-                new Vector(1-t, (-8 / 3)+t, 1),
-                new Vector(1-t, (-16 / 3)+t, 1),
-                new Vector(1-t, -8+t, 1),
-                new Vector(1-t, -12- n+t, 1),
-                new Vector(1-t, -12- n+t, 1),
-                new Vector(5 +n-t, -12- n+t, 1));
-        /*new Vector(0, 40, 1),
-         new Vecto``r(0, 30, 1),
-         new Vector(0, 20, 1),
-         new Vector(0, 10, 1),
-         // new Vector(0, 10, 1),
-         new Vector(0, 0, 1),
-         new Vector(0, 0, 1),
-         new Vector(10, 0, 1),
-         new Vector(20, 0, 1),
-         new Vector(25, 0, 1),
-         new Vector(30, 0, 1));*/
+                new Vector(20 / 3, -11, 1),
+                new Vector(28 / 3, -11, 1),
+                new Vector(12, -11, 1),
+                new Vector(13, -11, 1),
+                new Vector(13, -12, 1),
+                new Vector(12, -12, 1),
+                new Vector(8, -12, 1),
+                new Vector(4, -12, 1),
+                new Vector(-9, -12, 1),
+                new Vector(-13, -12, 1),
+                new Vector(-13, -12, 1),
+                new Vector(-13, 1, 1),
+                new Vector(-13, 5, 1),
+                new Vector(-13, 9, 1),
+                new Vector(-13, 13, 1),
+                new Vector(-13, 14, 1),
+                new Vector(-12, 14, 1),
+                new Vector(-12, 13, 1),
+                new Vector(-12, 10, 1),
+                new Vector(-12, 8, 1),
+                new Vector(-12, 5, 1),
+                new Vector(-12, -11, 1),
+                new Vector(-12, -11, 1),
+                new Vector(4, -11, 1));
         // Customly defined Bezier curve.
         final static public BezierCurve custom = new BezierCurve(
                 new Vector(-10, 0, 1),
@@ -1969,7 +1953,7 @@ public class RobotRace extends Base {
                 new Vector(-10, 0, 1));
 
         /**
-         * Construcs a Bezier curve from the specified control points.
+         * Constructs a Bezier curve from the specified control points.
          *
          * @param points control points
          */
@@ -2045,16 +2029,6 @@ public class RobotRace extends Base {
             return P1.subtract(P0).scale(pow(1 - t, 2)).add(
                     P2.subtract(P1).scale(2 * t * (1 - t))).add(
                     P3.subtract(P2).scale(pow(t, 2))).scale(3);
-        }
-
-        public void drawPoints(GL2 gl, GLUT glut) {
-            // TODO: remove
-            for (Vector point : P) {
-                gl.glPushMatrix();
-                gl.glTranslated(point.x(), point.y(), point.z());
-                glut.glutSolidCube(1);
-                gl.glPopMatrix();
-            }
         }
     }
 
